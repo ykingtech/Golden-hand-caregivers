@@ -6,6 +6,11 @@
     <title>Kina Care - Admin Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Leaflet JS & CSS (Map එක සඳහා) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -13,6 +18,15 @@
             }
         }
     </script>
+    <style>
+        /* සිතියම පෙන්වීමට අවශ්‍ය උස */
+        #admin-map { height: calc(100vh - 120px); width: 100%; z-index: 10; }
+        .map-popup-title { font-weight: bold; color: #0f172a; margin-bottom: 4px;}
+        .map-popup-role { font-size: 12px; padding: 2px 6px; border-radius: 10px; color: white;}
+        .role-caregiver { background-color: #0ea5e9; }
+        .role-caregiver-busy { background-color: #ef4444; } /* රතු පාට Busy අයට */
+        .role-client { background-color: #10b981; }
+    </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased text-gray-900 h-screen flex overflow-hidden">
 
@@ -46,16 +60,17 @@
     <!-- DASHBOARD SCREEN -->
     <div id="dashboard-screen" class="flex w-full h-full hidden">
         <!-- Sidebar -->
-        <aside class="w-64 bg-dark text-white flex flex-col h-full shadow-xl">
+        <aside class="w-64 bg-dark text-white flex flex-col h-full shadow-xl z-20">
             <div class="h-16 flex items-center justify-center border-b border-gray-700">
                 <h1 class="text-2xl font-bold tracking-wider text-primary">KINA <span class="text-white">CARE</span></h1>
             </div>
             <nav class="flex-1 py-4">
                 <ul class="space-y-2 px-4">
                     <li><button onclick="switchTab('overview')" id="tab-overview" class="w-full flex items-center p-3 rounded-lg bg-primary text-white transition"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>Overview</button></li>
-                    <!-- අලුත් ටැබ් එක: All Users -->
                     <li><button onclick="switchTab('users')" id="tab-users" class="w-full flex items-center p-3 rounded-lg text-gray-300 hover:bg-gray-800 transition"><i data-lucide="users" class="w-5 h-5 mr-3"></i>All Users</button></li>
                     <li><button onclick="switchTab('verification')" id="tab-verification" class="w-full flex items-center p-3 rounded-lg text-gray-300 hover:bg-gray-800 transition"><i data-lucide="shield-check" class="w-5 h-5 mr-3"></i>Verification Center</button></li>
+                    <!-- අලුත් ටැබ් එක: Live Map -->
+                    <li><button onclick="switchTab('map')" id="tab-map" class="w-full flex items-center p-3 rounded-lg text-gray-300 hover:bg-gray-800 transition"><i data-lucide="map" class="w-5 h-5 mr-3"></i>Live Map (God View)</button></li>
                 </ul>
             </nav>
             <div class="p-4 border-t border-gray-700 flex items-center justify-between">
@@ -89,7 +104,7 @@
                     </div>
                 </div>
 
-                <!-- අලුත් අංශය: All Users Section -->
+                <!-- All Users Section -->
                 <div id="section-users" class="hidden">
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                         <div class="p-6 border-b border-gray-100 flex justify-between items-center">
@@ -139,9 +154,27 @@
                     </div>
                 </div>
 
+                <!-- Live Map (God View) -->
+                <div id="section-map" class="hidden h-full flex-col relative">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4 flex justify-between items-center z-20">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">Real-time Location Tracking</h3>
+                            <p class="text-sm text-gray-500">Monitor all active Caregivers and Clients on the map.</p>
+                        </div>
+                        <div class="flex space-x-4">
+                            <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#0ea5e9] mr-2"></span><span class="text-sm text-gray-600">Caregivers (Free)</span></div>
+                            <!-- රතු පාටින් Busy අය -->
+                            <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#ef4444] mr-2"></span><span class="text-sm text-gray-600">Caregivers (Busy)</span></div>
+                            <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#10b981] mr-2"></span><span class="text-sm text-gray-600">Clients</span></div>
+                        </div>
+                    </div>
+                    <!-- සිතියම පෙන්වන Div එක -->
+                    <div id="admin-map" class="rounded-xl shadow-sm border border-gray-200 overflow-hidden flex-1 relative z-10"></div>
+                </div>
+
             </div>
             
-            <!-- ====== MODAL: Review Details (දැන් සියලුම විස්තර පෙන්වයි) ====== -->
+            <!-- ====== MODAL: Review Details ====== -->
             <div id="review-modal" class="absolute inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
                 <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col">
                     <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 sticky top-0">
@@ -232,6 +265,7 @@
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
         import { getFirestore, collection, query, where, getDocs, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
+        // ඔබගේ Firebase Config එක මෙතැන ඇත
         const firebaseConfig = {
             apiKey: "AIzaSyDjLaQSVtIk8w3nWve7PF5PwbtxGzjIogI",
             authDomain: "care-2a20d.firebaseapp.com",
@@ -252,6 +286,10 @@
         const allUsersTableBody = document.getElementById('all-users-table-body');
         
         window.allUsersDataMap = {}; 
+        
+        // Map Variables
+        let adminMap = null;
+        let markersMap = {}; // එක් එක් User ගේ Marker එක ගබඩා කිරීමට
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -261,6 +299,7 @@
                 loadDashboardStats();
                 loadPendingCaregivers();
                 loadAllUsers();
+                startLiveMapTracking(); // ලොග් වුණු ගමන් Map Tracking පටන් ගන්නවා
             } else {
                 loginScreen.classList.remove('hidden');
                 dashboardScreen.classList.add('hidden');
@@ -302,7 +341,6 @@
             });
         }
 
-        // Load All Users
         window.loadAllUsers = async function() {
             allUsersTableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500">Loading data...</td></tr>`;
             onSnapshot(collection(db, "users"), (snapshot) => {
@@ -337,7 +375,6 @@
             });
         }
 
-        // Load Pending Caregivers
         window.loadPendingCaregivers = async function() {
             pendingTableBody.innerHTML = `<tr><td colspan="3" class="p-8 text-center text-gray-500">Loading data...</td></tr>`;
             const q = query(collection(db, "users"), where("role", "==", "CAREGIVER"), where("isVerified", "==", false));
@@ -376,11 +413,11 @@
             document.getElementById('modal-phone').innerText = user.phone || 'Not Provided';
             document.getElementById('modal-role').innerText = `${user.role} (Rs.${user.walletBalance || 0})`;
             
-            // Location Link
             const lat = user.locationLat || 0;
             const lng = user.locationLng || 0;
             if(lat !== 0 || lng !== 0) {
-                document.getElementById('modal-location').innerHTML = `<a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" class="text-blue-500 hover:underline inline-flex items-center"><i data-lucide="map-pin" class="w-4 h-4 mr-1"></i> View on Map</a>`;
+                // මෙතන අලුත් function එකට යොමු කර ඇත (ඇප් එක ඇතුලේ මැප් එකට යෑමට)
+                document.getElementById('modal-location').innerHTML = `<button onclick="focusUserOnMap(${lat}, ${lng}, '${userId}')" class="text-blue-500 hover:underline inline-flex items-center"><i data-lucide="map-pin" class="w-4 h-4 mr-1"></i> Focus on Live Map</button>`;
             } else {
                 document.getElementById('modal-location').innerText = 'Location Not Available';
             }
@@ -405,7 +442,6 @@
                 setImage('modal-id-back', 'modal-id-back-err', user.idBackUrl);
                 setImage('modal-cert', 'modal-cert-err', user.certificateUrl);
 
-                // Show approve button only if pending
                 if (!user.isVerified) {
                     approveBtn.classList.remove('hidden');
                     approveBtn.onclick = () => window.approveUser(userId);
@@ -413,7 +449,6 @@
                     approveBtn.classList.add('hidden');
                 }
             } else {
-                // Client නම් මේවා පෙන්වන්නෙ නෑ
                 caregiverSec.classList.add('hidden');
                 approveBtn.classList.add('hidden');
             }
@@ -424,6 +459,25 @@
 
         window.closeModal = function() {
             document.getElementById('review-modal').classList.add('hidden');
+        }
+
+        // Modal එකෙන් මැප් එකට යන අලුත් Function එක
+        window.focusUserOnMap = function(lat, lng, userId) {
+            closeModal();
+            switchTab('map');
+            
+            // මැප් එක ලෝඩ් වෙන්න සුළු වේලාවක් දී එය කේන්ද්‍රගත කිරීම
+            setTimeout(() => {
+                if(adminMap) {
+                    // Zoom level එක 16 දක්වා වැඩි කර ලංකර පෙන්වයි
+                    adminMap.setView([lat, lng], 16, { animate: true });
+                    
+                    // අදාළ පුද්ගලයාගේ Popup Box එක විවෘත කිරීම
+                    if(markersMap[userId]) {
+                        markersMap[userId].openPopup();
+                    }
+                }
+            }, 300);
         }
 
         window.approveUser = async function(userId) {
@@ -438,9 +492,82 @@
             }
         }
 
+        // ==========================================
+        //         LIVE MAP (GOD VIEW) LOGIC
+        // ==========================================
+        function initAdminMap() {
+            if (adminMap !== null) return; // දැනටමත් සිතියම සෑදී ඇත්නම් නැවත සාදන්නේ නැත
+
+            // මුලින්ම කොළඹ නගරය කේන්ද්‍ර කර සිතියම සාදයි (Lat: 6.9271, Lng: 79.8612)
+            adminMap = L.map('admin-map').setView([6.9271, 79.8612], 12);
+
+            // OpenStreetMap Layers එකතු කිරීම
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(adminMap);
+        }
+
+        function startLiveMapTracking() {
+            onSnapshot(collection(db, "users"), (snapshot) => {
+                snapshot.forEach((doc) => {
+                    const user = doc.data();
+                    const lat = user.locationLat;
+                    const lng = user.locationLng;
+
+                    if (lat && lng && lat !== 0 && lng !== 0) {
+                        
+                        let markerColor = '#10b981'; // Client ගේ පාට (Green)
+                        let roleClass = 'role-client';
+                        let roleDisplay = user.role;
+
+                        // Caregiver කෙනෙක් නම්, Busy ද නැද්ද කියා බැලීම
+                        if (user.role === 'CAREGIVER') {
+                            if (user.isBusy) {
+                                markerColor = '#ef4444'; // Busy නම් රතු පාට
+                                roleClass = 'role-caregiver-busy';
+                                roleDisplay = 'CAREGIVER (BUSY)';
+                            } else {
+                                markerColor = '#0ea5e9'; // Free නම් නිල් පාට
+                                roleClass = 'role-caregiver';
+                                roleDisplay = 'CAREGIVER (FREE)';
+                            }
+                        }
+
+                        // අලුත් Marker Icon එකක් සෑදීම
+                        const customIcon = L.divIcon({
+                            className: 'custom-div-icon',
+                            html: `<div style="background-color:${markerColor}; width:16px; height:16px; border-radius:50%; border:2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.5); transition: background-color 0.3s;"></div>`,
+                            iconSize: [16, 16],
+                            iconAnchor: [8, 8]
+                        });
+
+                        const popupContent = `
+                            <div class="map-popup-title">${user.name || 'Unknown User'}</div>
+                            <span class="map-popup-role ${roleClass}">${roleDisplay}</span>
+                            <div style="margin-top:4px; font-size:11px; color:gray;">${user.phone || ''}</div>
+                        `;
+
+                        if (markersMap[doc.id]) {
+                            // පරණ Marker එකක් නම්, අලුත් තැන සහ පාට යාවත්කාලීන කිරීම
+                            markersMap[doc.id].setLatLng([lat, lng]);
+                            markersMap[doc.id].setIcon(customIcon);
+                            markersMap[doc.id].getPopup().setContent(popupContent);
+                        } else {
+                            // අලුත්ම කෙනෙක් නම් සිතියමට දැමීම
+                            if (adminMap) {
+                                const marker = L.marker([lat, lng], { icon: customIcon }).addTo(adminMap);
+                                marker.bindPopup(popupContent);
+                                markersMap[doc.id] = marker;
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
         // Tabs
         window.switchTab = function(tabName) {
-            ['overview', 'users', 'verification'].forEach(t => {
+            ['overview', 'users', 'verification', 'map'].forEach(t => {
                 document.getElementById(`section-${t}`).classList.add('hidden');
                 document.getElementById(`tab-${t}`).className = "w-full flex items-center p-3 rounded-lg text-gray-300 hover:bg-gray-800 transition";
             });
@@ -448,8 +575,16 @@
             document.getElementById(`section-${tabName}`).classList.remove('hidden');
             document.getElementById(`tab-${tabName}`).className = "w-full flex items-center p-3 rounded-lg bg-primary text-white transition";
             
-            const titles = { 'overview': 'Dashboard Overview', 'users': 'User Database', 'verification': 'Verification Center' };
+            const titles = { 'overview': 'Dashboard Overview', 'users': 'User Database', 'verification': 'Verification Center', 'map': 'Live Map Tracking' };
             document.getElementById('header-title').innerText = titles[tabName];
+
+            // සිතියම පෙන්වන විට පමණක් සිතියම Render කිරීම
+            if (tabName === 'map') {
+                setTimeout(() => {
+                    initAdminMap();
+                    if(adminMap) adminMap.invalidateSize(); 
+                }, 100);
+            }
         }
 
         function showToast(msg) {
