@@ -3,29 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kina Care - Admin Panel</title>
+    <title>Golden Hand Caregivers - Admin Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- Leaflet JS & CSS (Map එක සඳහා) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        tailwind.config = {
-            theme: {
-                extend: { colors: { primary: '#0ea5e9', dark: '#0f172a' } }
-            }
-        }
+        tailwind.config = { theme: { extend: { colors: { primary: '#53A548', dark: '#0D3B66' } } } }
     </script>
     <style>
-        /* සිතියම පෙන්වීමට අවශ්‍ය උස */
         #admin-map { height: calc(100vh - 120px); width: 100%; z-index: 10; }
         .map-popup-title { font-weight: bold; color: #0f172a; margin-bottom: 4px;}
         .map-popup-role { font-size: 12px; padding: 2px 6px; border-radius: 10px; color: white;}
-        .role-caregiver { background-color: #0ea5e9; }
-        .role-caregiver-busy { background-color: #ef4444; } /* රතු පාට Busy අයට */
-        .role-client { background-color: #10b981; }
+        .role-caregiver { background-color: #53A548; }
+        .role-caregiver-busy { background-color: #ef4444; } 
+        .role-client { background-color: #0D3B66; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased text-gray-900 h-screen flex overflow-hidden">
@@ -37,20 +34,20 @@
                 <div class="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-full mb-4 shadow-lg shadow-sky-200">
                     <i data-lucide="shield-check" class="text-white w-8 h-8"></i>
                 </div>
-                <h1 class="text-3xl font-bold tracking-wider text-dark">KINA <span class="text-primary">CARE</span></h1>
+                <h1 class="text-2xl font-bold tracking-wider text-dark">GOLDEN HAND <br><span class="text-primary">CAREGIVERS</span></h1>
                 <p class="text-gray-500 mt-2">Admin Control Panel</p>
             </div>
             <form id="loginForm" class="space-y-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Admin Email</label>
-                    <input type="email" id="email" class="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary sm:text-sm" placeholder="admin@kinacare.com" required>
+                    <input type="email" id="email" class="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary sm:text-sm" placeholder="admin@goldenhand.com" required>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
                     <input type="password" id="password" class="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary sm:text-sm" placeholder="••••••••" required>
                 </div>
                 <p id="login-error" class="text-red-500 text-sm hidden"></p>
-                <button type="submit" id="login-btn" class="w-full flex justify-center py-3 px-4 rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-sky-600 transition">
+                <button type="submit" id="login-btn" class="w-full flex justify-center py-3 px-4 rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-green-600 transition">
                     Sign In
                 </button>
             </form>
@@ -59,18 +56,20 @@
 
     <!-- DASHBOARD SCREEN -->
     <div id="dashboard-screen" class="flex w-full h-full hidden">
-        <!-- Sidebar -->
         <aside class="w-64 bg-dark text-white flex flex-col h-full shadow-xl z-20">
-            <div class="h-16 flex items-center justify-center border-b border-gray-700">
-                <h1 class="text-2xl font-bold tracking-wider text-primary">KINA <span class="text-white">CARE</span></h1>
+            <div class="h-20 flex flex-col items-center justify-center border-b border-gray-700">
+                <h1 class="text-xl font-bold tracking-wider text-primary">GOLDEN HAND</h1>
+                <h2 class="text-sm font-semibold tracking-widest text-white">CAREGIVERS</h2>
             </div>
             <nav class="flex-1 py-4">
                 <ul class="space-y-2 px-4">
                     <li><button onclick="switchTab('overview')" id="tab-overview" class="w-full flex items-center p-3 rounded-lg bg-primary text-white transition"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>Overview</button></li>
                     <li><button onclick="switchTab('users')" id="tab-users" class="w-full flex items-center p-3 rounded-lg text-gray-300 hover:bg-gray-800 transition"><i data-lucide="users" class="w-5 h-5 mr-3"></i>All Users</button></li>
                     <li><button onclick="switchTab('verification')" id="tab-verification" class="w-full flex items-center p-3 rounded-lg text-gray-300 hover:bg-gray-800 transition"><i data-lucide="shield-check" class="w-5 h-5 mr-3"></i>Verification Center</button></li>
-                    <!-- අලුත් ටැබ් එක: Live Map -->
-                    <li><button onclick="switchTab('map')" id="tab-map" class="w-full flex items-center p-3 rounded-lg text-gray-300 hover:bg-gray-800 transition"><i data-lucide="map" class="w-5 h-5 mr-3"></i>Live Map (God View)</button></li>
+                    <li><button onclick="switchTab('map')" id="tab-map" class="w-full flex items-center p-3 rounded-lg text-gray-300 hover:bg-gray-800 transition"><i data-lucide="map" class="w-5 h-5 mr-3"></i>Live God View</button></li>
+                    <li><button onclick="switchTab('geofence')" id="tab-geofence" class="w-full flex items-center p-3 rounded-lg text-gray-300 hover:bg-gray-800 transition"><i data-lucide="alert-octagon" class="w-5 h-5 mr-3"></i>Geofence Logs</button></li>
+                    <!-- 🌟 අලුත්: පැමිණිලි සහ Incomplete Duties Tab එක -->
+                    <li><button onclick="switchTab('reports')" id="tab-reports" class="w-full flex items-center p-3 rounded-lg text-gray-300 hover:bg-gray-800 transition"><i data-lucide="message-square" class="w-5 h-5 mr-3"></i>Client Reports</button></li>
                 </ul>
             </nav>
             <div class="p-4 border-t border-gray-700 flex items-center justify-between">
@@ -82,29 +81,35 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="flex-1 flex flex-col h-full bg-gray-50 overflow-hidden relative">
             <header class="h-16 bg-white shadow-sm flex items-center justify-between px-6 z-10">
                 <h2 class="text-xl font-semibold text-gray-800" id="header-title">Dashboard Overview</h2>
             </header>
 
-            <div class="flex-1 overflow-y-auto p-6">
+            <div class="flex-1 overflow-y-auto p-6 custom-scrollbar">
                 
-                <!-- Overview Section -->
                 <div id="section-overview" class="block">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                         <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between">
-                            <div><p class="text-sm text-gray-500 font-medium">Total Users</p><p class="text-2xl font-bold text-gray-800" id="stat-users">Loading...</p></div>
-                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600"><i data-lucide="users"></i></div>
+                            <div><p class="text-sm text-gray-500 font-medium">Total Users</p><p class="text-3xl font-bold text-gray-800" id="stat-users">0</p></div>
+                            <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center text-blue-600"><i data-lucide="users" class="w-6 h-6"></i></div>
                         </div>
                         <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between">
-                            <div><p class="text-sm text-gray-500 font-medium">Pending Approvals</p><p class="text-2xl font-bold text-gray-800" id="stat-pending">Loading...</p></div>
-                            <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600"><i data-lucide="file-text"></i></div>
+                            <div><p class="text-sm text-gray-500 font-medium">Pending Approvals</p><p class="text-3xl font-bold text-yellow-600" id="stat-pending">0</p></div>
+                            <div class="w-14 h-14 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600"><i data-lucide="file-clock" class="w-6 h-6"></i></div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between">
+                            <div><p class="text-sm text-gray-500 font-medium">Active Geofence Alerts</p><p class="text-3xl font-bold text-red-600" id="stat-alerts">0</p></div>
+                            <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center text-red-600"><i data-lucide="alert-triangle" class="w-6 h-6"></i></div>
+                        </div>
+                        <!-- 🌟 අලුත්: Reports Count -->
+                        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between">
+                            <div><p class="text-sm text-gray-500 font-medium">New Reports</p><p class="text-3xl font-bold text-purple-600" id="stat-reports">0</p></div>
+                            <div class="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center text-purple-600"><i data-lucide="message-square" class="w-6 h-6"></i></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- All Users Section -->
                 <div id="section-users" class="hidden">
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                         <div class="p-6 border-b border-gray-100 flex justify-between items-center">
@@ -118,7 +123,7 @@
                                         <th class="p-4 font-medium">Name</th>
                                         <th class="p-4 font-medium">Email</th>
                                         <th class="p-4 font-medium">Role</th>
-                                        <th class="p-4 font-medium">Status</th>
+                                        <th class="p-4 font-medium">KYC Status</th>
                                         <th class="p-4 font-medium text-center">Action</th>
                                     </tr>
                                 </thead>
@@ -130,122 +135,225 @@
                     </div>
                 </div>
 
-                <!-- Verification Center Section -->
                 <div id="section-verification" class="hidden">
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-                            <h3 class="text-lg font-bold text-gray-800">Pending Caregiver Approvals</h3>
-                            <button onclick="loadPendingCaregivers()" class="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-md text-gray-700 flex items-center"><i data-lucide="refresh-cw" class="w-4 h-4 mr-1"></i> Refresh</button>
+                        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-blue-50">
+                            <div>
+                                <h3 class="text-lg font-bold text-blue-900">Pending Caregiver KYC Applications</h3>
+                                <p class="text-sm text-blue-700">Review and approve newly registered caregivers.</p>
+                            </div>
+                            <button onclick="loadPendingCaregivers()" class="text-sm bg-white hover:bg-gray-50 px-4 py-2 rounded-lg text-blue-700 font-semibold border border-blue-200 shadow-sm flex items-center"><i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i> Sync</button>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
                                 <thead>
-                                    <tr class="bg-gray-50 text-gray-500 text-sm uppercase tracking-wider">
-                                        <th class="p-4 font-medium">Name</th>
-                                        <th class="p-4 font-medium">Email</th>
+                                    <tr class="bg-white text-gray-500 text-sm uppercase tracking-wider border-b">
+                                        <th class="p-4 font-medium">Applicant Name</th>
+                                        <th class="p-4 font-medium">Contact</th>
+                                        <th class="p-4 font-medium">Submitted Info</th>
                                         <th class="p-4 font-medium text-center">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody id="pending-table-body" class="divide-y divide-gray-100">
-                                    <tr><td colspan="3" class="p-8 text-center text-gray-500">Loading data...</td></tr>
+                                <tbody id="pending-table-body" class="divide-y divide-gray-100 bg-white">
+                                    <tr><td colspan="4" class="p-8 text-center text-gray-500">Loading data...</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- Live Map (God View) -->
-                <div id="section-map" class="hidden h-full flex-col relative">
+                <div id="section-geofence" class="hidden">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-red-50">
+                            <div>
+                                <h3 class="text-lg font-bold text-red-800 flex items-center"><i data-lucide="alert-triangle" class="mr-2 w-5 h-5"></i> Geofence Violation Logs</h3>
+                                <p class="text-sm text-red-600">වාර්තා: සේවා ස්ථානයෙන් මීටර් 50 කට වඩා ඈතට ගිය සේවකයින්</p>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50 text-gray-500 text-sm uppercase tracking-wider">
+                                        <th class="p-4 font-medium">Caregiver (සේවකයා)</th>
+                                        <th class="p-4 font-medium">Client (සේවාදායකයා)</th>
+                                        <th class="p-4 font-medium">Time Left (ගිය වේලාව)</th>
+                                        <th class="p-4 font-medium">Time Returned (ආපසු පැමිණි වේලාව)</th>
+                                        <th class="p-4 font-medium text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="geofence-table-body" class="divide-y divide-gray-100">
+                                    <tr><td colspan="5" class="p-8 text-center text-gray-500">No violations recorded.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🌟 අලුත්: Client Reports Section -->
+                <div id="section-reports" class="hidden">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-purple-50">
+                            <div>
+                                <h3 class="text-lg font-bold text-purple-900 flex items-center"><i data-lucide="message-square" class="mr-2 w-5 h-5"></i> Client Duty Reports & Complaints</h3>
+                                <p class="text-sm text-purple-700">රාජකාරි සම්පූර්ණ නොකළ බවට පාරිභෝගිකයින් කළ පැමිණිලි</p>
+                            </div>
+                            <button onclick="loadComplaints()" class="text-sm bg-white hover:bg-gray-50 px-4 py-2 rounded-lg text-purple-700 font-semibold border border-purple-200 shadow-sm flex items-center"><i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i> Refresh</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-white text-gray-500 text-sm uppercase tracking-wider border-b">
+                                        <th class="p-4 font-medium">Caregiver</th>
+                                        <th class="p-4 font-medium">Client Note (Reason)</th>
+                                        <th class="p-4 font-medium">Tasks (Completed / Requested)</th>
+                                        <th class="p-4 font-medium">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reports-table-body" class="divide-y divide-gray-100 bg-white">
+                                    <tr><td colspan="4" class="p-8 text-center text-gray-500">No complaints reported.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="section-map" class="hidden h-full flex-col relative min-h-[600px]">
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4 flex justify-between items-center z-20">
                         <div>
                             <h3 class="text-lg font-bold text-gray-800">Real-time Location Tracking</h3>
                             <p class="text-sm text-gray-500">Monitor all active Caregivers and Clients on the map.</p>
                         </div>
                         <div class="flex space-x-4">
-                            <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#0ea5e9] mr-2"></span><span class="text-sm text-gray-600">Caregivers (Free)</span></div>
-                            <!-- රතු පාටින් Busy අය -->
+                            <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#53A548] mr-2"></span><span class="text-sm text-gray-600">Caregivers (Free)</span></div>
                             <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#ef4444] mr-2"></span><span class="text-sm text-gray-600">Caregivers (Busy)</span></div>
-                            <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#10b981] mr-2"></span><span class="text-sm text-gray-600">Clients</span></div>
+                            <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#0D3B66] mr-2"></span><span class="text-sm text-gray-600">Clients</span></div>
                         </div>
                     </div>
-                    <!-- සිතියම පෙන්වන Div එක -->
-                    <div id="admin-map" class="rounded-xl shadow-sm border border-gray-200 overflow-hidden flex-1 relative z-10"></div>
+                    <div id="admin-map" class="rounded-xl shadow-sm border border-gray-200 overflow-hidden flex-1 relative z-10 w-full h-full"></div>
                 </div>
 
             </div>
             
-            <!-- ====== MODAL: Review Details ====== -->
-            <div id="review-modal" class="absolute inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col">
-                    <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 sticky top-0">
-                        <h2 class="text-2xl font-bold text-gray-800 flex items-center"><i data-lucide="user-check" class="mr-2 text-primary"></i> User Details</h2>
-                        <button onclick="closeModal()" class="text-gray-400 hover:text-red-500 transition"><i data-lucide="x" class="w-6 h-6"></i></button>
-                    </div>
-                    
-                    <div class="p-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 border-b pb-6">
-                            <div>
-                                <p class="text-sm text-gray-500 font-medium">Full Name</p>
-                                <p class="text-lg font-semibold text-gray-800" id="modal-name">...</p>
+            <div id="review-modal" class="absolute inset-0 bg-slate-900 bg-opacity-70 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] flex flex-col overflow-hidden animate-[popIn_0.3s_ease-out]">
+                    <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-white sticky top-0 z-10 shadow-sm">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-4">
+                                <i data-lucide="file-text" class="w-6 h-6"></i>
                             </div>
                             <div>
-                                <p class="text-sm text-gray-500 font-medium">Email Address</p>
-                                <p class="text-lg font-semibold text-gray-800" id="modal-email">...</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500 font-medium">Phone Number</p>
-                                <p class="text-lg font-semibold text-gray-800" id="modal-phone">...</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500 font-medium">Location</p>
-                                <p class="text-lg font-semibold text-gray-800" id="modal-location">...</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500 font-medium">Role & Wallet</p>
-                                <p class="text-lg font-semibold text-gray-800" id="modal-role">...</p>
+                                <h2 class="text-2xl font-bold text-gray-800">Full KYC Application</h2>
+                                <p class="text-sm text-gray-500" id="modal-subtitle">Reviewing Application details</p>
                             </div>
                         </div>
-                        
-                        <!-- Caregiver Only Data -->
-                        <div id="modal-caregiver-section">
-                            <div class="mb-6">
-                                <p class="text-sm text-gray-500 font-medium mb-1">Qualifications & Experience</p>
-                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 text-gray-700 whitespace-pre-line" id="modal-qualifications">
-                                    ...
+                        <div class="flex items-center space-x-3">
+                            <span id="modal-status-badge" class="px-3 py-1 rounded-full text-sm font-bold border">STATUS</span>
+                            <button onclick="closeModal()" class="w-10 h-10 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-red-500 flex items-center justify-center transition"><i data-lucide="x"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 overflow-y-auto custom-scrollbar flex-1 bg-gray-50">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center">
+                                <img id="modal-dp-img" src="" class="w-16 h-16 rounded-full object-cover bg-gray-200 border-2 border-primary hidden">
+                                <div id="modal-dp-placeholder" class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-xl font-bold text-gray-500 border-2 border-gray-300">?</div>
+                                <div class="ml-4">
+                                    <p class="text-lg font-bold text-gray-800" id="modal-name">...</p>
+                                    <p class="text-sm text-gray-500" id="modal-role">...</p>
                                 </div>
                             </div>
+                            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                                <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Contact Info</p>
+                                <p class="text-sm font-semibold text-gray-800 flex items-center"><i data-lucide="mail" class="w-4 h-4 mr-2 text-gray-400"></i> <span id="modal-email">...</span></p>
+                                <p class="text-sm font-semibold text-gray-800 flex items-center mt-1"><i data-lucide="phone" class="w-4 h-4 mr-2 text-gray-400"></i> <span id="modal-phone">...</span></p>
+                            </div>
+                            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-center">
+                                <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Location / Wallet</p>
+                                <div id="modal-location" class="mb-1">...</div>
+                                <p class="text-sm font-semibold text-green-600 flex items-center"><i data-lucide="wallet" class="w-4 h-4 mr-2"></i> <span id="modal-wallet">Rs. 0.00</span></p>
+                            </div>
+                        </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div class="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
-                                    <div class="p-2 text-center text-sm font-semibold text-gray-600 border-b border-gray-200 bg-gray-100">ID (Front)</div>
-                                    <div class="h-48 flex items-center justify-center p-2">
-                                        <img id="modal-id-front" src="" alt="ID Front" class="max-h-full object-contain drop-shadow-md hidden">
-                                        <span id="modal-id-front-err" class="text-gray-400 text-sm">Not Uploaded</span>
+                        <div id="modal-caregiver-section" class="hidden space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                                    <div class="bg-blue-50 px-4 py-3 border-b border-gray-200 font-bold text-blue-900 flex items-center"><i data-lucide="user" class="w-4 h-4 mr-2"></i> Personal & Professional</div>
+                                    <div class="p-4 space-y-3">
+                                        <div class="flex justify-between border-b border-gray-50 pb-2"><span class="text-gray-500 text-sm">NIC Number:</span> <span class="font-semibold text-gray-800 text-sm" id="modal-nic">-</span></div>
+                                        <div class="flex justify-between border-b border-gray-50 pb-2"><span class="text-gray-500 text-sm">DOB & Gender:</span> <span class="font-semibold text-gray-800 text-sm"><span id="modal-dob">-</span> | <span id="modal-gender">-</span></span></div>
+                                        <div class="flex justify-between border-b border-gray-50 pb-2"><span class="text-gray-500 text-sm">Address:</span> <span class="font-semibold text-gray-800 text-sm text-right max-w-[60%]" id="modal-address">-</span></div>
+                                        <div class="flex justify-between border-b border-gray-50 pb-2"><span class="text-gray-500 text-sm">Experience:</span> <span class="font-semibold text-gray-800 text-sm" id="modal-experience">-</span></div>
+                                        <div class="flex justify-between border-b border-gray-50 pb-2"><span class="text-gray-500 text-sm">Categories:</span> <span class="font-semibold text-gray-800 text-sm text-right" id="modal-categories">-</span></div>
+                                        <div class="flex justify-between border-b border-gray-50 pb-2"><span class="text-gray-500 text-sm">Service Pref:</span> <span class="font-semibold text-gray-800 text-sm" id="modal-service-types">-</span></div>
+                                        <div class="flex justify-between pb-1"><span class="text-gray-500 text-sm">Expected Salary:</span> <span class="font-semibold text-green-600 text-sm" id="modal-expected-salary">-</span></div>
                                     </div>
                                 </div>
-                                <div class="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
-                                    <div class="p-2 text-center text-sm font-semibold text-gray-600 border-b border-gray-200 bg-gray-100">ID (Back)</div>
-                                    <div class="h-48 flex items-center justify-center p-2">
-                                        <img id="modal-id-back" src="" alt="ID Back" class="max-h-full object-contain drop-shadow-md hidden">
-                                        <span id="modal-id-back-err" class="text-gray-400 text-sm">Not Uploaded</span>
+                                <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+                                    <div class="bg-green-50 px-4 py-3 border-b border-gray-200 font-bold text-green-900 flex items-center"><i data-lucide="activity" class="w-4 h-4 mr-2"></i> Health & Bank Details</div>
+                                    <div class="p-4 space-y-3 flex-1">
+                                        <div class="flex justify-between border-b border-gray-50 pb-2"><span class="text-gray-500 text-sm">Vaccination:</span> <span class="font-semibold text-gray-800 text-sm" id="modal-vaccination">-</span></div>
+                                        <div class="flex justify-between border-b border-gray-50 pb-2"><span class="text-gray-500 text-sm">Chronic Illnesses:</span> <span class="font-semibold text-red-600 text-sm text-right max-w-[60%]" id="modal-illnesses">None</span></div>
+                                        <div class="flex justify-between border-b border-gray-50 pb-2"><span class="text-gray-500 text-sm">Bank Name:</span> <span class="font-semibold text-gray-800 text-sm" id="modal-bank-name">-</span></div>
+                                        <div class="flex justify-between border-b border-gray-50 pb-2"><span class="text-gray-500 text-sm">Account No:</span> <span class="font-semibold text-gray-800 text-sm" id="modal-bank-acc">-</span></div>
+                                        <div class="flex justify-between pb-1"><span class="text-gray-500 text-sm">Branch:</span> <span class="font-semibold text-gray-800 text-sm" id="modal-bank-branch">-</span></div>
                                     </div>
-                                </div>
-                                <div class="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
-                                    <div class="p-2 text-center text-sm font-semibold text-gray-600 border-b border-gray-200 bg-gray-100">Certificate</div>
-                                    <div class="h-48 flex items-center justify-center p-2">
-                                        <img id="modal-cert" src="" alt="Certificate" class="max-h-full object-contain drop-shadow-md hidden">
-                                        <span id="modal-cert-err" class="text-gray-400 text-sm">Not Uploaded</span>
+                                    <div class="p-4 bg-gray-50 border-t border-gray-100">
+                                        <p class="text-xs text-gray-500 font-bold mb-1 uppercase">Special Skills / Ref:</p>
+                                        <p class="text-sm text-gray-700 italic" id="modal-skills">-</p>
                                     </div>
                                 </div>
                             </div>
+                            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                                <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Uploaded Documents & Proofs</h3>
+                                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                    <div class="border rounded-lg p-2 flex flex-col items-center bg-gray-50">
+                                        <p class="text-xs font-bold text-gray-600 mb-2">NIC Front</p>
+                                        <img id="modal-id-front" src="" class="h-24 object-contain cursor-pointer hover:scale-105 transition hidden" onclick="window.open(this.src)">
+                                        <span id="modal-id-front-err" class="text-xs text-red-400 my-auto">Missing</span>
+                                    </div>
+                                    <div class="border rounded-lg p-2 flex flex-col items-center bg-gray-50">
+                                        <p class="text-xs font-bold text-gray-600 mb-2">NIC Back</p>
+                                        <img id="modal-id-back" src="" class="h-24 object-contain cursor-pointer hover:scale-105 transition hidden" onclick="window.open(this.src)">
+                                        <span id="modal-id-back-err" class="text-xs text-red-400 my-auto">Missing</span>
+                                    </div>
+                                    <div class="border rounded-lg p-2 flex flex-col items-center bg-gray-50">
+                                        <p class="text-xs font-bold text-gray-600 mb-2">Selfie w/ ID</p>
+                                        <img id="modal-selfie" src="" class="h-24 object-contain cursor-pointer hover:scale-105 transition hidden" onclick="window.open(this.src)">
+                                        <span id="modal-selfie-err" class="text-xs text-red-400 my-auto">Missing</span>
+                                    </div>
+                                    <div class="border rounded-lg p-2 flex flex-col items-center bg-gray-50">
+                                        <p class="text-xs font-bold text-gray-600 mb-2">Police Report</p>
+                                        <img id="modal-police" src="" class="h-24 object-contain cursor-pointer hover:scale-105 transition hidden" onclick="window.open(this.src)">
+                                        <span id="modal-police-err" class="text-xs text-red-400 my-auto">Missing</span>
+                                    </div>
+                                    <div class="border rounded-lg p-2 flex flex-col items-center bg-gray-50">
+                                        <p class="text-xs font-bold text-gray-600 mb-2">Bank Book</p>
+                                        <img id="modal-bankbook" src="" class="h-24 object-contain cursor-pointer hover:scale-105 transition hidden" onclick="window.open(this.src)">
+                                        <span id="modal-bankbook-err" class="text-xs text-red-400 my-auto">Missing</span>
+                                    </div>
+                                    <div class="border rounded-lg p-2 flex flex-col items-center bg-gray-50 col-span-2 md:col-span-5">
+                                        <p class="text-xs font-bold text-gray-600 mb-2">Training Certificates</p>
+                                        <img id="modal-cert" src="" class="h-32 object-contain cursor-pointer hover:scale-105 transition hidden" onclick="window.open(this.src)">
+                                        <span id="modal-cert-err" class="text-xs text-red-400 my-auto">Missing</span>
+                                    </div>
+                                </div>
+                                <p class="text-[10px] text-gray-400 mt-3 text-center">* Click on any image to open in full size.</p>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="p-6 border-t border-gray-100 bg-gray-50 flex justify-end space-x-4">
-                        <button onclick="closeModal()" class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition">Close</button>
-                        <button id="modal-approve-btn" class="hidden px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium flex items-center transition shadow-sm">
-                            <i data-lucide="check" class="w-5 h-5 mr-2"></i> Approve Caregiver
-                        </button>
+                    <div class="p-5 border-t border-gray-200 bg-white flex justify-between items-center">
+                        <p class="text-xs text-gray-400" id="modal-footer-info">User ID: ...</p>
+                        <div class="flex space-x-3">
+                            <button onclick="closeModal()" class="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-bold transition">Cancel</button>
+                            <div id="modal-action-buttons" class="hidden flex space-x-3">
+                                <button id="modal-reject-btn" class="px-5 py-2.5 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 font-bold flex items-center transition">
+                                    <i data-lucide="x-circle" class="w-4 h-4 mr-2"></i> Reject
+                                </button>
+                                <button id="modal-approve-btn" class="px-6 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 shadow-md font-bold flex items-center transition">
+                                    <i data-lucide="check-circle" class="w-4 h-4 mr-2"></i> Approve Application
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -253,9 +361,15 @@
         </main>
     </div>
 
-    <div id="toast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 translate-y-20 opacity-0 z-50">
-        Action Successful!
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-4 right-4 text-white px-6 py-4 rounded-lg shadow-2xl transform transition-transform duration-300 translate-y-24 opacity-0 z-[100] max-w-md font-bold text-lg flex items-center">
+        <span id="toast-icon" class="mr-3"></span>
+        <span id="toast-message">Action Successful!</span>
     </div>
+
+    <style>
+        @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
 
     <script>lucide.createIcons();</script>
 
@@ -263,9 +377,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs, getDoc, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-        // ඔබගේ Firebase Config එක මෙතැන ඇත
         const firebaseConfig = {
             apiKey: "AIzaSyDjLaQSVtIk8w3nWve7PF5PwbtxGzjIogI",
             authDomain: "care-2a20d.firebaseapp.com",
@@ -284,12 +397,14 @@
         const dashboardScreen = document.getElementById('dashboard-screen');
         const pendingTableBody = document.getElementById('pending-table-body');
         const allUsersTableBody = document.getElementById('all-users-table-body');
+        const reportsTableBody = document.getElementById('reports-table-body');
         
         window.allUsersDataMap = {}; 
+        window.geofenceIncidents = {}; 
         
-        // Map Variables
         let adminMap = null;
-        let markersMap = {}; // එක් එක් User ගේ Marker එක ගබඩා කිරීමට
+        let markersMap = {}; 
+        let isFirstLoadAlerts = true;
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -299,12 +414,155 @@
                 loadDashboardStats();
                 loadPendingCaregivers();
                 loadAllUsers();
-                startLiveMapTracking(); // ලොග් වුණු ගමන් Map Tracking පටන් ගන්නවා
+                loadComplaints(); // 🌟 Load Complaints
+                startLiveMapTracking(); 
+                listenForAlerts(); 
             } else {
                 loginScreen.classList.remove('hidden');
                 dashboardScreen.classList.add('hidden');
             }
         });
+
+        // 🌟 අලුත්: පැමිණිලි ලෝඩ් කිරීම (Client Reports)
+        window.loadComplaints = async function() {
+            reportsTableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-500">Loading reports...</td></tr>`;
+            const q = query(collection(db, "bookings"), where("hasComplaint", "==", true));
+            onSnapshot(q, async (snapshot) => {
+                document.getElementById('stat-reports').innerText = snapshot.size;
+                if (snapshot.empty) {
+                    reportsTableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-500">No complaints reported. 🎉</td></tr>`;
+                    return;
+                }
+                let rows = '';
+                for (const d of snapshot.docs) {
+                    const booking = d.data();
+                    let cgName = "Unknown Caregiver";
+                    if (booking.caregiverId) {
+                        try {
+                            const cgDoc = await getDoc(doc(db, "users", booking.caregiverId));
+                            if (cgDoc.exists()) cgName = cgDoc.data().name;
+                        } catch(e){}
+                    }
+                    
+                    const tasksDone = booking.clientApprovedTasks ? booking.clientApprovedTasks.length : 0;
+                    const tasksReq = booking.requestedTasks ? booking.requestedTasks.length : 0;
+
+                    rows += `
+                        <tr class="hover:bg-purple-50 transition border-b">
+                            <td class="p-4 font-bold text-gray-800">${cgName}</td>
+                            <td class="p-4 text-sm text-red-600 font-medium">"${booking.complaintNotes}"</td>
+                            <td class="p-4 text-sm font-semibold">${tasksDone} out of ${tasksReq} completed</td>
+                            <td class="p-4 text-center">
+                                <button onclick="alert('Client Phone: We need to load client phone here.\\nCaregiver Phone: Same.\\nContact them to resolve.')" class="bg-purple-100 text-purple-700 px-3 py-1 rounded font-bold text-xs">Resolve</button>
+                            </td>
+                        </tr>
+                    `;
+                }
+                reportsTableBody.innerHTML = rows;
+            });
+        }
+
+        function listenForAlerts() {
+            onSnapshot(collection(db, "alerts"), async (snapshot) => {
+                for (const change of snapshot.docChanges()) {
+                    if (change.type === "added") {
+                        const alertData = change.doc.data();
+                        const bookingId = alertData.bookingId;
+                        
+                        try {
+                            const bDoc = await getDoc(doc(db, "bookings", bookingId));
+                            if (bDoc.exists()) {
+                                const bData = bDoc.data();
+                                const cgId = bData.caregiverId;
+                                const clId = bData.clientId;
+                                
+                                let cgName = "Unknown Caregiver";
+                                let clName = "Unknown Client";
+                                
+                                const cgDoc = await getDoc(doc(db, "users", cgId));
+                                const clDoc = await getDoc(doc(db, "users", clId));
+                                
+                                if(cgDoc.exists()) cgName = cgDoc.data().name;
+                                if(clDoc.exists()) clName = clDoc.data().name;
+
+                                if(!window.geofenceIncidents[cgId] || window.geofenceIncidents[cgId].status === 'RETURNED') {
+                                    window.geofenceIncidents[cgId] = {
+                                        bookingId: bookingId, caregiverName: cgName, clientName: clName,
+                                        bookingLat: bData.locationLat, bookingLng: bData.locationLng,
+                                        awayTime: alertData.timestamp, returnedTime: null, status: 'AWAY'
+                                    };
+                                    if (!isFirstLoadAlerts) {
+                                        const customMsg = alertData.message.replace("Caregiver", cgName);
+                                        showToast("🚨 " + customMsg, "error");
+                                    }
+                                }
+                                renderGeofenceTable();
+                            }
+                        } catch(e) { console.error(e); }
+                    }
+                }
+                if (isFirstLoadAlerts) isFirstLoadAlerts = false;
+            });
+        }
+
+        function getDistanceFromLatLonInM(lat1, lon1, lat2, lon2) {
+            var R = 6371; var dLat = (lat2-lat1) * (Math.PI/180); var dLon = (lon2-lon1) * (Math.PI/180); 
+            var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * (Math.PI/180)) * Math.cos(lat2 * (Math.PI/180)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+            return R * c * 1000; 
+        }
+
+        function renderGeofenceTable() {
+            const tbody = document.getElementById('geofence-table-body');
+            if(!tbody) return;
+            let rows = '';
+            const incidents = Object.values(window.geofenceIncidents).sort((a,b) => b.awayTime - a.awayTime);
+            
+            if(incidents.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500">No violations recorded.</td></tr>`;
+                return;
+            }
+
+            document.getElementById('stat-alerts').innerText = incidents.filter(i => i.status === 'AWAY').length;
+
+            incidents.forEach(inc => {
+                const awayTimeStr = new Date(inc.awayTime).toLocaleTimeString('en-US');
+                const retTimeStr = inc.returnedTime ? new Date(inc.returnedTime).toLocaleTimeString('en-US') : '<span class="text-red-500 font-semibold animate-pulse">දැනට පිටත (Away)</span>';
+                const statusBadge = inc.status === 'AWAY' ? 
+                    '<span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-bold border border-red-200">🚨 AWAY</span>' : 
+                    '<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-bold border border-green-200">✅ RETURNED</span>';
+
+                rows += `
+                    <tr class="hover:bg-gray-50 transition border-b border-gray-100">
+                        <td class="p-4 font-bold text-gray-800">${inc.caregiverName}</td>
+                        <td class="p-4 text-gray-600">${inc.clientName}</td>
+                        <td class="p-4 font-medium text-orange-600">${awayTimeStr}</td>
+                        <td class="p-4 font-medium text-sky-600">${retTimeStr}</td>
+                        <td class="p-4 text-center">${statusBadge}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = rows;
+        }
+
+        window.showToast = function(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.innerText = msg;
+            
+            if (type === 'error') {
+                toast.className = "fixed top-4 right-4 bg-red-600 text-white px-6 py-4 rounded-lg shadow-2xl transform transition-transform duration-300 translate-y-0 z-[100] max-w-lg font-bold text-lg flex items-center";
+                toastIcon.innerHTML = '<i data-lucide="alert-triangle" class="w-8 h-8"></i>';
+            } else {
+                toast.className = "fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 translate-y-0 z-[100] flex items-center";
+                toastIcon.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i>';
+            }
+            lucide.createIcons();
+
+            setTimeout(() => { toast.classList.add(type === 'error' ? '-translate-y-24' : 'translate-y-24', 'opacity-0'); }, 5000);
+        }
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -313,7 +571,7 @@
             const btn = document.getElementById('login-btn');
             const errorTxt = document.getElementById('login-error');
             
-            if(email !== 'admin@kinacare.com') {
+            if(email !== 'admin@goldenhand.com' && email !== 'admin@kinacare.com') {
                 errorTxt.innerText = "Only administrators can access this panel.";
                 errorTxt.classList.remove('hidden'); return;
             }
@@ -332,13 +590,9 @@
         document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
 
         async function loadDashboardStats() {
-            onSnapshot(collection(db, "users"), (snapshot) => {
-                document.getElementById('stat-users').innerText = snapshot.size;
-            });
-            const pendingQuery = query(collection(db, "users"), where("role", "==", "CAREGIVER"), where("isVerified", "==", false));
-            onSnapshot(pendingQuery, (snapshot) => {
-                document.getElementById('stat-pending').innerText = snapshot.size;
-            });
+            onSnapshot(collection(db, "users"), (snapshot) => { document.getElementById('stat-users').innerText = snapshot.size; });
+            const pendingQuery = query(collection(db, "users"), where("role", "==", "CAREGIVER"), where("kycStatus", "==", "PENDING"));
+            onSnapshot(pendingQuery, (snapshot) => { document.getElementById('stat-pending').innerText = snapshot.size; });
         }
 
         window.loadAllUsers = async function() {
@@ -353,11 +607,12 @@
                     const user = doc.data();
                     window.allUsersDataMap[doc.id] = user;
                     
-                    const statusBadge = user.role === 'CLIENT' ? 
-                        '<span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">N/A</span>' :
-                        (user.isVerified ? 
-                            '<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Verified</span>' : 
-                            '<span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">Pending</span>');
+                    let statusBadge = `<span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">N/A</span>`;
+                    if (user.role === 'CAREGIVER') {
+                        if (user.kycStatus === 'APPROVED' || user.isVerified) statusBadge = `<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-bold">APPROVED</span>`;
+                        else if (user.kycStatus === 'REJECTED') statusBadge = `<span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-bold">REJECTED</span>`;
+                        else statusBadge = `<span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-bold">PENDING</span>`;
+                    }
 
                     rows += `
                         <tr class="hover:bg-gray-50 transition border-b border-gray-50">
@@ -366,34 +621,38 @@
                             <td class="p-4"><span class="bg-blue-50 text-blue-800 text-xs px-2 py-1 rounded-full font-semibold">${user.role}</span></td>
                             <td class="p-4">${statusBadge}</td>
                             <td class="p-4 text-center">
-                                <button onclick="openReviewModal('${doc.id}')" class="text-primary hover:text-sky-700 text-sm font-medium">View Info</button>
+                                <button onclick="openReviewModal('${doc.id}')" class="text-primary hover:text-green-700 text-sm font-medium"><i data-lucide="eye" class="w-4 h-4 inline"></i> View</button>
                             </td>
                         </tr>
                     `;
                 });
                 allUsersTableBody.innerHTML = rows;
+                lucide.createIcons();
             });
         }
 
         window.loadPendingCaregivers = async function() {
-            pendingTableBody.innerHTML = `<tr><td colspan="3" class="p-8 text-center text-gray-500">Loading data...</td></tr>`;
-            const q = query(collection(db, "users"), where("role", "==", "CAREGIVER"), where("isVerified", "==", false));
+            pendingTableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-500">Loading data...</td></tr>`;
+            const q = query(collection(db, "users"), where("role", "==", "CAREGIVER"), where("kycStatus", "==", "PENDING"));
             onSnapshot(q, (snapshot) => {
                 if (snapshot.empty) {
-                    pendingTableBody.innerHTML = `<tr><td colspan="3" class="p-8 text-center text-gray-500">No pending approvals at the moment. 🎉</td></tr>`;
+                    pendingTableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-500">No pending approvals at the moment. 🎉</td></tr>`;
                     return;
                 }
                 let rows = '';
                 snapshot.forEach((doc) => {
                     const user = doc.data();
                     window.allUsersDataMap[doc.id] = user;
+                    const hasDocs = (user.nicFrontUrl || user.idFrontUrl) ? '<span class="text-green-600 flex items-center"><i data-lucide="check" class="w-3 h-3 mr-1"></i> Docs Uploaded</span>' : '<span class="text-red-500 flex items-center"><i data-lucide="x" class="w-3 h-3 mr-1"></i> Missing Docs</span>';
+
                     rows += `
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="p-4 font-medium text-gray-800">${user.name}</td>
-                            <td class="p-4 text-gray-600">${user.email}</td>
+                        <tr class="hover:bg-gray-50 transition border-b">
+                            <td class="p-4 font-bold text-gray-800">${user.name}</td>
+                            <td class="p-4 text-sm text-gray-600">${user.email}<br><span class="text-xs text-gray-400">${user.phone || user.mobile || ''}</span></td>
+                            <td class="p-4 text-xs font-semibold">${hasDocs}</td>
                             <td class="p-4 text-center">
-                                <button onclick="openReviewModal('${doc.id}')" class="bg-primary hover:bg-sky-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center mx-auto">
-                                    <i data-lucide="eye" class="w-4 h-4 mr-2"></i> Review
+                                <button onclick="openReviewModal('${doc.id}')" class="bg-primary hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm inline-flex items-center">
+                                    <i data-lucide="scan-line" class="w-4 h-4 mr-2"></i> Review Full KYC
                                 </button>
                             </td>
                         </tr>
@@ -408,100 +667,115 @@
             const user = window.allUsersDataMap[userId];
             if(!user) return;
 
+            document.getElementById('modal-footer-info').innerText = "User ID: " + userId;
             document.getElementById('modal-name').innerText = user.name || 'N/A';
             document.getElementById('modal-email').innerText = user.email || 'N/A';
-            document.getElementById('modal-phone').innerText = user.phone || 'Not Provided';
-            document.getElementById('modal-role').innerText = `${user.role} (Rs.${user.walletBalance || 0})`;
+            document.getElementById('modal-phone').innerText = user.phone || user.mobile || 'Not Provided';
+            document.getElementById('modal-role').innerText = `${user.role} | Bal: Rs.${user.walletBalance || 0}`;
             
+            const dpImg = document.getElementById('modal-dp-img');
+            const dpPh = document.getElementById('modal-dp-placeholder');
+            if(user.profileImageUrl) { dpImg.src = user.profileImageUrl; dpImg.classList.remove('hidden'); dpPh.classList.add('hidden'); }
+            else { dpPh.innerText = (user.name || '?').charAt(0).toUpperCase(); dpImg.classList.add('hidden'); dpPh.classList.remove('hidden'); }
+
             const lat = user.locationLat || 0;
             const lng = user.locationLng || 0;
             if(lat !== 0 || lng !== 0) {
-                // මෙතන අලුත් function එකට යොමු කර ඇත (ඇප් එක ඇතුලේ මැප් එකට යෑමට)
-                document.getElementById('modal-location').innerHTML = `<button onclick="focusUserOnMap(${lat}, ${lng}, '${userId}')" class="text-blue-500 hover:underline inline-flex items-center"><i data-lucide="map-pin" class="w-4 h-4 mr-1"></i> Focus on Live Map</button>`;
+                document.getElementById('modal-location').innerHTML = `<button onclick="focusUserOnMap(${lat}, ${lng}, '${userId}')" class="text-blue-600 hover:text-blue-800 font-bold text-sm inline-flex items-center bg-blue-50 px-2 py-1 rounded"><i data-lucide="map-pin" class="w-4 h-4 mr-1"></i> View on Map</button>`;
+            } else { document.getElementById('modal-location').innerHTML = '<span class="text-xs text-gray-400">Location Not Available</span>'; }
+
+            const badge = document.getElementById('modal-status-badge');
+            if (user.role === 'CLIENT') {
+                badge.innerText = "CLIENT ACCOUNT"; badge.className = "px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-600 bg-gray-100";
             } else {
-                document.getElementById('modal-location').innerText = 'Location Not Available';
+                if (user.kycStatus === 'APPROVED' || user.isVerified) { badge.innerText = "APPROVED"; badge.className = "px-3 py-1 rounded-full text-xs font-bold border border-green-300 text-green-700 bg-green-100"; }
+                else if (user.kycStatus === 'REJECTED') { badge.innerText = "REJECTED"; badge.className = "px-3 py-1 rounded-full text-xs font-bold border border-red-300 text-red-700 bg-red-100"; }
+                else { badge.innerText = "PENDING REVIEW"; badge.className = "px-3 py-1 rounded-full text-xs font-bold border border-yellow-300 text-yellow-700 bg-yellow-100 animate-pulse"; }
             }
 
-            const approveBtn = document.getElementById('modal-approve-btn');
             const caregiverSec = document.getElementById('modal-caregiver-section');
+            const actionsDiv = document.getElementById('modal-action-buttons');
 
             if (user.role === 'CAREGIVER') {
                 caregiverSec.classList.remove('hidden');
-                document.getElementById('modal-qualifications').innerText = user.qualifications || 'No qualifications provided yet.';
+                
+                document.getElementById('modal-nic').innerText = user.nicNumber || '-';
+                document.getElementById('modal-dob').innerText = user.dob || '-';
+                document.getElementById('modal-gender').innerText = user.gender || '-';
+                document.getElementById('modal-address').innerText = user.address || '-';
+                document.getElementById('modal-experience').innerText = user.experienceYears ? user.experienceYears + ' Years' : '-';
+                document.getElementById('modal-categories').innerText = (user.categories && user.categories.length > 0) ? user.categories.join(', ') : '-';
+                document.getElementById('modal-service-types').innerText = (user.preferredServiceTypes && user.preferredServiceTypes.length > 0) ? user.preferredServiceTypes.join(', ') : '-';
+                document.getElementById('modal-expected-salary').innerText = user.expectedSalary ? 'Rs. ' + user.expectedSalary : '-';
+                
+                document.getElementById('modal-vaccination').innerText = user.vaccinationStatus || '-';
+                document.getElementById('modal-illnesses').innerText = user.chronicIllnesses || 'None';
+                document.getElementById('modal-bank-name').innerText = user.bankName || '-';
+                document.getElementById('modal-bank-acc').innerText = user.bankAccountNumber || '-';
+                document.getElementById('modal-bank-branch').innerText = user.bankBranch || '-';
+                document.getElementById('modal-skills').innerText = user.specialSkills || user.qualifications || 'No special skills listed.';
                 
                 const setImage = (imgId, errId, url) => {
-                    const img = document.getElementById(imgId);
-                    const err = document.getElementById(errId);
-                    if (url && url.startsWith("data:image")) {
-                        img.src = url; img.classList.remove('hidden'); err.classList.add('hidden');
-                    } else {
-                        img.classList.add('hidden'); err.classList.remove('hidden');
-                    }
+                    const img = document.getElementById(imgId); const err = document.getElementById(errId);
+                    if (url && url.startsWith("data:image")) { img.src = url; img.classList.remove('hidden'); err.classList.add('hidden'); } 
+                    else { img.classList.add('hidden'); err.classList.remove('hidden'); }
                 };
-                setImage('modal-id-front', 'modal-id-front-err', user.idFrontUrl);
-                setImage('modal-id-back', 'modal-id-back-err', user.idBackUrl);
+                
+                setImage('modal-id-front', 'modal-id-front-err', user.nicFrontUrl || user.idFrontUrl);
+                setImage('modal-id-back', 'modal-id-back-err', user.nicBackUrl || user.idBackUrl);
+                setImage('modal-selfie', 'modal-selfie-err', user.selfieUrl);
+                setImage('modal-police', 'modal-police-err', user.policeClearanceUrl);
+                setImage('modal-bankbook', 'modal-bankbook-err', user.bankBookUrl);
                 setImage('modal-cert', 'modal-cert-err', user.certificateUrl);
 
-                if (!user.isVerified) {
-                    approveBtn.classList.remove('hidden');
-                    approveBtn.onclick = () => window.approveUser(userId);
-                } else {
-                    approveBtn.classList.add('hidden');
-                }
+                if (user.kycStatus === 'PENDING' || !user.isVerified) {
+                    actionsDiv.classList.remove('hidden');
+                    document.getElementById('modal-approve-btn').onclick = () => window.handleApprove(userId);
+                    document.getElementById('modal-reject-btn').onclick = () => window.handleReject(userId);
+                } else { actionsDiv.classList.add('hidden'); }
             } else {
                 caregiverSec.classList.add('hidden');
-                approveBtn.classList.add('hidden');
+                actionsDiv.classList.add('hidden');
             }
 
             document.getElementById('review-modal').classList.remove('hidden');
             lucide.createIcons();
         }
 
-        window.closeModal = function() {
-            document.getElementById('review-modal').classList.add('hidden');
-        }
+        window.closeModal = function() { document.getElementById('review-modal').classList.add('hidden'); }
 
-        // Modal එකෙන් මැප් එකට යන අලුත් Function එක
         window.focusUserOnMap = function(lat, lng, userId) {
-            closeModal();
-            switchTab('map');
-            
-            // මැප් එක ලෝඩ් වෙන්න සුළු වේලාවක් දී එය කේන්ද්‍රගත කිරීම
+            closeModal(); switchTab('map');
             setTimeout(() => {
                 if(adminMap) {
-                    // Zoom level එක 16 දක්වා වැඩි කර ලංකර පෙන්වයි
                     adminMap.setView([lat, lng], 16, { animate: true });
-                    
-                    // අදාළ පුද්ගලයාගේ Popup Box එක විවෘත කිරීම
-                    if(markersMap[userId]) {
-                        markersMap[userId].openPopup();
-                    }
+                    if(markersMap[userId]) markersMap[userId].openPopup();
                 }
             }, 300);
         }
 
-        window.approveUser = async function(userId) {
-            if(!confirm("Are you sure you want to approve this caregiver?")) return;
+        window.handleApprove = async function(userId) {
+            if(!confirm("Are you sure you want to APPROVE this caregiver?")) return;
             try {
-                const userRef = doc(db, "users", userId);
-                await updateDoc(userRef, { isVerified: true });
-                showToast("Caregiver Approved Successfully!");
+                await updateDoc(doc(db, "users", userId), { isVerified: true, kycStatus: "APPROVED" });
+                showToast("Caregiver Approved Successfully!", "success");
                 closeModal();
-            } catch (error) {
-                alert("Failed to approve. Check console."); console.error(error);
-            }
+            } catch (error) { alert("Failed to approve."); console.error(error); }
         }
 
-        // ==========================================
-        //         LIVE MAP (GOD VIEW) LOGIC
-        // ==========================================
+        window.handleReject = async function(userId) {
+            const reason = prompt("Enter the reason for rejection:");
+            if(reason === null) return; 
+            try {
+                await updateDoc(doc(db, "users", userId), { isVerified: false, kycStatus: "REJECTED", rejectionReason: reason || "Documents not clear." });
+                showToast("Application Rejected.", "error");
+                closeModal();
+            } catch (error) { alert("Failed to reject."); console.error(error); }
+        }
+
         function initAdminMap() {
-            if (adminMap !== null) return; // දැනටමත් සිතියම සෑදී ඇත්නම් නැවත සාදන්නේ නැත
-
-            // මුලින්ම කොළඹ නගරය කේන්ද්‍ර කර සිතියම සාදයි (Lat: 6.9271, Lng: 79.8612)
+            if (adminMap !== null) return; 
             adminMap = L.map('admin-map').setView([6.9271, 79.8612], 12);
-
-            // OpenStreetMap Layers එකතු කිරීම
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(adminMap);
@@ -509,36 +783,32 @@
 
         function startLiveMapTracking() {
             onSnapshot(collection(db, "users"), (snapshot) => {
-                snapshot.forEach((doc) => {
-                    const user = doc.data();
+                snapshot.forEach((docSnap) => {
+                    const user = docSnap.data();
+                    const userId = docSnap.id;
                     const lat = user.locationLat;
                     const lng = user.locationLng;
 
                     if (lat && lng && lat !== 0 && lng !== 0) {
-                        
-                        let markerColor = '#10b981'; // Client ගේ පාට (Green)
-                        let roleClass = 'role-client';
-                        let roleDisplay = user.role;
-
-                        // Caregiver කෙනෙක් නම්, Busy ද නැද්ද කියා බැලීම
-                        if (user.role === 'CAREGIVER') {
-                            if (user.isBusy) {
-                                markerColor = '#ef4444'; // Busy නම් රතු පාට
-                                roleClass = 'role-caregiver-busy';
-                                roleDisplay = 'CAREGIVER (BUSY)';
-                            } else {
-                                markerColor = '#0ea5e9'; // Free නම් නිල් පාට
-                                roleClass = 'role-caregiver';
-                                roleDisplay = 'CAREGIVER (FREE)';
+                        if (user.role === 'CAREGIVER' && window.geofenceIncidents[userId] && window.geofenceIncidents[userId].status === 'AWAY') {
+                            const inc = window.geofenceIncidents[userId];
+                            const dist = getDistanceFromLatLonInM(lat, lng, inc.bookingLat, inc.bookingLng);
+                            if (dist <= 50) {
+                                inc.status = 'RETURNED'; inc.returnedTime = Date.now();
+                                renderGeofenceTable(); showToast(`✅ ${inc.caregiverName} නැවත සේවා ස්ථානයට පැමිණ ඇත.`, "success");
                             }
                         }
 
-                        // අලුත් Marker Icon එකක් සෑදීම
+                        let markerColor = '#0D3B66'; let roleClass = 'role-client'; let roleDisplay = user.role;
+                        if (user.role === 'CAREGIVER') {
+                            if (user.isBusy) { markerColor = '#ef4444'; roleClass = 'role-caregiver-busy'; roleDisplay = 'CAREGIVER (BUSY)'; } 
+                            else { markerColor = '#53A548'; roleClass = 'role-caregiver'; roleDisplay = 'CAREGIVER (FREE)'; }
+                        }
+
                         const customIcon = L.divIcon({
                             className: 'custom-div-icon',
                             html: `<div style="background-color:${markerColor}; width:16px; height:16px; border-radius:50%; border:2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.5); transition: background-color 0.3s;"></div>`,
-                            iconSize: [16, 16],
-                            iconAnchor: [8, 8]
+                            iconSize: [16, 16], iconAnchor: [8, 8]
                         });
 
                         const popupContent = `
@@ -547,17 +817,15 @@
                             <div style="margin-top:4px; font-size:11px; color:gray;">${user.phone || ''}</div>
                         `;
 
-                        if (markersMap[doc.id]) {
-                            // පරණ Marker එකක් නම්, අලුත් තැන සහ පාට යාවත්කාලීන කිරීම
-                            markersMap[doc.id].setLatLng([lat, lng]);
-                            markersMap[doc.id].setIcon(customIcon);
-                            markersMap[doc.id].getPopup().setContent(popupContent);
+                        if (markersMap[userId]) {
+                            markersMap[userId].setLatLng([lat, lng]);
+                            markersMap[userId].setIcon(customIcon);
+                            markersMap[userId].getPopup().setContent(popupContent);
                         } else {
-                            // අලුත්ම කෙනෙක් නම් සිතියමට දැමීම
                             if (adminMap) {
                                 const marker = L.marker([lat, lng], { icon: customIcon }).addTo(adminMap);
                                 marker.bindPopup(popupContent);
-                                markersMap[doc.id] = marker;
+                                markersMap[userId] = marker;
                             }
                         }
                     }
@@ -565,9 +833,8 @@
             });
         }
 
-        // Tabs
         window.switchTab = function(tabName) {
-            ['overview', 'users', 'verification', 'map'].forEach(t => {
+            ['overview', 'users', 'verification', 'geofence', 'reports', 'map'].forEach(t => {
                 document.getElementById(`section-${t}`).classList.add('hidden');
                 document.getElementById(`tab-${t}`).className = "w-full flex items-center p-3 rounded-lg text-gray-300 hover:bg-gray-800 transition";
             });
@@ -575,23 +842,10 @@
             document.getElementById(`section-${tabName}`).classList.remove('hidden');
             document.getElementById(`tab-${tabName}`).className = "w-full flex items-center p-3 rounded-lg bg-primary text-white transition";
             
-            const titles = { 'overview': 'Dashboard Overview', 'users': 'User Database', 'verification': 'Verification Center', 'map': 'Live Map Tracking' };
+            const titles = { 'overview': 'Dashboard Overview', 'users': 'User Database', 'verification': 'Verification Center', 'geofence': 'Geofence Breach Logs', 'reports': 'Client Reports & Complaints', 'map': 'Live Map Tracking' };
             document.getElementById('header-title').innerText = titles[tabName];
 
-            // සිතියම පෙන්වන විට පමණක් සිතියම Render කිරීම
-            if (tabName === 'map') {
-                setTimeout(() => {
-                    initAdminMap();
-                    if(adminMap) adminMap.invalidateSize(); 
-                }, 100);
-            }
-        }
-
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.innerText = msg;
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 3000);
+            if (tabName === 'map') { setTimeout(() => { initAdminMap(); if(adminMap) adminMap.invalidateSize(); }, 100); }
         }
     </script>
 </body>
