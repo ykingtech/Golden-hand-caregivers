@@ -587,10 +587,7 @@
                         </div>
                     </div>
 
-                    <div id="modal-action-buttons" class="p-6 border-t border-gray-200 bg-white flex justify-end space-x-4 hidden shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
-                        <button id="modal-reject-btn" class="bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 px-6 py-3 rounded-xl font-bold flex items-center transition"><i data-lucide="x-octagon" class="w-5 h-5 mr-2"></i> Reject Account</button>
-                        <button id="modal-approve-btn" class="bg-primary hover:bg-green-600 text-white px-8 py-3 rounded-xl font-extrabold flex items-center shadow-lg shadow-green-200 transition uppercase tracking-wide text-sm"><i data-lucide="check-circle-2" class="w-5 h-5 mr-2"></i> Approve User</button>
-                    </div>
+                    <!-- Action බොත්තම් ඉවත් කර ඇත (Public Access නිසා) -->
                 </div>
             </div>
 
@@ -648,12 +645,13 @@
         updateDate();
     </script>
 
-    <!-- Firebase JS SDK -->
+    <!-- Firebase JS SDK (Auth ඉවත් කර ඇත) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { getFirestore, collection, query, where, getDoc, doc, updateDoc, setDoc, deleteDoc, onSnapshot, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+        // ලබා දී ඇති Config එක
         const firebaseConfig = {
             apiKey: "AIzaSyDjLaQSVtIk8w3nWve7PF5PwbtxGzjIogI",
             authDomain: "care-2a20d.firebaseapp.com",
@@ -690,6 +688,8 @@
                 loginScreen.classList.add('hidden');
                 dashboardScreen.classList.remove('hidden');
                 document.getElementById('admin-email-display').innerText = user.email;
+                
+                // Functions are called ONLY after successful authentication
                 loadDashboardStats();
                 loadPendingCaregivers();
                 loadAllUsers();
@@ -706,8 +706,27 @@
             }
         });
 
-        window.openImagePopup = function(src) { if(src && !src.includes("localhost")) { document.getElementById('viewer-img').src = src; document.getElementById('image-viewer-modal').classList.remove('hidden'); } }
+        window.openImagePopup = function(src) { 
+            if(src) { 
+                document.getElementById('viewer-img').src = src; 
+                document.getElementById('image-viewer-modal').classList.remove('hidden'); 
+            } 
+        }
         window.closeImagePopup = function() { document.getElementById('image-viewer-modal').classList.add('hidden'); }
+
+        window.viewSlip = function(bookingId) {
+            const b = window.allBookingsMap[bookingId];
+            if(b && b.receiptImageBase64) {
+                let safeBase64 = b.receiptImageBase64;
+                if (!safeBase64.startsWith("data:image")) {
+                    safeBase64 = "data:image/jpeg;base64," + safeBase64;
+                }
+                openImagePopup(safeBase64);
+            } else {
+                showToast("Slip not found", "error");
+            }
+        }
+
         window.showToast = function(msg, type = 'success') {
             const toast = document.getElementById('toast');
             const icon = document.getElementById('toast-icon');
@@ -902,6 +921,8 @@
                 const docs = snapshot.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.requestedTime - a.requestedTime);
 
                 for (const b of docs) {
+                    window.allBookingsMap[b.id] = b; 
+
                     let clientName = window.allUsersDataMap[b.clientId]?.name || "<span class='text-gray-400'>Unknown</span>";
                     let cgName = b.caregiverId ? (window.allUsersDataMap[b.caregiverId]?.name || "Unknown") : "<span class='text-gray-400 italic text-xs'>Waiting</span>";
                     
@@ -911,9 +932,17 @@
                     else if (b.status === 'COMPLETED') statusBadge = `<span class="bg-green-50 text-green-700 text-[10px] uppercase px-3 py-1 rounded-md font-black border border-green-200">COMPLETED</span>`;
                     else if (b.status === 'CANCELLED' || b.status === 'REJECTED') statusBadge = `<span class="bg-red-50 text-red-700 text-[10px] uppercase px-3 py-1 rounded-md font-bold border border-red-100">${b.status}</span>`;
 
+                    if (b.isSubscriptionBooking) {
+                        statusBadge += `<br><span class="bg-orange-100 text-orange-800 text-[9px] mt-1 inline-block px-2 py-0.5 rounded font-bold">${b.planName}</span>`;
+                    }
+
                     let actions = "";
                     if (b.status === 'PENDING' || b.status === 'BROADCASTED' || b.status === 'ACCEPTED') {
                         actions = `<button onclick="adminCancelBooking('${b.id}')" class="text-red-500 hover:text-white hover:bg-red-500 p-1.5 rounded-md text-xs font-bold border border-red-200 transition shadow-sm" title="Cancel this job"><i data-lucide="x" class="w-4 h-4"></i></button>`;
+                    }
+
+                    if (b.receiptImageBase64) {
+                        actions += `<button onclick="viewSlip('${b.id}')" class="text-blue-500 hover:text-white hover:bg-blue-500 p-1.5 rounded-md text-xs font-bold border border-blue-200 transition shadow-sm ml-2" title="View Payment Slip"><i data-lucide="receipt" class="w-4 h-4 inline"></i> Slip</button>`;
                     }
 
                     let replacementNote = "";
