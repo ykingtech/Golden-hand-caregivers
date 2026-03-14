@@ -588,6 +588,10 @@
                     </div>
 
                     <!-- Action බොත්තම් ඉවත් කර ඇත (Public Access නිසා) -->
+                    <div id="modal-action-buttons" class="p-6 border-t border-gray-200 bg-white flex justify-end space-x-4 hidden">
+                        <button id="modal-reject-btn" class="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-2.5 rounded-xl font-bold transition border border-red-200 flex items-center"><i data-lucide="x" class="w-4 h-4 mr-2"></i> Reject Application</button>
+                        <button id="modal-approve-btn" class="bg-primary hover:bg-green-600 text-white px-8 py-2.5 rounded-xl font-extrabold shadow-lg shadow-green-200 transition flex items-center"><i data-lucide="check" class="w-4 h-4 mr-2"></i> Approve & Request Fee</button>
+                    </div>
                 </div>
             </div>
 
@@ -1090,11 +1094,18 @@
                 setImage('modal-id-front', 'modal-id-front-err', user.nicFrontUrl || user.idFrontUrl); setImage('modal-id-back', 'modal-id-back-err', user.nicBackUrl || user.idBackUrl); setImage('modal-selfie', 'modal-selfie-err', user.selfieUrl);
             }
 
-            if (user.kycStatus === 'PENDING' || (!user.isVerified && user.kycStatus !== 'APPROVED')) {
-                actionsDiv.classList.remove('hidden');
-                document.getElementById('modal-approve-btn').onclick = () => window.handleApprove(userId);
-                document.getElementById('modal-reject-btn').onclick = () => window.handleReject(userId);
-            } else { actionsDiv.classList.add('hidden'); }
+            // Fixed Null Reference Issue Here
+            if (actionsDiv) {
+                if (user.kycStatus === 'PENDING' || (!user.isVerified && user.kycStatus !== 'APPROVED')) {
+                    actionsDiv.classList.remove('hidden');
+                    const approveBtn = document.getElementById('modal-approve-btn');
+                    const rejectBtn = document.getElementById('modal-reject-btn');
+                    if(approveBtn) approveBtn.onclick = () => window.handleApprove(userId);
+                    if(rejectBtn) rejectBtn.onclick = () => window.handleReject(userId);
+                } else { 
+                    actionsDiv.classList.add('hidden'); 
+                }
+            }
 
             document.getElementById('review-modal').classList.remove('hidden');
             lucide.createIcons();
