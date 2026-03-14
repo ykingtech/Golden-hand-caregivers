@@ -80,6 +80,7 @@
                     <li><button onclick="switchTab('reports')" id="tab-reports" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition relative"><i data-lucide="message-square" class="w-5 h-5 mr-3"></i>Client Complaints <span id="badge-reports" class="absolute right-3 bg-purple-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span></button></li>
                     <li><button onclick="switchTab('promotions')" id="tab-promotions" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="megaphone" class="w-5 h-5 mr-3"></i>App Banners</button></li>
                     <li><button onclick="switchTab('settings')" id="tab-settings" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="settings" class="w-5 h-5 mr-3"></i>System Settings</button></li>
+                    <li><button onclick="switchTab('callcenter')" id="tab-callcenter" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="headset" class="w-5 h-5 mr-3"></i>Call Center</button></li>
                 </ul>
             </nav>
             <div class="p-5 border-t border-gray-700/50 bg-dark flex items-center justify-between">
@@ -482,6 +483,11 @@
                     </div>
                 </div>
 
+                <!-- 12. CALL CENTER (MOBITEL) -->
+                <div id="section-callcenter" class="hidden h-full w-full">
+                    <iframe src="https://mcallcenter.mobitel.lk/index.php?page=call_agents" class="w-full h-[750px] border-0 rounded-2xl shadow-sm bg-white" title="Mobitel Call Center Portal"></iframe>
+                </div>
+
             </div>
 
             <!-- KYC REVIEW MODAL & WALLET SETTLEMENT -->
@@ -639,7 +645,8 @@
             'reports': { title: 'Client Complaints', sub: 'Review duty reports and photo proofs.' }, 
             'map': { title: 'Live Map Tracking', sub: 'Real-time God view of active operations.' }, 
             'promotions': { title: 'App Banners', sub: 'Configure promotional sliders for the mobile app.' },
-            'settings': { title: 'System Settings', sub: 'Manage platform commission and global rules.' } 
+            'settings': { title: 'System Settings', sub: 'Manage platform commission and global rules.' },
+            'callcenter': { title: 'Call Center Agent Portal', sub: 'Mobitel call center integration.' }
         };
 
         function updateDate() {
@@ -1282,7 +1289,7 @@
 
         window.switchTab = function(tabName) {
             document.getElementById('header-title').innerText = titles[tabName].title; document.getElementById('header-subtitle').innerText = titles[tabName].sub;
-            ['overview', 'users', 'verification', 'bookings', 'special', 'leaves', 'geofence', 'reports', 'map', 'promotions', 'settings'].forEach(t => {
+            ['overview', 'users', 'verification', 'bookings', 'special', 'leaves', 'geofence', 'reports', 'map', 'promotions', 'settings', 'callcenter'].forEach(t => {
                 document.getElementById(`section-${t}`).classList.add('hidden'); document.getElementById(`tab-${t}`).className = "w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition font-medium";
             });
             document.getElementById(`section-${tabName}`).classList.remove('hidden'); document.getElementById(`tab-${tabName}`).className = "w-full flex items-center p-3.5 rounded-xl bg-primary text-white shadow-md font-bold transition";
