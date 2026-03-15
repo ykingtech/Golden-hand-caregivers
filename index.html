@@ -483,24 +483,16 @@
                     </div>
                 </div>
 
-                <!-- 12. CALL CENTER (MOBITEL) - POPUP WINDOW SOLUTION -->
-                <div id="section-callcenter" class="hidden h-full flex flex-col items-center justify-center w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden p-8 text-center relative">
-                    <!-- Background pattern for visual enhancement -->
-                    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#0D3B66 2px, transparent 2px); background-size: 30px 30px;"></div>
-                    
-                    <div class="relative z-10 flex flex-col items-center">
-                        <div class="w-28 h-28 bg-blue-50 rounded-full flex items-center justify-center mb-6 shadow-inner border border-blue-100">
-                            <i data-lucide="headset" class="w-14 h-14 text-blue-600"></i>
+                <!-- 12. CALL CENTER (MOBITEL) - ELECTRON WEBVIEW -->
+                <div id="section-callcenter" class="hidden h-full flex flex-col w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center z-10 flex-shrink-0">
+                        <div>
+                            <h3 class="font-extrabold text-gray-800 flex items-center"><i data-lucide="headset" class="w-5 h-5 mr-2 text-primary"></i> Mobitel Call Center Portal</h3>
+                            <p class="text-[11px] font-bold text-gray-500 mt-0.5">Isolated Electron Webview Container</p>
                         </div>
-                        <h2 class="text-3xl font-black text-gray-800 mb-3 tracking-tight">Mobitel Call Center Portal</h2>
-                        <p class="text-gray-500 max-w-lg mx-auto mb-10 font-medium leading-relaxed">
-                            To ensure system stability and prevent the main dashboard from unexpectedly reloading, the external Mobitel call center must run in an isolated secure window.
-                        </p>
-                        <button onclick="openMobitelWindow()" class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-2xl font-black text-lg shadow-xl shadow-blue-200/50 transition flex items-center transform hover:-translate-y-1">
-                            <i data-lucide="external-link" class="w-6 h-6 mr-3"></i> Launch Secure Call Center
-                        </button>
-                        <p class="text-xs text-gray-400 font-bold mt-6 uppercase tracking-widest"><i data-lucide="shield-check" class="w-3.5 h-3.5 inline mr-1 text-green-500"></i> Connection Protected</p>
+                        <button onclick="document.getElementById('mobitel-webview').reload()" class="text-xs bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 px-3 py-2 rounded-lg font-bold transition flex items-center shadow-sm"><i data-lucide="refresh-cw" class="w-3.5 h-3.5 mr-1.5"></i> Refresh Frame</button>
                     </div>
+                    <webview id="mobitel-webview" src="https://mcallcenter.mobitel.lk/index.php?page=call_agents" class="w-full flex-1 border-0 bg-white" style="display:flex;"></webview>
                 </div>
 
             </div>
@@ -1464,18 +1456,6 @@
             var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
             return R * c * 1000; 
         }
-
-        // Open Mobitel Call Center in an Isolated Popup Window
-        window.openMobitelWindow = function() {
-            const url = "https://mcallcenter.mobitel.lk/index.php?page=call_agents";
-            // Set features to look like a mini standalone app/browser
-            const windowFeatures = "width=1200,height=800,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes,resizable=yes,left=100,top=100";
-            const newWindow = window.open(url, "MobitelCallCenterPortal", windowFeatures);
-            
-            if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') { 
-                showToast("Popup blocked! Please allow popups for this site.", "error");
-            }
-        };
 
         // Security guard to prevent iframes from redirecting the parent window
         window.isSystemLogout = false;
