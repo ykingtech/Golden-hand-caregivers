@@ -73,6 +73,11 @@
                     <li><button onclick="switchTab('users')" id="tab-users" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="users" class="w-5 h-5 mr-3"></i>All Users</button></li>
                     <li><button onclick="switchTab('verification')" id="tab-verification" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition relative"><i data-lucide="shield-check" class="w-5 h-5 mr-3"></i>KYC Approvals <span id="badge-pending" class="absolute right-3 bg-yellow-500 text-black text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span></button></li>
                     <li><button onclick="switchTab('bookings')" id="tab-bookings" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="calendar" class="w-5 h-5 mr-3"></i>Manage Bookings</button></li>
+                    
+                    <!-- Call Center & Seylan Bank as Electron Webviews -->
+                    <li><button onclick="switchTab('callcenter')" id="tab-callcenter" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="headset" class="w-5 h-5 mr-3"></i>Call Center</button></li>
+                    <li><button onclick="switchTab('seylanbank')" id="tab-seylanbank" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="landmark" class="w-5 h-5 mr-3"></i>Seylan Bank</button></li>
+
                     <li><button onclick="switchTab('special')" id="tab-special" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition relative"><i data-lucide="star" class="w-5 h-5 mr-3"></i>Subscription Plans <span id="badge-special" class="absolute right-3 bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span></button></li>
                     <li><button onclick="switchTab('leaves')" id="tab-leaves" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition relative"><i data-lucide="calendar-off" class="w-5 h-5 mr-3"></i>Leave Requests <span id="badge-leaves" class="absolute right-3 bg-pink-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span></button></li>
                     <li><button onclick="switchTab('map')" id="tab-map" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="map" class="w-5 h-5 mr-3"></i>Live Tracking Map</button></li>
@@ -80,7 +85,6 @@
                     <li><button onclick="switchTab('reports')" id="tab-reports" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition relative"><i data-lucide="message-square" class="w-5 h-5 mr-3"></i>Client Complaints <span id="badge-reports" class="absolute right-3 bg-purple-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span></button></li>
                     <li><button onclick="switchTab('promotions')" id="tab-promotions" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="megaphone" class="w-5 h-5 mr-3"></i>App Banners</button></li>
                     <li><button onclick="switchTab('settings')" id="tab-settings" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="settings" class="w-5 h-5 mr-3"></i>System Settings</button></li>
-                    <li><button onclick="switchTab('callcenter')" id="tab-callcenter" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="headset" class="w-5 h-5 mr-3"></i>Call Center</button></li>
                 </ul>
             </nav>
             <div class="p-5 border-t border-gray-700/50 bg-dark flex items-center justify-between">
@@ -129,9 +133,16 @@
                 <!-- 2. ALL USERS -->
                 <div id="section-users" class="hidden">
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                            <h3 class="text-lg font-extrabold text-gray-800">User Database</h3>
-                            <button onclick="loadAllUsers()" class="text-sm bg-white hover:bg-gray-100 border border-gray-200 px-4 py-2 rounded-lg text-gray-700 font-bold flex items-center shadow-sm transition"><i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i> Refresh List</button>
+                        <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-50/50 gap-4">
+                            <div>
+                                <h3 class="text-lg font-extrabold text-gray-800 mb-3">User Database</h3>
+                                <div class="flex flex-wrap gap-2">
+                                    <button onclick="filterUsers('CAREGIVER')" id="btn-filter-caregiver" class="px-5 py-2 rounded-xl text-sm font-bold bg-primary text-white shadow-md transition-all">Caregivers</button>
+                                    <button onclick="filterUsers('NURSE')" id="btn-filter-nurse" class="px-5 py-2 rounded-xl text-sm font-bold bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all">Nurses</button>
+                                    <button onclick="filterUsers('CLIENT')" id="btn-filter-client" class="px-5 py-2 rounded-xl text-sm font-bold bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all">Clients</button>
+                                </div>
+                            </div>
+                            <button onclick="loadAllUsers()" class="text-sm bg-white hover:bg-gray-100 border border-gray-200 px-4 py-2.5 rounded-xl text-gray-700 font-bold flex items-center shadow-sm transition"><i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i> Sync Data</button>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
@@ -495,6 +506,18 @@
                     <webview id="mobitel-webview" src="https://mcallcenter.mobitel.lk/index.php?page=call_agents" class="w-full flex-1 border-0 bg-white" style="display:flex;"></webview>
                 </div>
 
+                <!-- 13. SEYLAN BANK PORTAL - ELECTRON WEBVIEW -->
+                <div id="section-seylanbank" class="hidden h-full flex flex-col w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center z-10 flex-shrink-0">
+                        <div>
+                            <h3 class="font-extrabold text-gray-800 flex items-center"><i data-lucide="landmark" class="w-5 h-5 mr-2 text-red-600"></i> Seylan Corporate Banking</h3>
+                            <p class="text-[11px] font-bold text-gray-500 mt-0.5">Isolated Electron Webview Container</p>
+                        </div>
+                        <button onclick="document.getElementById('seylan-webview').reload()" class="text-xs bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 px-3 py-2 rounded-lg font-bold transition flex items-center shadow-sm"><i data-lucide="refresh-cw" class="w-3.5 h-3.5 mr-1.5"></i> Refresh Frame</button>
+                    </div>
+                    <webview id="seylan-webview" src="https://www.seylanbank.lk/corporate/login" class="w-full flex-1 border-0 bg-white" style="display:flex;"></webview>
+                </div>
+
             </div>
 
             <!-- KYC REVIEW MODAL & WALLET SETTLEMENT -->
@@ -653,7 +676,8 @@
             'map': { title: 'Live Map Tracking', sub: 'Real-time God view of active operations.' }, 
             'promotions': { title: 'App Banners', sub: 'Configure promotional sliders for the mobile app.' },
             'settings': { title: 'System Settings', sub: 'Manage platform commission and global rules.' },
-            'callcenter': { title: 'Call Center Agent Portal', sub: 'Mobitel call center integration.' }
+            'callcenter': { title: 'Call Center Agent Portal', sub: 'Mobitel call center integration.' },
+            'seylanbank': { title: 'Seylan Corporate Banking', sub: 'Secure access to Seylan Bank corporate portal.' }
         };
 
         function updateDate() {
@@ -797,11 +821,11 @@
             let html = '';
             let count = 0;
             Object.values(window.allUsersDataMap).forEach(u => {
-                if (u.role === 'CAREGIVER' && u.isVerified) {
+                if ((u.role === 'CAREGIVER' || u.role === 'NURSE') && u.isVerified) {
                     count++;
                     html += `<label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-100 cursor-pointer hover:border-orange-300 transition">
                                 <input type="checkbox" value="${u.id}" class="cg-checkbox rounded text-orange-500 focus:ring-orange-500">
-                                <span class="text-xs font-bold text-gray-700">${u.name} <span class="text-[9px] text-gray-400 font-normal">(${u.rating}⭐)</span></span>
+                                <span class="text-xs font-bold text-gray-700">${u.name} <span class="text-[9px] text-gray-400 font-normal">(${u.rating || 0}⭐)</span></span>
                              </label>`;
                 }
             });
@@ -993,20 +1017,48 @@
             } catch(e) { showToast("Failed to cancel job.", "error"); }
         }
 
-        window.loadAllUsers = async function() {
-            allUsersTableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 italic">Loading user data...</td></tr>`;
-            onSnapshot(collection(db, "users"), (snapshot) => {
-                if (snapshot.empty) { allUsersTableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500 font-medium">No users found.</td></tr>`; return; }
-                let rows = '';
-                snapshot.forEach((doc) => {
-                    const user = doc.data();
-                    window.allUsersDataMap[doc.id] = user;
+        window.currentUserFilter = 'CAREGIVER';
+
+        window.filterUsers = function(role) {
+            window.currentUserFilter = role;
+            
+            document.getElementById('btn-filter-caregiver').className = role === 'CAREGIVER' ? "px-5 py-2 rounded-xl text-sm font-bold bg-primary text-white shadow-md transition-all" : "px-5 py-2 rounded-xl text-sm font-bold bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all";
+            document.getElementById('btn-filter-nurse').className = role === 'NURSE' ? "px-5 py-2 rounded-xl text-sm font-bold bg-blue-600 text-white shadow-md transition-all" : "px-5 py-2 rounded-xl text-sm font-bold bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all";
+            document.getElementById('btn-filter-client').className = role === 'CLIENT' ? "px-5 py-2 rounded-xl text-sm font-bold bg-dark text-white shadow-md transition-all" : "px-5 py-2 rounded-xl text-sm font-bold bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all";
+            
+            window.renderUsersTable();
+        }
+
+        window.renderUsersTable = function() {
+            const tbody = document.getElementById('all-users-table-body');
+            let rows = '';
+            let count = 0;
+
+            Object.values(window.allUsersDataMap).forEach((user) => {
+                let isMatch = false;
+                // Check if user is a Nurse based on strict Role or embedded Category
+                const isNurse = user.role === 'NURSE' || (user.role === 'CAREGIVER' && user.categories && (user.categories.includes('Nurse') || user.categories.includes('NURSE')));
+                
+                if (window.currentUserFilter === 'CLIENT') {
+                    isMatch = user.role === 'CLIENT';
+                } else if (window.currentUserFilter === 'NURSE') {
+                    isMatch = isNurse;
+                } else if (window.currentUserFilter === 'CAREGIVER') {
+                    isMatch = user.role === 'CAREGIVER' && !isNurse;
+                }
+
+                if (isMatch) {
+                    count++;
                     let statusBadge = '';
                     if (user.kycStatus === 'APPROVED' && user.isVerified) statusBadge = `<span class="bg-green-50 text-green-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-green-200">ACTIVE</span>`;
                     else if (user.kycStatus === 'APPROVED' && !user.isVerified) statusBadge = `<span class="bg-blue-50 text-blue-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-blue-200">PENDING FEE</span>`;
                     else if (user.kycStatus === 'REJECTED') statusBadge = `<span class="bg-red-50 text-red-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-red-200">REJECTED</span>`;
                     else statusBadge = `<span class="bg-yellow-50 text-yellow-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-yellow-200">PENDING KYC</span>`;
-                    let roleBadge = user.role === 'CAREGIVER' ? `<span class="bg-primary/10 text-primary text-xs px-2.5 py-1 rounded-md font-black">${user.role}</span>` : `<span class="bg-dark/10 text-dark text-xs px-2.5 py-1 rounded-md font-black">${user.role}</span>`;
+                    
+                    let roleBadge = '';
+                    if (user.role === 'CLIENT') roleBadge = `<span class="bg-dark/10 text-dark text-xs px-2.5 py-1 rounded-md font-black">CLIENT</span>`;
+                    else if (isNurse) roleBadge = `<span class="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-md font-black">NURSE</span>`;
+                    else roleBadge = `<span class="bg-primary/10 text-primary text-xs px-2.5 py-1 rounded-md font-black">CAREGIVER</span>`;
 
                     rows += `
                         <tr class="hover:bg-gray-50 transition border-b border-gray-100">
@@ -1014,11 +1066,34 @@
                             <td class="p-5 text-gray-500 font-medium">${user.email}</td>
                             <td class="p-5">${roleBadge}</td>
                             <td class="p-5">${statusBadge}</td>
-                            <td class="p-5 text-center"><button onclick="openReviewModal('${doc.id}')" class="text-primary hover:text-white hover:bg-primary px-3 py-1.5 rounded-lg text-xs font-bold transition inline-flex items-center border border-primary/30"><i data-lucide="eye" class="w-3.5 h-3.5 mr-1.5"></i> View Details</button></td>
+                            <td class="p-5 text-center"><button onclick="openReviewModal('${user.id}')" class="text-primary hover:text-white hover:bg-primary px-3 py-1.5 rounded-lg text-xs font-bold transition inline-flex items-center border border-primary/30"><i data-lucide="eye" class="w-3.5 h-3.5 mr-1.5"></i> View Details</button></td>
                         </tr>
                     `;
+                }
+            });
+
+            if (count === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500 font-medium">No ${window.currentUserFilter.toLowerCase()}s found.</td></tr>`;
+            } else {
+                tbody.innerHTML = rows;
+            }
+            lucide.createIcons();
+        }
+
+        window.loadAllUsers = async function() {
+            document.getElementById('all-users-table-body').innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 italic">Loading user data...</td></tr>`;
+            onSnapshot(collection(db, "users"), (snapshot) => {
+                window.allUsersDataMap = {};
+                if (snapshot.empty) { 
+                    document.getElementById('all-users-table-body').innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500 font-medium">No users found.</td></tr>`; 
+                    return; 
+                }
+                snapshot.forEach((doc) => {
+                    const user = doc.data();
+                    user.id = doc.id;
+                    window.allUsersDataMap[doc.id] = user;
                 });
-                allUsersTableBody.innerHTML = rows; lucide.createIcons();
+                window.renderUsersTable();
                 populateCaregiverCheckboxes(); 
             });
         }
@@ -1296,7 +1371,7 @@
 
         window.switchTab = function(tabName) {
             document.getElementById('header-title').innerText = titles[tabName].title; document.getElementById('header-subtitle').innerText = titles[tabName].sub;
-            ['overview', 'users', 'verification', 'bookings', 'special', 'leaves', 'geofence', 'reports', 'map', 'promotions', 'settings', 'callcenter'].forEach(t => {
+            ['overview', 'users', 'verification', 'bookings', 'callcenter', 'seylanbank', 'special', 'leaves', 'geofence', 'reports', 'map', 'promotions', 'settings'].forEach(t => {
                 document.getElementById(`section-${t}`).classList.add('hidden'); document.getElementById(`tab-${t}`).className = "w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition font-medium";
             });
             document.getElementById(`section-${tabName}`).classList.remove('hidden'); document.getElementById(`tab-${tabName}`).className = "w-full flex items-center p-3.5 rounded-xl bg-primary text-white shadow-md font-bold transition";
