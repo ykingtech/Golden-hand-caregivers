@@ -503,7 +503,7 @@
                         </div>
                         <button onclick="document.getElementById('mobitel-webview').reload()" class="text-xs bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 px-3 py-2 rounded-lg font-bold transition flex items-center shadow-sm"><i data-lucide="refresh-cw" class="w-3.5 h-3.5 mr-1.5"></i> Refresh Frame</button>
                     </div>
-                    <webview id="mobitel-webview" src="https://mcallcenter.mobitel.lk/index.php?page=call_agents" class="w-full flex-1 border-0 bg-white" style="display:flex;"></webview>
+                    <webview id="mobitel-webview" src="https://mcallcenter.mobitel.lk/index.php?page=call_agents" partition="persist:mobitel" useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" class="w-full flex-1 border-0 bg-white" style="display:flex;"></webview>
                 </div>
 
                 <!-- 13. SEYLAN BANK PORTAL - ELECTRON WEBVIEW -->
@@ -515,7 +515,7 @@
                         </div>
                         <button onclick="document.getElementById('seylan-webview').reload()" class="text-xs bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 px-3 py-2 rounded-lg font-bold transition flex items-center shadow-sm"><i data-lucide="refresh-cw" class="w-3.5 h-3.5 mr-1.5"></i> Refresh Frame</button>
                     </div>
-                    <webview id="seylan-webview" src="https://www.seylanbank.lk/corporate/login" class="w-full flex-1 border-0 bg-white" style="display:flex;"></webview>
+                    <webview id="seylan-webview" src="https://www.seylanbank.lk/corporate/login" partition="persist:seylan" useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" class="w-full flex-1 border-0 bg-white" style="display:flex;"></webview>
                 </div>
 
             </div>
