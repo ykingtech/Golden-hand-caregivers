@@ -1,1558 +1,979 @@
 <!DOCTYPE html>
-<html lang="si">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Golden Hand Caregivers - Admin Panel</title>
+    
+    <!-- SEO Meta Tags -->
+    <title>Golden Hand Caregivers | Premium Caregiving Services & Investor Portal</title>
+    <meta name="description" content="Top-quality care for your loved ones. Contact us today for experienced caregivers for elderly care, patient care, and baby care in Sri Lanka.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Leaflet Map CSS & JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
     <script>
-        tailwind.config = { theme: { extend: { colors: { primary: '#53A548', dark: '#0D3B66' } } } }
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'], 
+                    },
+                    colors: {
+                        brand: {
+                            blue: '#0A2540',     /* Deep Blue */
+                            blueDark: '#061727', 
+                            green: '#22C55E',    /* Emerald Green */
+                            greenDark: '#16A34A',
+                            greenLight: '#DCFCE7',
+                            light: '#F8FAFC'     
+                        }
+                    }
+                }
+            }
+        }
     </script>
     <style>
-        #admin-map { min-height: 500px; height: 100%; width: 100%; z-index: 10; }
-        .map-popup-title { font-weight: bold; color: #0f172a; margin-bottom: 4px; font-size: 14px;}
-        .map-popup-role { font-size: 11px; padding: 3px 8px; border-radius: 12px; color: white; font-weight: bold;}
-        .role-caregiver { background-color: #53A548; }
-        .role-caregiver-busy { background-color: #ef4444; } 
-        .role-client { background-color: #0D3B66; }
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        /* Main Site Styles */
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .service-card:hover .service-icon {
+            transform: scale(1.1);
+            color: #22C55E; 
+        }
+        .tab-active {
+            background-color: white;
+            color: #0A2540;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            font-weight: 700;
+        }
+        .tab-inactive {
+            background-color: transparent;
+            color: #64748B;
+            font-weight: 500;
+        }
+
+        /* Investor Portal Styles (Glassmorphism) */
+        .investor-bg {
+            background-color: #f0f4f8;
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+        }
+        .project-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+        .project-card:hover {
+            transform: translateY(-15px) scale(1.05);
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 25px 50px -12px rgba(34, 197, 94, 0.25); /* Greenish shadow */
+            z-index: 50;
+            border-color: #22C55E;
+        }
+        .roadmap-container {
+            background: linear-gradient(135deg, #0A2540 0%, #061727 100%);
+            border-radius: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .glow-bg {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(34,197,94,0.15) 0%, rgba(0,0,0,0) 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            pointer-events: none;
+        }
     </style>
 </head>
-<body class="bg-gray-100 font-sans antialiased text-gray-900 h-screen flex overflow-hidden">
+<body class="bg-brand-light text-slate-800 antialiased font-sans">
 
-    <!-- LOGIN SCREEN -->
-    <div id="login-screen" class="absolute inset-0 bg-gray-100 z-50 flex flex-col items-center justify-center">
-        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md border border-gray-100">
-            <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-20 h-20 bg-primary rounded-full mb-4 shadow-lg shadow-green-200">
-                    <i data-lucide="shield-check" class="text-white w-10 h-10"></i>
+    <!-- Navigation Bar -->
+    <header class="fixed w-full top-0 z-50 transition-all duration-300 glass-nav" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center gap-2 cursor-pointer" onclick="window.showMainPage()">
+                    <i class="ph-fill ph-hand-heart text-4xl text-brand-green"></i>
+                    <div>
+                        <h1 class="text-brand-blue font-bold text-xl tracking-wide">Golden Hand</h1>
+                        <p class="text-brand-green text-xs font-bold tracking-widest uppercase">Caregivers</p>
+                    </div>
                 </div>
-                <h1 class="text-3xl font-extrabold tracking-wider text-dark mb-1">GOLDEN HAND</h1>
-                <h2 class="text-lg font-bold tracking-widest text-primary">CAREGIVERS</h2>
-                <p class="text-gray-500 mt-2 text-sm font-medium">System Administration Panel</p>
+
+                <!-- Desktop Menu -->
+                <nav class="hidden md:flex space-x-6 items-center">
+                    <a href="javascript:void(0)" onclick="window.showMainPage()" class="text-slate-600 hover:text-brand-green transition text-sm font-semibold">Home</a>
+                    <a href="#services" onclick="window.showMainPage()" class="text-slate-600 hover:text-brand-green transition text-sm font-semibold">Services</a>
+                    <a href="#about" onclick="window.showMainPage()" class="text-slate-600 hover:text-brand-green transition text-sm font-semibold">About Us</a>
+                    
+                    <!-- Investor Portal Button -->
+                    <a href="javascript:void(0)" onclick="window.showInvestorPortal()" class="ml-4 flex items-center gap-1.5 text-brand-green border-2 border-brand-green px-4 py-2 hover:bg-brand-green hover:text-white transition rounded-full font-bold shadow-sm bg-green-50/50">
+                        <i class="ph-bold ph-trend-up text-lg"></i> INVESTORS
+                    </a>
+
+                    <a href="#book" onclick="window.showMainPage()" class="bg-brand-green text-white px-6 py-2.5 rounded-full font-bold hover:bg-brand-greenDark shadow-md shadow-green-200 transition transform hover:-translate-y-0.5 flex items-center gap-2">
+                        <i class="ph ph-calendar-plus text-lg"></i>
+                        Book / Join
+                    </a>
+                </nav>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center gap-4">
+                    <button id="mobile-menu-btn" class="text-brand-blue hover:text-brand-green focus:outline-none">
+                        <i class="ph ph-list text-3xl"></i>
+                    </button>
+                </div>
             </div>
-            <form id="loginForm" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Admin Email</label>
-                    <input type="email" id="email" class="block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-primary focus:border-primary sm:text-sm bg-gray-50 outline-none" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Password</label>
-                    <input type="password" id="password" class="block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-primary focus:border-primary sm:text-sm bg-gray-50 outline-none" required>
-                </div>
-                <p id="login-error" class="text-red-500 text-sm hidden font-medium text-center"></p>
-                <button type="submit" id="login-btn" class="w-full flex justify-center py-3.5 px-4 rounded-xl shadow-lg shadow-green-200 text-sm font-bold text-white bg-primary hover:bg-green-600 transition duration-200">
-                    Sign In to Dashboard
-                </button>
-            </form>
         </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-slate-100 shadow-xl absolute w-full">
+            <div class="px-4 pt-2 pb-6 space-y-1">
+                <a href="javascript:void(0)" onclick="window.showMainPage()" class="block px-3 py-3 text-brand-blue font-semibold border-b border-slate-50">Home</a>
+                <a href="#services" onclick="window.showMainPage()" class="block px-3 py-3 text-brand-blue font-semibold border-b border-slate-50">Services</a>
+                <a href="javascript:void(0)" onclick="window.showInvestorPortal()" class="block px-3 py-3 text-brand-green font-bold border-b border-slate-50 flex items-center gap-2">
+                    <i class="ph-bold ph-trend-up text-lg"></i> Investor Portal
+                </a>
+                <a href="#book" onclick="window.showMainPage()" class="block mt-4 text-center bg-brand-green text-white px-6 py-3 rounded-xl font-bold">Book a Service / Register</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- MAIN LANDING PAGE VIEW                     -->
+    <!-- ========================================== -->
+    <div id="main-page-view" class="block">
+        
+        <!-- Hero Section -->
+        <section id="home" class="relative min-h-screen flex items-center pt-20 bg-slate-50 overflow-hidden">
+            <div class="absolute inset-0 z-0 flex justify-end">
+                <div class="w-full lg:w-3/5 h-full relative">
+                    <img src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" alt="Caregiver with elderly" class="w-full h-full object-cover lg:rounded-l-[4rem] shadow-2xl" />
+                    <div class="absolute inset-0 bg-white/80 lg:hidden"></div>
+                </div>
+            </div>
+
+            <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                <div class="bg-white p-8 md:p-12 rounded-[2rem] shadow-2xl max-w-lg border border-slate-100">
+                    <h2 class="font-serif text-4xl md:text-5xl font-bold text-brand-blue leading-tight mb-4">
+                        Compassionate Care for Your Loved Ones
+                    </h2>
+                    <p class="text-slate-600 mb-8 leading-relaxed text-sm md:text-base">
+                        Golden Hand Caregivers provides professional, trusted caregiving services with warmth and expertise. We're here to support your family's health and wellbeing.
+                    </p>
+                    
+                    <div class="flex flex-col gap-3 mb-8">
+                        <a href="#book" class="text-center bg-brand-green text-white px-6 py-3.5 rounded-xl font-bold hover:bg-brand-greenDark transition shadow-md shadow-green-200">
+                            Book a Caregiver
+                        </a>
+                        <a href="#about" class="text-center bg-white border border-brand-green text-brand-green px-6 py-3.5 rounded-xl font-bold hover:bg-brand-greenLight transition">
+                            Learn More
+                        </a>
+                    </div>
+
+                    <div class="flex gap-8 border-t border-slate-100 pt-6">
+                        <div>
+                            <h4 class="text-2xl font-bold text-brand-green">500+</h4>
+                            <p class="text-xs text-slate-500 font-medium mt-1">Families Served</p>
+                        </div>
+                        <div>
+                            <h4 class="text-2xl font-bold text-brand-green">98%</h4>
+                            <p class="text-xs text-slate-500 font-medium mt-1">Satisfaction Rate</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Services Section -->
+        <section id="services" class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <h2 class="text-brand-green font-bold tracking-wide uppercase text-sm mb-2">Our Services</h2>
+                    <h3 class="font-serif text-3xl md:text-4xl font-bold text-brand-blue mb-4">Care Tailored to Your Needs</h3>
+                    <p class="text-slate-600">Professional medical and non-medical support designed to meet the specific requirements of your loved ones.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Service 1 -->
+                    <article class="bg-slate-50 rounded-3xl p-8 hover:shadow-xl transition-all duration-300 service-card border border-slate-100 group">
+                        <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center mb-6 text-brand-green service-icon transition-transform duration-300 shadow-sm">
+                            <i class="ph-fill ph-wheelchair text-3xl"></i>
+                        </div>
+                        <h4 class="font-serif text-xl font-bold text-brand-blue mb-3">Elderly Care</h4>
+                        <p class="text-slate-600 mb-6 text-sm leading-relaxed">
+                            Providing the love, medication assistance, companionship, and daily support your elderly parents need to live comfortably at home.
+                        </p>
+                        <ul class="space-y-2 mb-6 text-sm text-slate-500">
+                            <li class="flex items-center gap-2"><i class="ph-bold ph-check text-brand-green"></i> Daily living assistance</li>
+                            <li class="flex items-center gap-2"><i class="ph-bold ph-check text-brand-green"></i> Medication reminders</li>
+                        </ul>
+                    </article>
+
+                    <!-- Service 2 -->
+                    <article class="bg-slate-50 rounded-3xl p-8 hover:shadow-xl transition-all duration-300 service-card border border-slate-100 group">
+                        <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center mb-6 text-brand-green service-icon transition-transform duration-300 shadow-sm">
+                            <i class="ph-fill ph-first-aid text-3xl"></i>
+                        </div>
+                        <h4 class="font-serif text-xl font-bold text-brand-blue mb-3">Patient/Nursing Care</h4>
+                        <p class="text-slate-600 mb-6 text-sm leading-relaxed">
+                            Professional medical support including wound care, medication management, and health monitoring for recovering patients.
+                        </p>
+                        <ul class="space-y-2 mb-6 text-sm text-slate-500">
+                            <li class="flex items-center gap-2"><i class="ph-bold ph-check text-brand-green"></i> Vital signs monitoring</li>
+                            <li class="flex items-center gap-2"><i class="ph-bold ph-check text-brand-green"></i> Wound care & dressing</li>
+                        </ul>
+                    </article>
+
+                    <!-- Service 3 -->
+                    <article class="bg-slate-50 rounded-3xl p-8 hover:shadow-xl transition-all duration-300 service-card border border-slate-100 group">
+                        <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center mb-6 text-brand-green service-icon transition-transform duration-300 shadow-sm">
+                            <i class="ph-fill ph-baby text-3xl"></i>
+                        </div>
+                        <h4 class="font-serif text-xl font-bold text-brand-blue mb-3">Baby Care</h4>
+                        <p class="text-slate-600 mb-6 text-sm leading-relaxed">
+                            Professional childcare services including feeding, bathing, and developmental support for infants and toddlers.
+                        </p>
+                        <ul class="space-y-2 mb-6 text-sm text-slate-500">
+                            <li class="flex items-center gap-2"><i class="ph-bold ph-check text-brand-green"></i> Infant care & feeding</li>
+                            <li class="flex items-center gap-2"><i class="ph-bold ph-check text-brand-green"></i> Developmental activities</li>
+                        </ul>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Booking & Registration Form Section -->
+        <section id="book" class="py-20 bg-brand-blue relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-96 h-96 rounded-full bg-brand-green opacity-10 blur-3xl"></div>
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="text-center mb-10">
+                    <h3 class="font-serif text-3xl md:text-4xl font-bold text-white mb-4">Connect With Us</h3>
+                    <p class="text-blue-100">Whether you need a caregiver or want to join our professional team, select the right option below.</p>
+                </div>
+
+                <div class="bg-white rounded-[2rem] p-6 md:p-10 shadow-2xl">
+                    
+                    <!-- Tabs -->
+                    <div class="flex p-1 bg-slate-100 rounded-xl mb-8">
+                        <button id="btn-client" onclick="window.switchMainTab('client')" class="flex-1 py-3 text-sm md:text-base rounded-lg tab-active transition-all">
+                            Book a Caregiver
+                        </button>
+                        <button id="btn-staff" onclick="window.switchMainTab('staff')" class="flex-1 py-3 text-sm md:text-base rounded-lg tab-inactive transition-all">
+                            Join as Nurse/Caregiver
+                        </button>
+                    </div>
+
+                    <!-- Client Booking Form -->
+                    <form id="clientForm" onsubmit="window.submitClientBooking(event)" class="space-y-6 block">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">Client Name *</label>
+                                <input type="text" id="clientName" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-green outline-none bg-slate-50 focus:bg-white transition" placeholder="John Doe">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">Phone Number *</label>
+                                <input type="tel" id="clientPhone" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-green outline-none bg-slate-50 focus:bg-white transition" placeholder="07X XXX XXXX">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Service Required *</label>
+                            <select id="clientService" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-green outline-none bg-slate-50 focus:bg-white transition appearance-none">
+                                <option value="" disabled selected>Select a service...</option>
+                                <option value="Elderly Care">Elderly Care</option>
+                                <option value="Patient Care">Patient / Nursing Care</option>
+                                <option value="Baby Care">Baby Care / Nanny</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Location / Address</label>
+                            <input type="text" id="clientAddress" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-green outline-none bg-slate-50 focus:bg-white transition" placeholder="Colombo 06">
+                        </div>
+
+                        <button type="submit" class="w-full bg-brand-green text-white font-bold py-4 rounded-xl hover:bg-brand-greenDark transition shadow-lg shadow-green-200 flex justify-center items-center gap-2">
+                            Request Booking
+                        </button>
+                    </form>
+
+                    <!-- Staff/Caregiver Registration Form -->
+                    <form id="staffForm" onsubmit="window.submitStaffApplication(event)" class="space-y-6 hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">Applicant Name *</label>
+                                <input type="text" id="staffName" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-blue outline-none bg-slate-50 focus:bg-white transition" placeholder="Jane Doe">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">Phone Number *</label>
+                                <input type="tel" id="staffPhone" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-blue outline-none bg-slate-50 focus:bg-white transition" placeholder="07X XXX XXXX">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">Applying For *</label>
+                                <select id="staffPosition" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-blue outline-none bg-slate-50 focus:bg-white transition appearance-none">
+                                    <option value="" disabled selected>Select position...</option>
+                                    <option value="Registered Nurse">Registered Nurse (RN)</option>
+                                    <option value="Caregiver">Caregiver</option>
+                                    <option value="Babysitter">Babysitter / Nanny</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">Years of Experience *</label>
+                                <input type="number" id="staffExp" min="0" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-blue outline-none bg-slate-50 focus:bg-white transition" placeholder="e.g. 2">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Qualifications / Message</label>
+                            <textarea id="staffMessage" rows="3" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-blue outline-none bg-slate-50 focus:bg-white transition" placeholder="Mention your NVQ level, past experience..."></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full bg-brand-blue text-white font-bold py-4 rounded-xl hover:bg-brand-blueDark transition shadow-lg flex justify-center items-center gap-2">
+                            Submit Application
+                        </button>
+                    </form>
+
+                    <!-- Success Message -->
+                    <div id="mainSuccessMessage" class="hidden mt-6 bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-xl flex items-center gap-3">
+                        <i class="ph-fill ph-check-circle text-2xl text-green-500"></i>
+                        <p class="font-medium" id="mainSuccessText">Success! We have received your details.</p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <footer class="bg-brand-blueDark text-slate-300 py-12 border-t border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
+                <i class="ph-fill ph-hand-heart text-3xl text-brand-green mb-2"></i>
+                <h2 class="text-white font-bold text-xl mb-4">Golden Hand Caregivers</h2>
+                <p class="text-sm text-slate-400 mb-6 max-w-md">Sri Lanka's leading home care service providing professional care for the elderly and patients right at their home.</p>
+                <p class="text-xs text-slate-500">&copy; 2026 Golden Hand Caregivers. All rights reserved.</p>
+            </div>
+        </footer>
     </div>
 
-    <!-- DASHBOARD SCREEN -->
-    <div id="dashboard-screen" class="flex w-full h-full hidden">
-        
-        <!-- SIDEBAR -->
-        <aside class="w-72 bg-dark text-white flex flex-col h-full shadow-2xl z-20">
-            <div class="h-24 flex flex-col items-center justify-center border-b border-gray-700/50 bg-opacity-50">
-                <h1 class="text-2xl font-black tracking-wider text-primary">GOLDEN HAND</h1>
-                <h2 class="text-xs font-bold tracking-widest text-gray-300 mt-1">ADMIN PORTAL</h2>
-            </div>
-            <nav class="flex-1 py-6 overflow-y-auto custom-scrollbar">
-                <ul class="space-y-2 px-4 font-medium text-sm">
-                    <li><button onclick="switchTab('overview')" id="tab-overview" class="w-full flex items-center p-3.5 rounded-xl bg-primary text-white transition"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>Dashboard</button></li>
-                    <li><button onclick="switchTab('users')" id="tab-users" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="users" class="w-5 h-5 mr-3"></i>All Users</button></li>
-                    <li><button onclick="switchTab('verification')" id="tab-verification" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition relative"><i data-lucide="shield-check" class="w-5 h-5 mr-3"></i>KYC Approvals <span id="badge-pending" class="absolute right-3 bg-yellow-500 text-black text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span></button></li>
-                    <li><button onclick="switchTab('bookings')" id="tab-bookings" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="calendar" class="w-5 h-5 mr-3"></i>Manage Bookings</button></li>
-                    
-                    <!-- Call Center & Seylan Bank as Electron Webviews -->
-                    <li><button onclick="switchTab('callcenter')" id="tab-callcenter" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="headset" class="w-5 h-5 mr-3"></i>Call Center</button></li>
-                    <li><button onclick="switchTab('seylanbank')" id="tab-seylanbank" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="landmark" class="w-5 h-5 mr-3"></i>Seylan Bank</button></li>
 
-                    <li><button onclick="switchTab('special')" id="tab-special" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition relative"><i data-lucide="star" class="w-5 h-5 mr-3"></i>Subscription Plans <span id="badge-special" class="absolute right-3 bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span></button></li>
-                    <li><button onclick="switchTab('leaves')" id="tab-leaves" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition relative"><i data-lucide="calendar-off" class="w-5 h-5 mr-3"></i>Leave Requests <span id="badge-leaves" class="absolute right-3 bg-pink-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span></button></li>
-                    <li><button onclick="switchTab('map')" id="tab-map" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="map" class="w-5 h-5 mr-3"></i>Live Tracking Map</button></li>
-                    <li><button onclick="switchTab('geofence')" id="tab-geofence" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition relative"><i data-lucide="alert-octagon" class="w-5 h-5 mr-3"></i>Geofence Alerts <span id="badge-alerts" class="absolute right-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span></button></li>
-                    <li><button onclick="switchTab('reports')" id="tab-reports" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition relative"><i data-lucide="message-square" class="w-5 h-5 mr-3"></i>Client Complaints <span id="badge-reports" class="absolute right-3 bg-purple-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span></button></li>
-                    <li><button onclick="switchTab('promotions')" id="tab-promotions" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="megaphone" class="w-5 h-5 mr-3"></i>App Banners</button></li>
-                    <li><button onclick="switchTab('settings')" id="tab-settings" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="settings" class="w-5 h-5 mr-3"></i>System Settings</button></li>
-                </ul>
-            </nav>
-            <div class="p-5 border-t border-gray-700/50 bg-dark flex items-center justify-between">
-                <div class="flex items-center">
-                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold text-white shadow-lg">A</div>
-                    <div class="ml-3"><p class="text-xs text-gray-400 font-bold uppercase">Logged in as</p><p class="text-sm font-bold text-white truncate w-32" id="admin-email-display">Admin</p></div>
-                </div>
-                <button id="logout-btn" class="p-2 bg-gray-800 rounded-lg text-gray-300 hover:text-red-400 hover:bg-gray-700 transition" title="Logout"><i data-lucide="log-out" class="w-5 h-5"></i></button>
-            </div>
-        </aside>
-
-        <!-- MAIN CONTENT AREA -->
-        <main class="flex-1 flex flex-col h-full bg-[#f8fafc] overflow-hidden relative">
-            <header class="h-20 bg-white shadow-sm flex items-center justify-between px-8 z-10">
-                <div>
-                    <h2 class="text-2xl font-extrabold text-gray-800 tracking-tight" id="header-title">Dashboard Overview</h2>
-                    <p class="text-sm text-gray-500 font-medium" id="header-subtitle">Welcome to Golden Hand Caregivers control panel.</p>
-                </div>
-                <div class="text-sm font-bold text-gray-400" id="current-date">...</div>
-            </header>
-
-            <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                
-                <!-- 1. OVERVIEW -->
-                <div id="section-overview" class="block space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 flex items-center justify-between transition hover:shadow-md">
-                            <div><p class="text-sm text-gray-500 font-bold uppercase tracking-wider mb-1">Total Users</p><p class="text-4xl font-black text-blue-900" id="stat-users">0</p></div>
-                            <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600"><i data-lucide="users" class="w-8 h-8"></i></div>
+    <!-- ========================================== -->
+    <!-- INVESTOR PORTAL VIEW                       -->
+    <!-- ========================================== -->
+    <div id="investor-page-view" class="hidden min-h-screen investor-bg pt-20 flex-col">
+        <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 flex-grow flex flex-col">
+            
+            <!-- INVESTOR AUTH SECTION -->
+            <div id="investor-auth-section" class="flex-grow flex items-center justify-center">
+                <div class="bg-white p-8 md:p-10 rounded-3xl shadow-2xl max-w-md w-full border border-gray-100">
+                    <div class="text-center mb-8">
+                        <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="ph-fill ph-trend-up text-3xl text-brand-green"></i>
                         </div>
-                        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 flex items-center justify-between transition hover:shadow-md">
-                            <div><p class="text-sm text-gray-500 font-bold uppercase tracking-wider mb-1">Pending KYC</p><p class="text-4xl font-black text-yellow-600" id="stat-pending">0</p></div>
-                            <div class="w-16 h-16 bg-yellow-50 rounded-2xl flex items-center justify-center text-yellow-600"><i data-lucide="file-clock" class="w-8 h-8"></i></div>
-                        </div>
-                        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 flex items-center justify-between transition hover:shadow-md">
-                            <div><p class="text-sm text-gray-500 font-bold uppercase tracking-wider mb-1">Active Jobs</p><p class="text-4xl font-black text-green-600" id="stat-active-jobs">0</p></div>
-                            <div class="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center text-green-600"><i data-lucide="activity" class="w-8 h-8"></i></div>
-                        </div>
-                        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 flex items-center justify-between transition hover:shadow-md">
-                            <div><p class="text-sm text-gray-500 font-bold uppercase tracking-wider mb-1">New Complaints</p><p class="text-4xl font-black text-purple-600" id="stat-reports">0</p></div>
-                            <div class="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600"><i data-lucide="message-square" class="w-8 h-8"></i></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. ALL USERS -->
-                <div id="section-users" class="hidden">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-50/50 gap-4">
-                            <div>
-                                <h3 class="text-lg font-extrabold text-gray-800 mb-3">User Database</h3>
-                                <div class="flex flex-wrap gap-2">
-                                    <button onclick="filterUsers('CAREGIVER')" id="btn-filter-caregiver" class="px-5 py-2 rounded-xl text-sm font-bold bg-primary text-white shadow-md transition-all">Caregivers</button>
-                                    <button onclick="filterUsers('NURSE')" id="btn-filter-nurse" class="px-5 py-2 rounded-xl text-sm font-bold bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all">Nurses</button>
-                                    <button onclick="filterUsers('CLIENT')" id="btn-filter-client" class="px-5 py-2 rounded-xl text-sm font-bold bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all">Clients</button>
-                                </div>
-                            </div>
-                            <button onclick="loadAllUsers()" class="text-sm bg-white hover:bg-gray-100 border border-gray-200 px-4 py-2.5 rounded-xl text-gray-700 font-bold flex items-center shadow-sm transition"><i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i> Sync Data</button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-white text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
-                                        <th class="p-5 font-bold">User Name</th>
-                                        <th class="p-5 font-bold">Email</th>
-                                        <th class="p-5 font-bold">Role</th>
-                                        <th class="p-5 font-bold">KYC Status</th>
-                                        <th class="p-5 font-bold text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="all-users-table-body" class="divide-y divide-gray-50 text-sm">
-                                    <tr><td colspan="5" class="p-8 text-center text-gray-500 font-medium">Loading data...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 3. VERIFICATION (KYC) -->
-                <div id="section-verification" class="hidden">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-6 border-b border-blue-100 flex justify-between items-center bg-blue-50">
-                            <div>
-                                <h3 class="text-lg font-extrabold text-blue-900">Pending KYC Applications</h3>
-                                <p class="text-sm text-blue-700 font-medium mt-1">Review documents and approve users.</p>
-                            </div>
-                            <button onclick="loadPendingCaregivers()" class="text-sm bg-white hover:bg-blue-100 px-4 py-2.5 rounded-lg text-blue-700 font-bold border border-blue-200 shadow-sm flex items-center transition"><i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i> Sync Applications</button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-white text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
-                                        <th class="p-5 font-bold">Applicant Name</th>
-                                        <th class="p-5 font-bold">Account Role</th>
-                                        <th class="p-5 font-bold">Submitted Documents</th>
-                                        <th class="p-5 font-bold text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="pending-table-body" class="divide-y divide-gray-50 bg-white text-sm">
-                                    <tr><td colspan="4" class="p-8 text-center text-gray-500 font-medium">Loading data...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 4. MANAGE BOOKINGS -->
-                <div id="section-bookings" class="hidden">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-6 border-b border-indigo-100 flex justify-between items-center bg-indigo-50">
-                            <div>
-                                <h3 class="text-lg font-extrabold text-indigo-900">Manage Job Requests</h3>
-                                <p class="text-sm text-indigo-700 font-medium mt-1">View, track and cancel system bookings.</p>
-                            </div>
-                            <button onclick="loadAllBookings()" class="text-sm bg-white hover:bg-indigo-100 px-4 py-2.5 rounded-lg text-indigo-700 font-bold border border-indigo-200 shadow-sm flex items-center transition"><i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i> Sync Bookings</button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-white text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
-                                        <th class="p-5 font-bold">Client Name</th>
-                                        <th class="p-5 font-bold">Assigned Caregiver</th>
-                                        <th class="p-5 font-bold">Job Status</th>
-                                        <th class="p-5 font-bold">Total Amount</th>
-                                        <th class="p-5 font-bold text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="bookings-table-body" class="divide-y divide-gray-50 bg-white text-sm">
-                                    <tr><td colspan="5" class="p-8 text-center text-gray-500 font-medium">Loading data...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 5. SUBSCRIPTION PLANS MANAGER -->
-                <div id="section-special" class="hidden space-y-6">
-                    <div class="bg-white rounded-2xl shadow-sm border border-orange-200 overflow-hidden">
-                        <div class="p-6 border-b border-orange-100 bg-orange-50">
-                            <h3 class="text-lg font-extrabold text-orange-900 flex items-center"><i data-lucide="plus-circle" class="mr-2 w-5 h-5"></i> Create New Premium Package</h3>
-                            <p class="text-sm text-orange-700 font-medium mt-1">Design a package and assign top-tier caregivers to it.</p>
-                        </div>
-                        <div class="p-6 space-y-5 bg-white">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <div><label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Package Title</label><input type="text" id="plan-title" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500" placeholder="e.g. VIP Monthly Care"></div>
-                                <div><label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Package Price (Rs.)</label><input type="number" id="plan-price" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500" placeholder="e.g. 50000"></div>
-                            </div>
-                            <div><label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Description</label><textarea id="plan-desc" rows="2" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500" placeholder="Details about what's included..."></textarea></div>
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Assign Caregivers to this Plan</label>
-                                <div id="caregiver-checkboxes" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-200 max-h-48 overflow-y-auto custom-scrollbar">
-                                    <p class="text-xs text-gray-400 italic col-span-full">Loading caregivers...</p>
-                                </div>
-                            </div>
-                            <div class="flex justify-end pt-2">
-                                <button onclick="createSubscriptionPlan()" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-md transition flex items-center"><i data-lucide="save" class="w-4 h-4 mr-2"></i> Submit & Publish Plan</button>
-                            </div>
-                        </div>
+                        <h2 class="font-serif text-3xl font-bold text-brand-blue mb-2">Investor Portal</h2>
+                        <p class="text-gray-500 text-sm">Secure access for Golden Hand investors.</p>
                     </div>
 
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                            <h3 class="text-lg font-extrabold text-gray-800">Active Packages</h3>
-                            <button onclick="loadSubscriptionPlans()" class="text-sm bg-white border border-gray-200 px-4 py-2 rounded-lg text-gray-700 font-bold shadow-sm transition"><i data-lucide="refresh-cw" class="w-4 h-4 inline mr-1"></i> Refresh</button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-white text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
-                                        <th class="p-5 font-bold">Package Name</th>
-                                        <th class="p-5 font-bold">Price</th>
-                                        <th class="p-5 font-bold">Assigned Staff</th>
-                                        <th class="p-5 font-bold text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="special-table-body" class="divide-y divide-gray-50 bg-white text-sm">
-                                    <tr><td colspan="4" class="p-8 text-center text-gray-500 font-medium">Loading plans...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <!-- Toggle Login/Signup -->
+                    <div class="flex border-b border-gray-200 mb-6">
+                        <button id="inv-tab-login" onclick="window.setInvestorAuthMode('login')" class="flex-1 py-3 font-bold text-brand-green border-b-2 border-brand-green transition">Sign In</button>
+                        <button id="inv-tab-register" onclick="window.setInvestorAuthMode('register')" class="flex-1 py-3 font-bold text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition">Apply</button>
                     </div>
-                </div>
 
-                <!-- 🌟 6. LEAVE REQUESTS -->
-                <div id="section-leaves" class="hidden">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-6 border-b border-pink-100 bg-pink-50 flex justify-between items-center">
-                            <div>
-                                <h3 class="text-lg font-extrabold text-pink-900 flex items-center"><i data-lucide="calendar-off" class="w-5 h-5 mr-2"></i> Caregiver Leave Requests</h3>
-                                <p class="text-sm text-pink-700 font-medium mt-1">Approve or reject staff off-days.</p>
-                            </div>
-                            <button onclick="loadLeaveRequests()" class="text-sm bg-white hover:bg-pink-100 px-4 py-2.5 rounded-lg text-pink-700 font-bold border border-pink-200 shadow-sm flex items-center transition"><i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i> Sync Leaves</button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-white text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
-                                        <th class="p-5 font-bold">Caregiver Name</th>
-                                        <th class="p-5 font-bold">Leave Date</th>
-                                        <th class="p-5 font-bold">Reason</th>
-                                        <th class="p-5 font-bold text-center">Status</th>
-                                        <th class="p-5 font-bold text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="leaves-table-body" class="divide-y divide-gray-50 bg-white text-sm">
-                                    <tr><td colspan="5" class="p-8 text-center text-gray-500 font-medium">Loading data...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 7. LIVE MAP -->
-                <div id="section-map" class="hidden h-[calc(100vh-160px)] flex-col relative">
-                    <div class="bg-white rounded-t-2xl shadow-sm border border-gray-100 p-5 flex justify-between items-center z-20 flex-shrink-0">
+                    <!-- Investor Login -->
+                    <form id="investor-login-form" onsubmit="window.handleInvestorLogin(event)" class="space-y-5 block">
                         <div>
-                            <h3 class="text-lg font-extrabold text-gray-800">Live God View Tracking</h3>
-                            <p class="text-sm text-gray-500 font-medium mt-1">Real-time GPS tracking of active jobs and users.</p>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
+                            <input type="email" id="inv-login-email" required class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-green outline-none transition bg-gray-50 focus:bg-white">
                         </div>
-                        <div class="flex space-x-6 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                            <div class="flex items-center"><span class="w-3.5 h-3.5 rounded-full bg-[#53A548] mr-2 shadow-sm border border-white"></span><span class="text-xs font-extrabold text-gray-600">FREE CAREGIVER</span></div>
-                            <div class="flex items-center"><span class="w-3.5 h-3.5 rounded-full bg-[#ef4444] mr-2 shadow-sm border border-white"></span><span class="text-xs font-extrabold text-gray-600">BUSY CAREGIVER</span></div>
-                            <div class="flex items-center"><span class="w-3.5 h-3.5 rounded-full bg-[#0D3B66] mr-2 shadow-sm border border-white"></span><span class="text-xs font-extrabold text-gray-600">CLIENT</span></div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Password</label>
+                            <input type="password" id="inv-login-password" required class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-green outline-none transition bg-gray-50 focus:bg-white">
                         </div>
+                        <button type="submit" id="btn-inv-login" class="w-full bg-brand-blue text-white font-bold py-3.5 rounded-xl hover:bg-blue-900 transition shadow-lg flex justify-center items-center gap-2 mt-4">
+                            Secure Sign In <i class="ph-bold ph-arrow-right"></i>
+                        </button>
+                    </form>
+
+                    <!-- Investor Register -->
+                    <form id="investor-register-form" onsubmit="window.handleInvestorRegister(event)" class="space-y-5 hidden">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+                            <input type="text" id="inv-reg-name" required class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-green outline-none transition bg-gray-50 focus:bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
+                            <input type="email" id="inv-reg-email" required class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-green outline-none transition bg-gray-50 focus:bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Password</label>
+                            <input type="password" id="inv-reg-password" required minlength="6" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-green outline-none transition bg-gray-50 focus:bg-white">
+                        </div>
+                        <button type="submit" id="btn-inv-register" class="w-full bg-brand-green text-white font-bold py-3.5 rounded-xl hover:bg-green-600 transition shadow-lg flex justify-center items-center gap-2 mt-4">
+                            Apply as Investor
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- INVESTOR DASHBOARD SECTION -->
+            <div id="investor-dashboard-section" class="hidden flex-col gap-8 w-full">
+                
+                <!-- Welcome & Top Stats -->
+                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-4">
+                    <div>
+                        <h2 class="font-serif text-3xl font-bold text-brand-blue">Welcome back, <span id="investor-name-display">Investor</span></h2>
+                        <p class="text-gray-500">Here is the overview of your portfolio with Golden Hand Caregivers.</p>
                     </div>
                     
-                    <div class="flex flex-1 overflow-hidden relative border border-t-0 border-gray-200 rounded-b-2xl shadow-inner bg-gray-200">
-                        <div id="admin-map" class="flex-1 w-full h-full z-10"></div>
-                        <div class="w-80 bg-white shadow-[-10px_0_15px_-3px_rgba(0,0,0,0.1)] z-[15] border-l border-gray-200 flex flex-col h-full absolute right-0 top-0 bottom-0">
-                            <div class="p-5 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200 flex justify-between items-center flex-shrink-0">
-                                <h3 class="font-extrabold text-gray-800 text-sm tracking-wider uppercase"><i data-lucide="activity" class="inline w-5 h-5 mr-2 text-primary"></i> Live Operations</h3>
-                            </div>
-                            <div class="flex-1 overflow-y-auto custom-scrollbar">
-                                <div class="p-5 border-b border-gray-100 bg-red-50/30">
-                                    <h4 class="text-xs font-black text-red-600 mb-4 tracking-wider uppercase flex items-center"><i data-lucide="link" class="w-4 h-4 mr-2"></i> Active Connections</h4>
-                                    <div id="map-active-connections" class="space-y-3">
-                                        <p class="text-xs text-gray-400 font-medium italic">Loading active jobs...</p>
-                                    </div>
-                                </div>
-                                <div class="p-5 bg-green-50/30 min-h-[300px]">
-                                    <h4 class="text-xs font-black text-green-600 mb-4 tracking-wider uppercase flex items-center"><i data-lucide="user-check" class="w-4 h-4 mr-2"></i> Available Staff</h4>
-                                    <div id="map-free-caregivers" class="space-y-3">
-                                        <p class="text-xs text-gray-400 font-medium italic">Loading available staff...</p>
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="flex gap-4 w-full lg:w-auto">
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 flex-1 lg:min-w-[200px]">
+                            <p class="text-sm font-semibold text-gray-500 mb-1">Total Invested</p>
+                            <h3 class="text-2xl font-bold text-brand-blue" id="statTotalInvested">Rs. 0</h3>
                         </div>
-                    </div>
-                </div>
-
-                <!-- 8. GEOFENCE ALERTS -->
-                <div id="section-geofence" class="hidden">
-                    <div class="bg-white rounded-2xl shadow-sm border border-red-100 overflow-hidden">
-                        <div class="p-6 border-b border-red-100 bg-red-50">
-                            <h3 class="text-lg font-extrabold text-red-900 flex items-center"><i data-lucide="alert-triangle" class="mr-2 w-6 h-6 text-red-600"></i> Geofence Violation Logs</h3>
-                            <p class="text-sm text-red-700 font-medium mt-1">වාර්තා: සේවා ස්ථානයෙන් මීටර් 50 කට වඩා ඈතට ගිය සේවකයින්</p>
+                        <div class="bg-green-50 p-5 rounded-2xl shadow-sm border border-green-100 flex-1 lg:min-w-[200px]">
+                            <p class="text-sm font-semibold text-green-700 mb-1 flex justify-between items-center">
+                                Expected Return <span class="bg-brand-green text-white text-[10px] px-2 py-0.5 rounded-full">40% APY</span>
+                            </p>
+                            <h3 class="text-2xl font-bold text-brand-green" id="statAnnualReturn">Rs. 0</h3>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-white text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
-                                        <th class="p-5 font-bold">Caregiver</th>
-                                        <th class="p-5 font-bold">Client</th>
-                                        <th class="p-5 font-bold">Time Left (Away)</th>
-                                        <th class="p-5 font-bold">Time Returned</th>
-                                        <th class="p-5 font-bold text-center">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="geofence-table-body" class="divide-y divide-gray-50 text-sm bg-white">
-                                    <tr><td colspan="5" class="p-12 text-center text-gray-500 font-medium">No violations recorded.</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 9. REPORTS & COMPLAINTS -->
-                <div id="section-reports" class="hidden">
-                    <div class="bg-white rounded-2xl shadow-sm border border-purple-100 overflow-hidden">
-                        <div class="p-6 border-b border-purple-100 bg-purple-50 flex justify-between items-center">
-                            <h3 class="text-lg font-extrabold text-purple-900 flex items-center"><i data-lucide="message-square" class="mr-2 w-6 h-6"></i> Client Complaints & Reports</h3>
-                            <button onclick="loadComplaints()" class="text-sm bg-white hover:bg-purple-100 px-4 py-2.5 rounded-lg text-purple-700 font-bold border border-purple-200 shadow-sm flex items-center transition"><i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i> Refresh</button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-white text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
-                                        <th class="p-5 font-bold">Caregiver</th>
-                                        <th class="p-5 font-bold">Complaint & Reply</th>
-                                        <th class="p-5 font-bold">Duties (Done / Total)</th>
-                                        <th class="p-5 font-bold text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="reports-table-body" class="divide-y divide-gray-50 text-sm bg-white">
-                                    <tr><td colspan="4" class="p-8 text-center text-gray-500 font-medium">No complaints reported.</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 10. PROMOTIONS -->
-                <div id="section-promotions" class="hidden">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden max-w-4xl mx-auto flex flex-col min-h-[700px]">
-                        <div class="p-6 border-b border-sky-100 bg-sky-50 flex-shrink-0">
-                            <h3 class="text-lg font-extrabold text-sky-900 flex items-center"><i data-lucide="megaphone" class="mr-2 w-6 h-6 text-sky-600"></i> Manage App Promotion Banners</h3>
-                            <p class="text-sm text-sky-700 font-medium mt-1">Configure up to 3 individual sliding banners for the mobile app home screen.</p>
-                        </div>
-                        <div class="p-6 overflow-y-auto flex-1 custom-scrollbar space-y-6 bg-gray-50/30">
-                            <!-- Banner 1 -->
-                            <div class="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition">
-                                <div class="bg-gradient-to-r from-gray-100 to-white px-5 py-4 border-b border-gray-200 font-black text-gray-800 flex items-center text-sm uppercase tracking-wider">
-                                    <div class="w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center text-xs mr-3 shadow-sm">1</div> Main Slider
-                                </div>
-                                <div class="p-5 space-y-5">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                        <div><label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Title</label><input type="text" id="promo-title-1" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition text-sm font-medium"></div>
-                                        <div><label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Subtitle</label><input type="text" id="promo-subtitle-1" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition text-sm font-medium"></div>
-                                    </div>
-                                    <div><label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Background Image URL</label><input type="text" id="promo-img-1" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition text-sm font-medium" placeholder="https://images.unsplash.com/..."></div>
-                                    <div class="flex items-center mt-2 bg-blue-50 p-3 rounded-lg border border-blue-100"><input type="checkbox" id="promo-btn-show-1" class="w-4 h-4 text-primary rounded focus:ring-primary border-gray-300 mr-3" checked><label class="text-sm font-bold text-blue-900 cursor-pointer" for="promo-btn-show-1">Enable Action Button</label></div>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                        <div><label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Button Text</label><input type="text" id="promo-btn-text-1" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition text-sm font-medium"></div>
-                                        <div><label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Button Link URL</label><input type="text" id="promo-btn-link-1" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition text-sm font-medium"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Banner 2 -->
-                            <div class="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition opacity-80 hover:opacity-100">
-                                <div class="bg-gradient-to-r from-gray-100 to-white px-5 py-4 border-b border-gray-200 font-black text-gray-800 flex items-center text-sm uppercase tracking-wider">
-                                    <div class="w-7 h-7 bg-gray-400 text-white rounded-full flex items-center justify-center text-xs mr-3 shadow-sm">2</div> Secondary Slider
-                                </div>
-                                <div class="p-5 space-y-5">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                        <div><label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Title</label><input type="text" id="promo-title-2" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition text-sm font-medium"></div>
-                                        <div><label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Subtitle</label><input type="text" id="promo-subtitle-2" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition text-sm font-medium"></div>
-                                    </div>
-                                    <div><label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Background Image URL</label><input type="text" id="promo-img-2" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition text-sm font-medium"></div>
-                                    <div class="flex items-center mt-2 bg-blue-50 p-3 rounded-lg border border-blue-100"><input type="checkbox" id="promo-btn-show-2" class="w-4 h-4 text-primary rounded focus:ring-primary border-gray-300 mr-3"><label class="text-sm font-bold text-blue-900 cursor-pointer" for="promo-btn-show-2">Enable Action Button</label></div>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                        <div><label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Button Text</label><input type="text" id="promo-btn-text-2" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition text-sm font-medium"></div>
-                                        <div><label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Button Link URL</label><input type="text" id="promo-btn-link-2" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition text-sm font-medium"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Banner 3 -->
-                            <div class="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition opacity-80 hover:opacity-100">
-                                <div class="bg-gradient-to-r from-gray-100 to-white px-5 py-4 border-b border-gray-200 font-black text-gray-800 flex items-center text-sm uppercase tracking-wider">
-                                    <div class="w-7 h-7 bg-gray-400 text-white rounded-full flex items-center justify-center text-xs mr-3 shadow-sm">3</div> Tertiary Slider
-                                </div>
-                                <div class="p-5 space-y-5">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                        <div><label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Title</label><input type="text" id="promo-title-3" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition text-sm font-medium"></div>
-                                        <div><label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Subtitle</label><input type="text" id="promo-subtitle-3" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition text-sm font-medium"></div>
-                                    </div>
-                                    <div><label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Background Image URL</label><input type="text" id="promo-img-3" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition text-sm font-medium"></div>
-                                    <div class="flex items-center mt-2 bg-blue-50 p-3 rounded-lg border border-blue-100"><input type="checkbox" id="promo-btn-show-3" class="w-4 h-4 text-primary rounded focus:ring-primary border-gray-300 mr-3"><label class="text-sm font-bold text-blue-900 cursor-pointer" for="promo-btn-show-3">Enable Action Button</label></div>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                        <div><label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Button Text</label><input type="text" id="promo-btn-text-3" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition text-sm font-medium"></div>
-                                        <div><label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Button Link URL</label><input type="text" id="promo-btn-link-3" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition text-sm font-medium"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="p-5 border-t border-gray-200 bg-white flex justify-end flex-shrink-0">
-                            <button onclick="savePromotion()" class="bg-primary hover:bg-green-600 text-white px-8 py-3.5 rounded-xl font-extrabold shadow-lg shadow-green-200 transition flex items-center uppercase tracking-wide text-sm">
-                                <i data-lucide="save" class="w-5 h-5 mr-2"></i> Publish All to App
+                        <!-- Logout Button for Investor -->
+                        <div class="flex items-center ml-4">
+                            <button onclick="window.handleInvestorLogout()" class="bg-red-50 text-red-600 hover:bg-red-100 font-bold px-4 py-2 rounded-xl transition text-sm flex items-center gap-2">
+                                <i class="ph-bold ph-sign-out"></i> Logout
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- 11. SYSTEM SETTINGS -->
-                <div id="section-settings" class="hidden">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden max-w-2xl mx-auto">
-                        <div class="p-6 border-b border-gray-100 bg-gray-50 flex items-center">
-                            <i data-lucide="settings" class="w-6 h-6 mr-3 text-gray-700"></i>
-                            <h3 class="text-lg font-extrabold text-gray-900">Global System Settings</h3>
+                <!-- VISION 2030 ROADMAP -->
+                <div class="roadmap-container p-8 lg:p-12 shadow-2xl relative">
+                    <div class="glow-bg"></div>
+                    <div class="relative z-10">
+                        <div class="text-center mb-10">
+                            <h3 class="text-brand-green font-bold tracking-widest uppercase text-sm mb-2">Investment Opportunities</h3>
+                            <h2 class="font-serif text-3xl md:text-4xl font-bold text-white mb-4">VISION 2030: A Legacy of Complete Care</h2>
+                            <p class="text-gray-300 max-w-2xl mx-auto text-sm">Click on any future project node to view details and invest. All confirmed projects yield a 40% annual return on your investment.</p>
                         </div>
-                        <div class="p-8 space-y-6">
-                            <div>
-                                <label class="block text-sm font-bold text-gray-800 mb-2 uppercase tracking-wide">Caregiver Commission Rate (%)</label>
-                                <div class="relative">
-                                    <input type="number" id="setting-commission" class="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:bg-white text-lg font-black text-gray-800 transition" value="15" min="0" max="100">
-                                    <div class="absolute inset-y-0 right-0 flex items-center pr-5 pointer-events-none">
-                                        <span class="text-gray-500 font-bold">%</span>
+
+                        <!-- Roadmap Grid Layout -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            
+                            <!-- EST Current / Base -->
+                            <div class="col-span-1 lg:col-span-4 flex justify-center mb-6">
+                                <div class="glass-card p-4 rounded-2xl flex items-center gap-4 border-l-4 border-l-brand-green max-w-md w-full">
+                                    <div class="bg-brand-blue/10 p-3 rounded-xl">
+                                        <i class="ph-fill ph-house-line text-2xl text-brand-blue"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-brand-green uppercase tracking-wide">Current Setup (2024)</p>
+                                        <h4 class="font-bold text-brand-blue">Home Nursing Service</h4>
                                     </div>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-2 font-medium">This percentage is automatically deducted from a caregiver's earnings when a client completes a payment.</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold text-gray-800 mb-2 uppercase tracking-wide">Caregiver Registration Fee (Rs.)</label>
-                                <div class="relative">
-                                    <input type="number" id="setting-reg-fee" class="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:bg-white text-lg font-black text-gray-800 transition" value="1000" min="0">
-                                    <div class="absolute inset-y-0 right-0 flex items-center pr-5 pointer-events-none">
-                                        <span class="text-gray-500 font-bold">LKR</span>
-                                    </div>
-                                </div>
-                                <p class="text-xs text-gray-500 mt-2 font-medium">This is the one-time fee caregivers must pay to activate their account after KYC approval.</p>
-                            </div>
-                            <div class="pt-6 border-t border-gray-100 flex justify-end">
-                                <button onclick="saveSettings()" class="bg-dark hover:bg-gray-800 text-white px-8 py-3 rounded-xl font-extrabold shadow-lg transition flex items-center uppercase tracking-wide text-sm">
-                                    <i data-lucide="save" class="w-5 h-5 mr-2"></i> Save Changes
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 12. CALL CENTER (MOBITEL) - ELECTRON WEBVIEW -->
-                <div id="section-callcenter" class="hidden h-full flex flex-col w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center z-10 flex-shrink-0">
-                        <div>
-                            <h3 class="font-extrabold text-gray-800 flex items-center"><i data-lucide="headset" class="w-5 h-5 mr-2 text-primary"></i> Mobitel Call Center Portal</h3>
-                            <p class="text-[11px] font-bold text-gray-500 mt-0.5">Isolated Electron Webview Container</p>
-                        </div>
-                        <button onclick="document.getElementById('mobitel-webview').reload()" class="text-xs bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 px-3 py-2 rounded-lg font-bold transition flex items-center shadow-sm"><i data-lucide="refresh-cw" class="w-3.5 h-3.5 mr-1.5"></i> Refresh Frame</button>
-                    </div>
-                    <webview id="mobitel-webview" src="https://mcallcenter.mobitel.lk/index.php?page=call_agents" partition="persist:mobitel" useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" class="w-full flex-1 border-0 bg-white" style="display:flex;"></webview>
-                </div>
-
-                <!-- 13. SEYLAN BANK PORTAL - ELECTRON WEBVIEW -->
-                <div id="section-seylanbank" class="hidden h-full flex flex-col w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center z-10 flex-shrink-0">
-                        <div>
-                            <h3 class="font-extrabold text-gray-800 flex items-center"><i data-lucide="landmark" class="w-5 h-5 mr-2 text-red-600"></i> Seylan Corporate Banking</h3>
-                            <p class="text-[11px] font-bold text-gray-500 mt-0.5">Isolated Electron Webview Container</p>
-                        </div>
-                        <button onclick="document.getElementById('seylan-webview').reload()" class="text-xs bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 px-3 py-2 rounded-lg font-bold transition flex items-center shadow-sm"><i data-lucide="refresh-cw" class="w-3.5 h-3.5 mr-1.5"></i> Refresh Frame</button>
-                    </div>
-                    <webview id="seylan-webview" src="https://www.seylanbank.lk/corporate/login" partition="persist:seylan" useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" class="w-full flex-1 border-0 bg-white" style="display:flex;"></webview>
-                </div>
-
-            </div>
-
-            <!-- KYC REVIEW MODAL & WALLET SETTLEMENT -->
-            <div id="review-modal" class="absolute inset-0 bg-slate-900/80 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
-                <div class="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[95vh] flex flex-col overflow-hidden">
-                    <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                        <div>
-                            <h2 class="text-xl font-extrabold text-gray-900 tracking-tight">User Details & Wallet</h2>
-                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1" id="modal-footer-info">ID: ...</p>
-                        </div>
-                        <button onclick="closeModal()" class="text-gray-400 hover:text-red-500 transition p-2 bg-white rounded-full shadow-sm border border-gray-100"><i data-lucide="x"></i></button>
-                    </div>
-                    
-                    <div class="flex-1 overflow-y-auto p-8 custom-scrollbar bg-gray-50/50">
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center mb-8 relative overflow-hidden">
-                            <div class="absolute top-0 left-0 w-2 h-full bg-primary"></div>
-                            <div class="relative ml-4">
-                                <img id="modal-dp-img" src="" class="w-24 h-24 rounded-full object-cover border-4 border-gray-50 shadow-md hidden">
-                                <div id="modal-dp-placeholder" class="w-24 h-24 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-4xl font-black shadow-inner">U</div>
-                                <span id="modal-status-badge" class="absolute -bottom-2 -right-2 px-3 py-1 rounded-full text-[10px] font-black border shadow-sm tracking-wider">STATUS</span>
-                            </div>
-                            <div class="ml-8 flex-1">
-                                <h2 id="modal-name" class="text-3xl font-black text-gray-900 mb-2 tracking-tight">User Name</h2>
-                                <div class="flex items-center text-sm font-medium text-gray-500 mb-1.5">
-                                    <i data-lucide="mail" class="w-4 h-4 mr-2 text-gray-400"></i><span id="modal-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9df8f0fcf4f1ddf8e5fcf0edf1f8b3fef2f0">[email&#160;protected]</a></span>
-                                </div>
-                                <div class="flex items-center text-sm font-medium text-gray-500">
-                                    <i data-lucide="phone" class="w-4 h-4 mr-2 text-gray-400"></i><span id="modal-phone">+94 000 0000</span>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="inline-flex items-center px-4 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 font-bold mb-3 border border-indigo-100 shadow-sm text-sm">
-                                    <i data-lucide="shield" class="w-4 h-4 mr-2"></i><span id="modal-role">ROLE</span>
-                                </div>
-                                <div id="modal-location"></div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                            <div id="modal-caregiver-section" class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hidden">
-                                <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest mb-5 flex items-center"><i data-lucide="briefcase" class="w-4 h-4 mr-2 text-primary"></i> Professional Profile</h3>
-                                <div class="space-y-4 text-sm font-medium">
-                                    <div class="flex justify-between items-center py-1 border-b border-dashed border-gray-100"><span class="text-gray-500">NIC Number:</span><span class="font-bold text-gray-900" id="modal-nic">-</span></div>
-                                    <div class="flex justify-between items-center py-1 border-b border-dashed border-gray-100"><span class="text-gray-500">Date of Birth:</span><span class="font-bold text-gray-900" id="modal-dob">-</span></div>
-                                    <div class="flex justify-between items-center py-1 border-b border-dashed border-gray-100"><span class="text-gray-500">Gender:</span><span class="font-bold text-gray-900" id="modal-gender">-</span></div>
-                                    <div class="flex justify-between items-center py-1 border-b border-dashed border-gray-100"><span class="text-gray-500">Address:</span><span class="font-bold text-gray-900 text-right max-w-[200px]" id="modal-address">-</span></div>
-                                    <div class="flex justify-between items-center py-1 border-b border-dashed border-gray-100"><span class="text-gray-500">Experience:</span><span class="font-bold text-gray-900 bg-blue-50 px-2 py-0.5 rounded text-blue-800" id="modal-experience">-</span></div>
-                                    <div class="flex justify-between items-center py-1 border-b border-dashed border-gray-100"><span class="text-gray-500">Expected Salary (Hr):</span><span class="font-black text-green-600 bg-green-50 px-2 py-0.5 rounded" id="modal-expected-salary">-</span></div>
-                                    <div class="flex flex-col mt-4"><span class="text-gray-500 mb-2 text-xs font-bold uppercase">Service Types:</span><span class="font-bold text-gray-800 bg-gray-50 p-3 rounded-xl border border-gray-100" id="modal-service-types">-</span></div>
-                                    <div class="flex flex-col mt-4"><span class="text-gray-500 mb-2 text-xs font-bold uppercase">Categories:</span><span class="font-bold text-gray-800 bg-gray-50 p-3 rounded-xl border border-gray-100" id="modal-categories">-</span></div>
-                                </div>
-                                
-                                <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest mb-5 mt-10 flex items-center"><i data-lucide="heart-pulse" class="w-4 h-4 mr-2 text-red-500"></i> Health & Banking</h3>
-                                <div class="space-y-4 text-sm font-medium">
-                                    <div class="flex justify-between items-center py-1 border-b border-dashed border-gray-100"><span class="text-gray-500">Vaccination:</span><span class="font-bold text-gray-900" id="modal-vaccination">-</span></div>
-                                    <div class="flex flex-col mt-4"><span class="text-gray-500 mb-2 text-xs font-bold uppercase">Chronic Illnesses:</span><span class="font-bold text-red-700 bg-red-50 p-3 rounded-xl border border-red-100" id="modal-illnesses">-</span></div>
-                                    <div class="flex flex-col mt-4"><span class="text-gray-500 mb-2 text-xs font-bold uppercase">Special Skills:</span><span class="font-bold text-indigo-800 bg-indigo-50 p-3 rounded-xl border border-indigo-100" id="modal-skills">-</span></div>
-                                    <div class="pt-4 mt-4 flex justify-between items-center"><span class="text-gray-500">Bank Name:</span><span class="font-black text-gray-900" id="modal-bank-name">-</span></div>
-                                    <div class="flex justify-between items-center"><span class="text-gray-500">Account No:</span><span class="font-black text-gray-900 font-mono tracking-widest" id="modal-bank-acc">-</span></div>
-                                    <div class="flex justify-between items-center"><span class="text-gray-500">Branch:</span><span class="font-bold text-gray-900" id="modal-bank-branch">-</span></div>
-                                </div>
                             </div>
 
-                            <div id="modal-client-section" class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hidden">
-                                <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest mb-5 flex items-center"><i data-lucide="user" class="w-4 h-4 mr-2 text-primary"></i> Client Details</h3>
-                                <div class="space-y-4 text-sm font-medium">
-                                    <div class="flex justify-between items-center py-1 border-b border-dashed border-gray-100"><span class="text-gray-500">NIC / Passport:</span><span class="font-bold text-gray-900" id="modal-client-nic">-</span></div>
-                                    <div class="flex flex-col mt-4"><span class="text-gray-500 mb-2 text-xs font-bold uppercase">Home Address:</span><span class="font-bold text-gray-800 bg-gray-50 p-3 rounded-xl border border-gray-100" id="modal-client-address">-</span></div>
-                                    <div class="flex flex-col mt-4"><span class="text-gray-500 mb-2 text-xs font-bold uppercase">Service Address:</span><span class="font-bold text-gray-800 bg-blue-50 p-3 rounded-xl border border-blue-100 text-blue-900" id="modal-client-svc-address">-</span></div>
-                                    <div class="flex justify-between items-center mt-6 py-1"><span class="text-gray-500">Billing Name:</span><span class="font-black text-gray-900" id="modal-client-billing-name">-</span></div>
-                                    <div class="flex flex-col mt-2"><span class="text-gray-500 mb-2 text-xs font-bold uppercase">Billing Address:</span><span class="font-bold text-gray-800 bg-gray-50 p-3 rounded-xl border border-gray-100" id="modal-client-billing-address">-</span></div>
-                                </div>
+                            <div class="col-span-1 lg:col-span-4 flex justify-center -my-2 opacity-50 text-white">
+                                <i class="ph-bold ph-arrow-down text-2xl animate-bounce"></i>
                             </div>
 
-                            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                                <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest mb-5 flex items-center"><i data-lucide="image" class="w-4 h-4 mr-2 text-primary"></i> Uploaded Documents</h3>
-                                <div class="grid grid-cols-2 gap-5">
-                                    <div class="border border-gray-200 rounded-xl p-2 text-center bg-gray-50 hover:shadow-md transition group"><p class="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-wider">ID Front</p><img id="modal-id-front" src="" class="h-28 w-full object-cover rounded-lg cursor-pointer hidden group-hover:opacity-80 transition" onclick="openImagePopup(this.src)"><p id="modal-id-front-err" class="text-xs text-red-400 font-bold py-8">Not uploaded</p></div>
-                                    <div class="border border-gray-200 rounded-xl p-2 text-center bg-gray-50 hover:shadow-md transition group"><p class="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-wider">ID Back</p><img id="modal-id-back" src="" class="h-28 w-full object-cover rounded-lg cursor-pointer hidden group-hover:opacity-80 transition" onclick="openImagePopup(this.src)"><p id="modal-id-back-err" class="text-xs text-red-400 font-bold py-8">Not uploaded</p></div>
-                                    <div class="border border-gray-200 rounded-xl p-2 text-center bg-gray-50 hover:shadow-md transition group"><p class="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-wider">Selfie / Profile</p><img id="modal-selfie" src="" class="h-28 w-full object-cover rounded-lg cursor-pointer hidden group-hover:opacity-80 transition" onclick="openImagePopup(this.src)"><p id="modal-selfie-err" class="text-xs text-red-400 font-bold py-8">Not uploaded</p></div>
-                                    <div class="border border-gray-200 rounded-xl p-2 text-center bg-gray-50 cg-doc hover:shadow-md transition group"><p class="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-wider">Police Report</p><img id="modal-police" src="" class="h-28 w-full object-cover rounded-lg cursor-pointer hidden group-hover:opacity-80 transition" onclick="openImagePopup(this.src)"><p id="modal-police-err" class="text-xs text-red-400 font-bold py-8">Not uploaded</p></div>
-                                    <div class="border border-gray-200 rounded-xl p-2 text-center bg-gray-50 cg-doc hover:shadow-md transition group"><p class="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-wider">Certificate</p><img id="modal-cert" src="" class="h-28 w-full object-cover rounded-lg cursor-pointer hidden group-hover:opacity-80 transition" onclick="openImagePopup(this.src)"><p id="modal-cert-err" class="text-xs text-red-400 font-bold py-8">Not uploaded</p></div>
-                                    <div class="border border-gray-200 rounded-xl p-2 text-center bg-gray-50 cg-doc hover:shadow-md transition group"><p class="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-wider">Bank Passbook</p><img id="modal-bankbook" src="" class="h-28 w-full object-cover rounded-lg cursor-pointer hidden group-hover:opacity-80 transition" onclick="openImagePopup(this.src)"><p id="modal-bankbook-err" class="text-xs text-red-400 font-bold py-8">Not uploaded</p></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="modal-payout-section" class="bg-white p-8 rounded-2xl shadow-sm border border-green-200 hidden mt-8">
-                            <h3 class="text-sm font-black text-green-700 uppercase tracking-widest mb-5 flex items-center"><i data-lucide="wallet" class="w-4 h-4 mr-2"></i> Settle Caregiver Earnings</h3>
-                            <div class="flex flex-col md:flex-row items-center justify-between bg-green-50 p-6 rounded-xl border border-green-100 gap-6">
+                            <!-- Projects -->
+                            <div class="project-card glass-card rounded-[1.5rem] p-5 flex flex-col justify-between" onclick="window.openInvestModal('Caregiver Institute')">
                                 <div>
-                                    <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Current Wallet Balance</p>
-                                    <p class="text-3xl font-black text-green-800" id="modal-payout-balance">Rs. 0.00</p>
-                                    <p class="text-xs text-gray-400 mt-2 font-medium max-w-sm">Upload the bank transfer slip to zero out the balance and notify the caregiver.</p>
+                                    <img src="https://images.unsplash.com/photo-1576091160550-2173ff9e5ee5?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" class="w-full h-32 object-cover rounded-xl mb-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h4 class="font-bold text-brand-blue text-lg leading-tight">Caregiver Institute</h4>
+                                        <span class="bg-blue-100 text-brand-blue text-xs font-bold px-2 py-1 rounded-md">Phase 1</span>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mb-4 line-clamp-2">Establishing a state-of-the-art training facility for NVQ level caregivers.</p>
                                 </div>
-                                <div class="flex flex-col items-end space-y-3 w-full md:w-auto">
-                                    <input type="file" id="payout-slip-file" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-5 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-green-600 file:text-white hover:file:bg-green-700 transition cursor-pointer">
-                                    <button id="modal-settle-btn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-green-200 transition flex items-center w-full justify-center">
-                                        <i data-lucide="upload-cloud" class="w-4 h-4 mr-2"></i> Upload Slip & Settle
-                                    </button>
+                                <button class="w-full bg-brand-blue text-white text-sm font-bold py-2.5 rounded-xl hover:bg-brand-green transition">Invest Now</button>
+                            </div>
+
+                            <div class="project-card glass-card rounded-[1.5rem] p-5 flex flex-col justify-between" onclick="window.openInvestModal('Luxury Elder Home')">
+                                <div>
+                                    <img src="https://images.unsplash.com/photo-1529290130-4ca3753253ae?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" class="w-full h-32 object-cover rounded-xl mb-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h4 class="font-bold text-brand-blue text-lg leading-tight">Luxury Elder Home</h4>
+                                        <span class="bg-blue-100 text-brand-blue text-xs font-bold px-2 py-1 rounded-md">Phase 2</span>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mb-4 line-clamp-2">Premium residential care facility with 24/7 medical supervision and nature views.</p>
                                 </div>
+                                <button class="w-full bg-brand-blue text-white text-sm font-bold py-2.5 rounded-xl hover:bg-brand-green transition">Invest Now</button>
+                            </div>
+
+                            <div class="project-card glass-card rounded-[1.5rem] p-5 flex flex-col justify-between" onclick="window.openInvestModal('Ambulance Fleet')">
+                                <div>
+                                    <img src="https://images.unsplash.com/photo-1516841273335-e39b37888115?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" class="w-full h-32 object-cover rounded-xl mb-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h4 class="font-bold text-brand-blue text-lg leading-tight">Ambulance Fleet</h4>
+                                        <span class="bg-blue-100 text-brand-blue text-xs font-bold px-2 py-1 rounded-md">Phase 3</span>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mb-4 line-clamp-2">Expanding our rapid response medical transport fleet for emergency care.</p>
+                                </div>
+                                <button class="w-full bg-brand-blue text-white text-sm font-bold py-2.5 rounded-xl hover:bg-brand-green transition">Invest Now</button>
+                            </div>
+
+                            <div class="project-card glass-card rounded-[1.5rem] p-5 flex flex-col justify-between" onclick="window.openInvestModal('Medical Equipment')">
+                                <div>
+                                    <img src="https://images.unsplash.com/photo-1584362917165-526a968579e8?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" class="w-full h-32 object-cover rounded-xl mb-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h4 class="font-bold text-brand-blue text-lg leading-tight">Medical Equipment</h4>
+                                        <span class="bg-blue-100 text-brand-blue text-xs font-bold px-2 py-1 rounded-md">Phase 4</span>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mb-4 line-clamp-2">Sales and rental service for wheelchairs, hospital beds, and oxygen concentrators.</p>
+                                </div>
+                                <button class="w-full bg-brand-blue text-white text-sm font-bold py-2.5 rounded-xl hover:bg-brand-green transition">Invest Now</button>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Action බොත්තම් ඉවත් කර ඇත (Public Access නිසා) -->
-                    <div id="modal-action-buttons" class="p-6 border-t border-gray-200 bg-white flex justify-end space-x-4 hidden">
-                        <button id="modal-reject-btn" class="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-2.5 rounded-xl font-bold transition border border-red-200 flex items-center"><i data-lucide="x" class="w-4 h-4 mr-2"></i> Reject Application</button>
-                        <button id="modal-approve-btn" class="bg-primary hover:bg-green-600 text-white px-8 py-2.5 rounded-xl font-extrabold shadow-lg shadow-green-200 transition flex items-center"><i data-lucide="check" class="w-4 h-4 mr-2"></i> Approve & Request Fee</button>
+                <!-- Investment History Table -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-10">
+                    <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="font-bold text-lg text-brand-blue">My Investments</h3>
+                        <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full border border-green-200">Guaranteed 40% Return</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                                    <th class="p-4 font-semibold">Project</th>
+                                    <th class="p-4 font-semibold">Investment Amount (Rs.)</th>
+                                    <th class="p-4 font-semibold text-brand-green">Annual Return (Rs.)</th>
+                                    <th class="p-4 font-semibold">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="investmentTableBody" class="divide-y divide-gray-100 text-sm">
+                                <tr>
+                                    <td colspan="4" class="p-8 text-center text-gray-400">Loading your investments...</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            </div>
 
-            <div id="image-viewer-modal" class="absolute inset-0 bg-slate-900/95 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-md" onclick="closeImagePopup()">
-                <div class="relative max-w-6xl max-h-full p-4">
-                    <img id="viewer-img" src="" class="max-h-[85vh] object-contain mx-auto rounded-xl shadow-2xl ring-1 ring-white/20">
-                    <button class="absolute top-0 right-0 bg-white text-gray-900 rounded-full p-2 hover:bg-red-500 hover:text-white transition shadow-xl transform translate-x-1/2 -translate-y-1/2" onclick="closeImagePopup()"><i data-lucide="x" class="w-6 h-6"></i></button>
-                </div>
             </div>
+        </div>
+    </div>
 
-            <div id="complaint-modal" class="absolute inset-0 bg-slate-900/80 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
-                <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
-                    <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-white">
-                        <h2 class="text-xl font-extrabold text-purple-900 flex items-center"><i data-lucide="shield-alert" class="mr-2 text-purple-600"></i> Complaint & Duty Proofs</h2>
-                        <button onclick="closeComplaintModal()" class="text-gray-400 hover:text-red-500 bg-gray-50 hover:bg-red-50 p-2 rounded-full transition"><i data-lucide="x"></i></button>
-                    </div>
-                    <div class="p-8 overflow-y-auto bg-gray-50 flex-1 custom-scrollbar">
-                        <div class="mb-8 p-5 bg-red-50 border border-red-200 rounded-2xl shadow-sm">
-                            <p class="text-xs font-black text-red-500 mb-2 uppercase tracking-widest">Client Complaint Note:</p>
-                            <p class="text-red-900 font-medium text-lg leading-relaxed italic" id="comp-notes">...</p>
+    <!-- ========================================== -->
+    <!-- INVESTOR MODAL                             -->
+    <!-- ========================================== -->
+    <div id="investModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform scale-95 transition-transform duration-300" id="modalContent">
+            
+            <div class="bg-brand-blue p-6 text-white relative">
+                <button onclick="window.closeInvestModal()" class="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 p-1.5 rounded-full transition">
+                    <i class="ph-bold ph-x text-xl"></i>
+                </button>
+                <p class="text-brand-green font-bold text-xs tracking-widest uppercase mb-1">New Investment</p>
+                <h3 class="font-serif text-2xl font-bold" id="modalProjectName">Project Name</h3>
+            </div>
+            
+            <div class="p-6">
+                <form id="investmentForm" onsubmit="window.submitInvestment(event)">
+                    <div class="mb-5">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Investment Amount (Rs.)</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-400">Rs.</span>
+                            <input type="number" id="investAmount" min="10000" step="1000" required oninput="window.calculateReturn()" class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-green outline-none font-bold text-lg text-brand-blue bg-gray-50 focus:bg-white transition" placeholder="100000">
                         </div>
-                        <h3 class="text-sm font-black text-gray-400 mb-5 border-b border-gray-200 pb-3 uppercase tracking-widest">Caregiver Uploaded Proofs</h3>
-                        <div id="comp-proofs" class="grid grid-cols-2 md:grid-cols-3 gap-6"></div>
+                        <p class="text-xs text-gray-500 mt-2"><i class="ph-fill ph-info"></i> Minimum investment: Rs. 10,000</p>
                     </div>
-                </div>
+
+                    <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm font-semibold text-gray-600">Expected Annual Return</span>
+                            <span class="bg-brand-green text-white text-[10px] px-2 py-0.5 rounded-full font-bold">40% Rate</span>
+                        </div>
+                        <h4 class="text-2xl font-bold text-brand-green" id="modalReturnDisplay">Rs. 0</h4>
+                        <p class="text-xs text-gray-500 mt-1">Payable annually upon project acceptance.</p>
+                    </div>
+
+                    <button type="submit" id="btn-submit-investment" class="w-full bg-brand-green text-white font-bold py-3.5 rounded-xl hover:bg-green-600 transition shadow-lg shadow-green-200 flex justify-center items-center gap-2">
+                        <i class="ph-bold ph-check-circle text-lg"></i> Confirm Investment
+                    </button>
+                </form>
             </div>
-        </main>
+        </div>
     </div>
 
-    <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="fixed bottom-6 right-6 text-white px-6 py-4 rounded-xl shadow-2xl transform transition-all duration-300 translate-y-32 opacity-0 z-[100] max-w-md font-bold text-sm flex items-center bg-gray-900 border border-gray-700">
-        <span id="toast-icon" class="mr-3"></span>
-        <span id="toast-message">Action Successful!</span>
-    </div>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        const titles = { 
-            'overview': { title: 'Dashboard Overview', sub: 'Welcome to Golden Hand Caregivers control panel.' }, 
-            'users': { title: 'User Database', sub: 'Manage all registered clients and caregivers.' }, 
-            'verification': { title: 'KYC Approvals', sub: 'Review and verify pending account applications.' }, 
-            'bookings': { title: 'Manage Bookings', sub: 'Track, view, and cancel active or pending job requests.' }, 
-            'special': { title: 'Subscription Plans', sub: 'Create packages and assign premium caregivers.' }, 
-            'leaves': { title: 'Staff Leave Requests', sub: 'Manage caregiver off-days and approvals.' }, 
-            'geofence': { title: 'Geofence Logs', sub: 'Monitor caregiver location violations.' }, 
-            'reports': { title: 'Client Complaints', sub: 'Review duty reports and photo proofs.' }, 
-            'map': { title: 'Live Map Tracking', sub: 'Real-time God view of active operations.' }, 
-            'promotions': { title: 'App Banners', sub: 'Configure promotional sliders for the mobile app.' },
-            'settings': { title: 'System Settings', sub: 'Manage platform commission and global rules.' },
-            'callcenter': { title: 'Call Center Agent Portal', sub: 'Mobitel call center integration.' },
-            'seylanbank': { title: 'Seylan Corporate Banking', sub: 'Secure access to Seylan Bank corporate portal.' }
-        };
-
-        function updateDate() {
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', options);
-        }
-        updateDate();
-    </script>
-
-    <!-- Firebase JS SDK (Auth ඉවත් කර ඇත) -->
+    <!-- ========================================== -->
+    <!-- FIREBASE & JAVASCRIPT LOGIC                -->
+    <!-- ========================================== -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDoc, doc, updateDoc, setDoc, deleteDoc, onSnapshot, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // ලබා දී ඇති Config එක
+        // User's provided Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyDjLaQSVtIk8w3nWve7PF5PwbtxGzjIogI",
             authDomain: "care-2a20d.firebaseapp.com",
             projectId: "care-2a20d",
             storageBucket: "care-2a20d.firebasestorage.app",
             messagingSenderId: "283184840115",
-            appId: "1:283184840115:web:5b2de891f68fe3bb461fc6"
+            appId: "1:283184840115:web:b6ac6008156bba31461fc6"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const loginScreen = document.getElementById('login-screen');
-        const dashboardScreen = document.getElementById('dashboard-screen');
-        const pendingTableBody = document.getElementById('pending-table-body');
-        const allUsersTableBody = document.getElementById('all-users-table-body');
-        const reportsTableBody = document.getElementById('reports-table-body');
-        const bookingsTableBody = document.getElementById('bookings-table-body'); 
-        const specialTableBody = document.getElementById('special-table-body'); 
-        
-        window.allUsersDataMap = {}; 
-        window.geofenceIncidents = {}; 
-        window.allBookingsMap = {};
-        
-        let adminMap = null;
-        let markersMap = {}; 
-        let isFirstLoadAlerts = true;
-        let activePolylines = [];
-        let activeBookingsData = [];
+        // Utility: Number formatter
+        window.formatMoney = (amount) => 'Rs. ' + parseInt(amount).toLocaleString('en-US');
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                loginScreen.classList.add('hidden');
-                dashboardScreen.classList.remove('hidden');
-                document.getElementById('admin-email-display').innerText = user.email;
-                
-                // Functions are called ONLY after successful authentication
-                loadDashboardStats();
-                loadPendingCaregivers();
-                loadAllUsers();
-                loadComplaints(); 
-                loadAllBookings(); 
-                loadSubscriptionPlans(); 
-                loadLeaveRequests();
-                loadSettings();
-                startLiveMapTracking(); 
-                listenForAlerts(); 
-            } else {
-                loginScreen.classList.remove('hidden');
-                dashboardScreen.classList.add('hidden');
-            }
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+
+        // Navbar Scroll Effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 20) navbar.classList.add('shadow-md');
+            else navbar.classList.remove('shadow-md');
         });
 
-        window.openImagePopup = function(src) { 
-            if(src) { 
-                document.getElementById('viewer-img').src = src; 
-                document.getElementById('image-viewer-modal').classList.remove('hidden'); 
-            } 
-        }
-        window.closeImagePopup = function() { document.getElementById('image-viewer-modal').classList.add('hidden'); }
+        // ------------------ Routing & UI Functions ------------------ //
+        window.showMainPage = () => {
+            document.getElementById('main-page-view').classList.remove('hidden');
+            document.getElementById('investor-page-view').classList.add('hidden');
+            document.getElementById('investor-page-view').classList.remove('flex');
+            mobileMenu.classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
 
-        window.viewSlip = function(bookingId) {
-            const b = window.allBookingsMap[bookingId];
-            if(b && b.receiptImageBase64) {
-                let safeBase64 = b.receiptImageBase64;
-                if (!safeBase64.startsWith("data:image")) {
-                    safeBase64 = "data:image/jpeg;base64," + safeBase64;
-                }
-                openImagePopup(safeBase64);
+        window.showInvestorPortal = () => {
+            document.getElementById('main-page-view').classList.add('hidden');
+            document.getElementById('investor-page-view').classList.remove('hidden');
+            document.getElementById('investor-page-view').classList.add('flex');
+            mobileMenu.classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Ensure correct view based on auth state
+            if (auth.currentUser && window.currentUserData?.role === 'INVESTOR') {
+                document.getElementById('investor-auth-section').classList.add('hidden');
+                document.getElementById('investor-dashboard-section').classList.remove('hidden');
+                document.getElementById('investor-dashboard-section').classList.add('flex');
             } else {
-                showToast("Slip not found", "error");
+                document.getElementById('investor-auth-section').classList.remove('hidden');
+                document.getElementById('investor-dashboard-section').classList.add('hidden');
+                document.getElementById('investor-dashboard-section').classList.remove('flex');
             }
-        }
+        };
 
-        window.showToast = function(msg, type = 'success') {
-            const toast = document.getElementById('toast');
-            const icon = document.getElementById('toast-icon');
-            document.getElementById('toast-message').innerText = msg;
-            if(type === 'error') {
-                toast.classList.replace('bg-gray-900', 'bg-red-600');
-                toast.classList.replace('border-gray-700', 'border-red-500');
-                icon.innerHTML = '<i data-lucide="alert-circle" class="w-5 h-5"></i>';
+        // Main Page Form Tabs
+        window.switchMainTab = (tabType) => {
+            const btnClient = document.getElementById('btn-client');
+            const btnStaff = document.getElementById('btn-staff');
+            const clientForm = document.getElementById('clientForm');
+            const staffForm = document.getElementById('staffForm');
+
+            if (tabType === 'client') {
+                btnClient.className = 'flex-1 py-3 text-sm md:text-base rounded-lg tab-active transition-all';
+                btnStaff.className = 'flex-1 py-3 text-sm md:text-base rounded-lg tab-inactive transition-all';
+                clientForm.classList.remove('hidden');
+                staffForm.classList.add('hidden');
             } else {
-                toast.classList.replace('bg-red-600', 'bg-gray-900');
-                toast.classList.replace('border-red-500', 'border-gray-700');
-                icon.innerHTML = '<i data-lucide="check-circle-2" class="w-5 h-5 text-green-400"></i>';
+                btnStaff.className = 'flex-1 py-3 text-sm md:text-base rounded-lg tab-active transition-all';
+                btnClient.className = 'flex-1 py-3 text-sm md:text-base rounded-lg tab-inactive transition-all';
+                staffForm.classList.remove('hidden');
+                clientForm.classList.add('hidden');
             }
-            lucide.createIcons();
-            toast.classList.remove('opacity-0', 'translate-y-32');
-            setTimeout(() => toast.classList.add('opacity-0', 'translate-y-32'), 4000);
-        }
+        };
 
-        async function loadDashboardStats() {
-            onSnapshot(collection(db, "users"), (snapshot) => { document.getElementById('stat-users').innerText = snapshot.size; });
-            onSnapshot(query(collection(db, "users"), where("kycStatus", "==", "PENDING")), (snapshot) => { 
-                document.getElementById('stat-pending').innerText = snapshot.size;
-                const badge = document.getElementById('badge-pending');
-                if(snapshot.size > 0) { badge.innerText = snapshot.size; badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); }
-            });
-            onSnapshot(query(collection(db, "bookings"), where("status", "==", "IN_PROGRESS")), (snapshot) => { document.getElementById('stat-active-jobs').innerText = snapshot.size; });
-        }
-
-        window.loadSettings = async function() {
-            const docSnap = await getDoc(doc(db, "settings", "general"));
-            if(docSnap.exists()) {
-                if(docSnap.data().commissionRate !== undefined) document.getElementById('setting-commission').value = docSnap.data().commissionRate;
-                if(docSnap.data().registrationFee !== undefined) document.getElementById('setting-reg-fee').value = docSnap.data().registrationFee;
-            }
-        }
-
-        window.saveSettings = async function() {
-            const comm = parseFloat(document.getElementById('setting-commission').value);
-            const regFee = parseFloat(document.getElementById('setting-reg-fee').value);
-            if(comm < 0 || comm > 100) { showToast("Commission must be between 0 and 100", "error"); return; }
-            if(regFee < 0) { showToast("Registration fee cannot be negative", "error"); return; }
-            try {
-                await setDoc(doc(db, "settings", "general"), { commissionRate: comm, registrationFee: regFee, updatedAt: Date.now() }, { merge: true });
-                showToast("System Settings Saved Successfully!");
-            } catch(e) { showToast("Failed to save settings", "error"); }
-        }
-
-        function populateCaregiverCheckboxes() {
-            const container = document.getElementById('caregiver-checkboxes');
-            let html = '';
-            let count = 0;
-            Object.values(window.allUsersDataMap).forEach(u => {
-                if ((u.role === 'CAREGIVER' || u.role === 'NURSE') && u.isVerified) {
-                    count++;
-                    html += `<label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-100 cursor-pointer hover:border-orange-300 transition">
-                                <input type="checkbox" value="${u.id}" class="cg-checkbox rounded text-orange-500 focus:ring-orange-500">
-                                <span class="text-xs font-bold text-gray-700">${u.name} <span class="text-[9px] text-gray-400 font-normal">(${u.rating || 0}⭐)</span></span>
-                             </label>`;
-                }
-            });
-            container.innerHTML = count > 0 ? html : '<p class="text-xs text-gray-400">No active caregivers found.</p>';
-        }
-
-        window.createSubscriptionPlan = async function() {
-            const title = document.getElementById('plan-title').value.trim();
-            const price = parseFloat(document.getElementById('plan-price').value);
-            const desc = document.getElementById('plan-desc').value.trim();
-            
-            const checkboxes = document.querySelectorAll('.cg-checkbox:checked');
-            const assigned = Array.from(checkboxes).map(cb => cb.value);
-
-            if (!title || isNaN(price) || assigned.length === 0) {
-                return showToast("Please enter title, price, and select at least one caregiver!", "error");
-            }
-
-            try {
-                const id = Date.now().toString() + Math.random().toString(36).substring(2,7);
-                await setDoc(doc(db, "subscription_plans", id), {
-                    id: id, title: title, description: desc, price: price, assignedCaregivers: assigned, timestamp: Date.now()
-                });
-                showToast("Premium Package created successfully!");
-                document.getElementById('plan-title').value = ''; document.getElementById('plan-price').value = ''; document.getElementById('plan-desc').value = '';
-                checkboxes.forEach(cb => cb.checked = false);
-            } catch(e) { showToast("Error saving plan", "error"); }
-        }
-
-        window.loadSubscriptionPlans = async function() {
-            const tbody = document.getElementById('special-table-body');
-            tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400 italic">Loading plans...</td></tr>`;
-            onSnapshot(collection(db, "subscription_plans"), (snapshot) => {
-                const badge = document.getElementById('badge-special');
-                if(snapshot.size > 0) { badge.innerText = snapshot.size; badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); }
-                if (snapshot.empty) { tbody.innerHTML = `<tr><td colspan="4" class="p-12 text-center text-gray-500 font-medium">No active packages.</td></tr>`; return; }
-                
-                let rows = '';
-                const docs = snapshot.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.timestamp - a.timestamp);
-                for (const p of docs) {
-                    rows += `
-                        <tr class="hover:bg-orange-50 border-b border-gray-100 transition">
-                            <td class="p-5 font-bold text-gray-800">${p.title}<br><span class="text-[10px] text-gray-500 font-medium">${p.description}</span></td>
-                            <td class="p-5 font-black text-orange-600">Rs. ${p.price}</td>
-                            <td class="p-5 text-gray-600 font-medium text-xs">${p.assignedCaregivers.length} Caregivers Assigned</td>
-                            <td class="p-5 text-center"><button onclick="deletePlan('${p.id}')" class="text-red-500 hover:text-white hover:bg-red-500 px-3 py-1.5 rounded-lg text-xs font-bold border border-red-200 transition"><i data-lucide="trash" class="w-3.5 h-3.5 inline"></i> Delete</button></td>
-                        </tr>
-                    `;
-                }
-                tbody.innerHTML = rows; lucide.createIcons();
-            });
-        }
-
-        window.deletePlan = async function(id) {
-            if(!confirm("Delete this subscription package?")) return;
-            try { await deleteDoc(doc(db, "subscription_plans", id)); showToast("Deleted successfully."); } catch(e) { showToast("Error", "error"); }
-        }
-
-        window.loadLeaveRequests = async function() {
-            const tbody = document.getElementById('leaves-table-body');
-            if(!tbody) return;
-            tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 italic">Loading requests...</td></tr>`;
-            
-            onSnapshot(collection(db, "leave_requests"), (snapshot) => {
-                let pendingCount = 0;
-                let rows = '';
-                if (snapshot.empty) { 
-                    tbody.innerHTML = `<tr><td colspan="5" class="p-12 text-center text-gray-500 font-medium">No leave requests found.</td></tr>`; 
-                    document.getElementById('badge-leaves').classList.add('hidden'); 
-                    return; 
-                }
-                
-                const docs = snapshot.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.requestedAt - a.requestedAt);
-
-                for (const r of docs) {
-                    if(r.status === 'PENDING') pendingCount++;
-                    
-                    let statusBadge = '';
-                    if (r.status === 'APPROVED') statusBadge = `<span class="bg-green-50 text-green-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-green-200">APPROVED</span>`;
-                    else if (r.status === 'REJECTED') statusBadge = `<span class="bg-red-50 text-red-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-red-200">REJECTED</span>`;
-                    else statusBadge = `<span class="bg-yellow-50 text-yellow-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-yellow-200">PENDING</span>`;
-
-                    let actions = '';
-                    if (r.status === 'PENDING') {
-                        actions = `
-                            <button onclick="approveLeave('${r.id}', '${r.caregiverId}', '${r.dateString}')" class="text-green-600 hover:text-white hover:bg-green-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-green-200 transition mr-2 shadow-sm"><i data-lucide="check" class="w-3.5 h-3.5 inline"></i> Approve</button>
-                            <button onclick="rejectLeave('${r.id}')" class="text-red-500 hover:text-white hover:bg-red-500 px-3 py-1.5 rounded-lg text-xs font-bold border border-red-200 transition shadow-sm"><i data-lucide="x" class="w-3.5 h-3.5 inline"></i> Reject</button>
-                        `;
-                    } else {
-                        actions = `<span class="text-xs text-gray-400 font-bold uppercase tracking-widest">Resolved</span>`;
-                    }
-
-                    rows += `
-                        <tr class="hover:bg-pink-50 border-b border-gray-100 transition">
-                            <td class="p-5 font-bold text-gray-800">${r.caregiverName}</td>
-                            <td class="p-5 font-black text-pink-700">${r.dateString}</td>
-                            <td class="p-5 text-gray-600 font-medium text-sm italic">"${r.reason}"</td>
-                            <td class="p-5 text-center">${statusBadge}</td>
-                            <td class="p-5 text-center">${actions}</td>
-                        </tr>
-                    `;
-                }
-                tbody.innerHTML = rows;
-                
-                const badge = document.getElementById('badge-leaves');
-                if(pendingCount > 0) { badge.innerText = pendingCount; badge.classList.remove('hidden'); }
-                else { badge.classList.add('hidden'); }
-                
-                lucide.createIcons();
-            });
-        }
-
-        window.approveLeave = async function(id, caregiverId, dateStr) {
-            if(!confirm(`Are you sure you want to APPROVE leave for ${dateStr}?`)) return;
-            try {
-                await updateDoc(doc(db, "leave_requests", id), { status: "APPROVED" });
-                await updateDoc(doc(db, "users", caregiverId), { onLeaveDates: arrayUnion(dateStr) });
-                showToast("Leave request APPROVED.", "success");
-            } catch(e) { console.error(e); showToast("Error approving leave.", "error"); }
-        }
-
-        window.rejectLeave = async function(id) {
-            if(!confirm("Are you sure you want to REJECT this leave request?")) return;
-            try {
-                await updateDoc(doc(db, "leave_requests", id), { status: "REJECTED" });
-                showToast("Leave request REJECTED.", "success");
-            } catch(e) { showToast("Error rejecting leave.", "error"); }
-        }
-
-        window.loadAllBookings = async function() {
-            bookingsTableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 italic">Loading bookings data...</td></tr>`;
-            onSnapshot(collection(db, "bookings"), async (snapshot) => {
-                if (snapshot.empty) { bookingsTableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500 font-medium">No job requests found.</td></tr>`; return; }
-                let rows = '';
-                const docs = snapshot.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.requestedTime - a.requestedTime);
-
-                for (const b of docs) {
-                    window.allBookingsMap[b.id] = b; 
-
-                    let clientName = window.allUsersDataMap[b.clientId]?.name || "<span class='text-gray-400'>Unknown</span>";
-                    let cgName = b.caregiverId ? (window.allUsersDataMap[b.caregiverId]?.name || "Unknown") : "<span class='text-gray-400 italic text-xs'>Waiting</span>";
-                    
-                    let statusBadge = `<span class="bg-gray-100 text-gray-600 text-[10px] uppercase tracking-wider px-3 py-1 rounded-md font-bold border border-gray-200">${b.status}</span>`;
-                    if (b.status === 'PENDING' || b.status === 'BROADCASTED') statusBadge = `<span class="bg-yellow-50 text-yellow-700 text-[10px] uppercase px-3 py-1 rounded-md font-bold border border-yellow-200 flex items-center inline-flex"><span class="w-1.5 h-1.5 rounded-full bg-yellow-500 mr-1.5 animate-pulse"></span>${b.status}</span>`;
-                    else if (b.status === 'ACCEPTED' || b.status === 'IN_PROGRESS') statusBadge = `<span class="bg-blue-50 text-blue-700 text-[10px] uppercase px-3 py-1 rounded-md font-black border border-blue-200 shadow-sm">${b.status}</span>`;
-                    else if (b.status === 'COMPLETED') statusBadge = `<span class="bg-green-50 text-green-700 text-[10px] uppercase px-3 py-1 rounded-md font-black border border-green-200">COMPLETED</span>`;
-                    else if (b.status === 'CANCELLED' || b.status === 'REJECTED') statusBadge = `<span class="bg-red-50 text-red-700 text-[10px] uppercase px-3 py-1 rounded-md font-bold border border-red-100">${b.status}</span>`;
-
-                    if (b.isSubscriptionBooking) {
-                        statusBadge += `<br><span class="bg-orange-100 text-orange-800 text-[9px] mt-1 inline-block px-2 py-0.5 rounded font-bold">${b.planName}</span>`;
-                    }
-
-                    let actions = "";
-                    if (b.status === 'PENDING' || b.status === 'BROADCASTED' || b.status === 'ACCEPTED') {
-                        actions = `<button onclick="adminCancelBooking('${b.id}')" class="text-red-500 hover:text-white hover:bg-red-500 p-1.5 rounded-md text-xs font-bold border border-red-200 transition shadow-sm" title="Cancel this job"><i data-lucide="x" class="w-4 h-4"></i></button>`;
-                    }
-
-                    if (b.receiptImageBase64) {
-                        actions += `<button onclick="viewSlip('${b.id}')" class="text-blue-500 hover:text-white hover:bg-blue-500 p-1.5 rounded-md text-xs font-bold border border-blue-200 transition shadow-sm ml-2" title="View Payment Slip"><i data-lucide="receipt" class="w-4 h-4 inline"></i> Slip</button>`;
-                    }
-
-                    let replacementNote = "";
-                    if (b.replacementRequested) {
-                        replacementNote = `<div class="mt-1 text-[10px] text-red-600 font-bold flex items-center"><i data-lucide="alert-circle" class="w-3 h-3 mr-1"></i> Client Requested Replacement</div><div class="text-[10px] text-gray-500 italic mt-0.5">"${b.replacementReason}"</div>`;
-                    }
-
-                    rows += `
-                        <tr class="hover:bg-gray-50 border-b border-gray-100 transition">
-                            <td class="p-5 font-bold text-gray-800">${clientName} ${replacementNote}</td>
-                            <td class="p-5 font-medium text-gray-700">${cgName}</td>
-                            <td class="p-5">${statusBadge}</td>
-                            <td class="p-5 text-gray-900 font-black">Rs. ${b.totalAmount || 0}</td>
-                            <td class="p-5 text-center">${actions}</td>
-                        </tr>
-                    `;
-                }
-                bookingsTableBody.innerHTML = rows;
-                lucide.createIcons();
-            });
-        }
-
-        window.adminCancelBooking = async function(bookingId) {
-            if(!confirm("Are you absolutely sure you want to CANCEL this job request?")) return;
-            try {
-                const docSnap = await getDoc(doc(db, "bookings", bookingId));
-                if(docSnap.exists() && docSnap.data().caregiverId) { await updateDoc(doc(db, "users", docSnap.data().caregiverId), { isBusy: false }); }
-                await updateDoc(doc(db, "bookings", bookingId), { status: "CANCELLED" });
-                showToast("Job Request Cancelled Successfully.", "success");
-            } catch(e) { showToast("Failed to cancel job.", "error"); }
-        }
-
-        window.currentUserFilter = 'CAREGIVER';
-
-        window.filterUsers = function(role) {
-            window.currentUserFilter = role;
-            
-            document.getElementById('btn-filter-caregiver').className = role === 'CAREGIVER' ? "px-5 py-2 rounded-xl text-sm font-bold bg-primary text-white shadow-md transition-all" : "px-5 py-2 rounded-xl text-sm font-bold bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all";
-            document.getElementById('btn-filter-nurse').className = role === 'NURSE' ? "px-5 py-2 rounded-xl text-sm font-bold bg-blue-600 text-white shadow-md transition-all" : "px-5 py-2 rounded-xl text-sm font-bold bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all";
-            document.getElementById('btn-filter-client').className = role === 'CLIENT' ? "px-5 py-2 rounded-xl text-sm font-bold bg-dark text-white shadow-md transition-all" : "px-5 py-2 rounded-xl text-sm font-bold bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all";
-            
-            window.renderUsersTable();
-        }
-
-        window.renderUsersTable = function() {
-            const tbody = document.getElementById('all-users-table-body');
-            let rows = '';
-            let count = 0;
-
-            Object.values(window.allUsersDataMap).forEach((user) => {
-                let isMatch = false;
-                // Check if user is a Nurse based on strict Role or embedded Category
-                const isNurse = user.role === 'NURSE' || (user.role === 'CAREGIVER' && user.categories && (user.categories.includes('Nurse') || user.categories.includes('NURSE')));
-                
-                if (window.currentUserFilter === 'CLIENT') {
-                    isMatch = user.role === 'CLIENT';
-                } else if (window.currentUserFilter === 'NURSE') {
-                    isMatch = isNurse;
-                } else if (window.currentUserFilter === 'CAREGIVER') {
-                    isMatch = user.role === 'CAREGIVER' && !isNurse;
-                }
-
-                if (isMatch) {
-                    count++;
-                    let statusBadge = '';
-                    if (user.kycStatus === 'APPROVED' && user.isVerified) statusBadge = `<span class="bg-green-50 text-green-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-green-200">ACTIVE</span>`;
-                    else if (user.kycStatus === 'APPROVED' && !user.isVerified) statusBadge = `<span class="bg-blue-50 text-blue-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-blue-200">PENDING FEE</span>`;
-                    else if (user.kycStatus === 'REJECTED') statusBadge = `<span class="bg-red-50 text-red-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-red-200">REJECTED</span>`;
-                    else statusBadge = `<span class="bg-yellow-50 text-yellow-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-yellow-200">PENDING KYC</span>`;
-                    
-                    let roleBadge = '';
-                    if (user.role === 'CLIENT') roleBadge = `<span class="bg-dark/10 text-dark text-xs px-2.5 py-1 rounded-md font-black">CLIENT</span>`;
-                    else if (isNurse) roleBadge = `<span class="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-md font-black">NURSE</span>`;
-                    else roleBadge = `<span class="bg-primary/10 text-primary text-xs px-2.5 py-1 rounded-md font-black">CAREGIVER</span>`;
-
-                    rows += `
-                        <tr class="hover:bg-gray-50 transition border-b border-gray-100">
-                            <td class="p-5 font-bold text-gray-900">${user.name || '<span class="text-gray-400 italic text-xs">Unnamed</span>'}</td>
-                            <td class="p-5 text-gray-500 font-medium">${user.email}</td>
-                            <td class="p-5">${roleBadge}</td>
-                            <td class="p-5">${statusBadge}</td>
-                            <td class="p-5 text-center"><button onclick="openReviewModal('${user.id}')" class="text-primary hover:text-white hover:bg-primary px-3 py-1.5 rounded-lg text-xs font-bold transition inline-flex items-center border border-primary/30"><i data-lucide="eye" class="w-3.5 h-3.5 mr-1.5"></i> View Details</button></td>
-                        </tr>
-                    `;
-                }
-            });
-
-            if (count === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500 font-medium">No ${window.currentUserFilter.toLowerCase()}s found.</td></tr>`;
+        // Investor Portal Form Tabs
+        window.setInvestorAuthMode = (mode) => {
+            if (mode === 'login') {
+                document.getElementById('investor-login-form').classList.remove('hidden');
+                document.getElementById('investor-register-form').classList.add('hidden');
+                document.getElementById('inv-tab-login').className = "flex-1 py-3 font-bold text-brand-green border-b-2 border-brand-green transition";
+                document.getElementById('inv-tab-register').className = "flex-1 py-3 font-bold text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition";
             } else {
-                tbody.innerHTML = rows;
+                document.getElementById('investor-login-form').classList.add('hidden');
+                document.getElementById('investor-register-form').classList.remove('hidden');
+                document.getElementById('inv-tab-register').className = "flex-1 py-3 font-bold text-brand-green border-b-2 border-brand-green transition";
+                document.getElementById('inv-tab-login').className = "flex-1 py-3 font-bold text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition";
             }
-            lucide.createIcons();
-        }
+        };
 
-        window.loadAllUsers = async function() {
-            document.getElementById('all-users-table-body').innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 italic">Loading user data...</td></tr>`;
-            onSnapshot(collection(db, "users"), (snapshot) => {
-                window.allUsersDataMap = {};
-                if (snapshot.empty) { 
-                    document.getElementById('all-users-table-body').innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500 font-medium">No users found.</td></tr>`; 
-                    return; 
-                }
-                snapshot.forEach((doc) => {
-                    const user = doc.data();
-                    user.id = doc.id;
-                    window.allUsersDataMap[doc.id] = user;
-                });
-                window.renderUsersTable();
-                populateCaregiverCheckboxes(); 
-            });
-        }
-
-        window.loadPendingCaregivers = async function() {
-            pendingTableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400 italic">Fetching applications...</td></tr>`;
-            onSnapshot(query(collection(db, "users"), where("kycStatus", "==", "PENDING")), (snapshot) => {
-                if (snapshot.empty) { pendingTableBody.innerHTML = `<tr><td colspan="4" class="p-12 text-center text-gray-500 font-medium"><i data-lucide="check-circle" class="w-12 h-12 text-green-200 mx-auto mb-3"></i>No pending approvals.</td></tr>`; lucide.createIcons(); return; }
-                let rows = '';
-                snapshot.forEach((doc) => {
-                    const user = doc.data();
-                    window.allUsersDataMap[doc.id] = user;
-                    const hasDocs = (user.nicFrontUrl || user.idFrontUrl) ? '<span class="text-green-600 bg-green-50 px-2 py-1 rounded border border-green-100 flex items-center w-max"><i data-lucide="check" class="w-3.5 h-3.5 mr-1.5"></i> Docs Uploaded</span>' : '<span class="text-red-500 bg-red-50 px-2 py-1 rounded border border-red-100 flex items-center w-max"><i data-lucide="x" class="w-3.5 h-3.5 mr-1.5"></i> Missing Docs</span>';
-                    let roleBadge = user.role === 'CAREGIVER' ? `<span class="bg-primary/10 text-primary text-xs px-2 py-1 rounded font-black">${user.role}</span>` : `<span class="bg-dark/10 text-dark text-xs px-2 py-1 rounded font-black">${user.role}</span>`;
-
-                    rows += `
-                        <tr class="hover:bg-gray-50 transition border-b border-gray-100">
-                            <td class="p-5 font-black text-gray-900">${user.name}</td>
-                            <td class="p-5">${roleBadge}</td>
-                            <td class="p-5 text-xs font-semibold">${hasDocs}</td>
-                            <td class="p-5 text-center"><button onclick="openReviewModal('${doc.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-black transition shadow-md shadow-blue-200 inline-flex items-center uppercase tracking-wide"><i data-lucide="scan-line" class="w-4 h-4 mr-2"></i> Review Application</button></td>
-                        </tr>
-                    `;
-                });
-                pendingTableBody.innerHTML = rows; lucide.createIcons();
-            });
-        }
-
-        window.openReviewModal = function(userId) {
-            const user = window.allUsersDataMap[userId];
-            if(!user) return;
-
-            document.getElementById('modal-footer-info').innerText = "ID: " + userId;
-            document.getElementById('modal-name').innerText = user.name || 'N/A';
-            document.getElementById('modal-email').innerText = user.email || 'N/A';
-            document.getElementById('modal-phone').innerText = user.phone || user.mobile || 'Not Provided';
-            document.getElementById('modal-role').innerText = `${user.role} | Wallet: Rs.${user.walletBalance || 0}`;
-            
-            const dpImg = document.getElementById('modal-dp-img');
-            const dpPh = document.getElementById('modal-dp-placeholder');
-            if(user.profileImageUrl) { dpImg.src = user.profileImageUrl; dpImg.classList.remove('hidden'); dpPh.classList.add('hidden'); }
-            else { dpPh.innerText = (user.name || '?').charAt(0).toUpperCase(); dpImg.classList.add('hidden'); dpPh.classList.remove('hidden'); }
-
-            const lat = user.locationLat || 0;
-            const lng = user.locationLng || 0;
-            if(lat !== 0 || lng !== 0) { document.getElementById('modal-location').innerHTML = `<button onclick="focusUserOnMap(${lat}, ${lng}, '${userId}')" class="text-blue-700 hover:bg-blue-100 font-bold text-xs uppercase tracking-wider inline-flex items-center bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 transition"><i data-lucide="map-pin" class="w-3.5 h-3.5 mr-1.5"></i> Locate on Map</button>`; } 
-            else { document.getElementById('modal-location').innerHTML = '<span class="text-xs text-gray-400 font-bold bg-gray-50 px-2 py-1 rounded border">Location Not Shared</span>'; }
-
-            const badge = document.getElementById('modal-status-badge');
-            if (user.kycStatus === 'APPROVED' && user.isVerified) { badge.innerText = "ACTIVE"; badge.className = "absolute -bottom-2 -right-2 px-3 py-1 rounded-lg text-[10px] font-black border border-green-300 text-green-800 bg-green-400 shadow-sm tracking-widest"; }
-            else if (user.kycStatus === 'APPROVED' && !user.isVerified) { badge.innerText = "PENDING FEE"; badge.className = "absolute -bottom-2 -right-2 px-3 py-1 rounded-lg text-[10px] font-black border border-blue-300 text-blue-800 bg-blue-400 shadow-sm tracking-widest"; }
-            else if (user.kycStatus === 'REJECTED') { badge.innerText = "REJECTED"; badge.className = "absolute -bottom-2 -right-2 px-3 py-1 rounded-lg text-[10px] font-black border border-red-300 text-red-800 bg-red-400 shadow-sm tracking-widest"; }
-            else { badge.innerText = "PENDING"; badge.className = "absolute -bottom-2 -right-2 px-3 py-1 rounded-lg text-[10px] font-black border border-yellow-300 text-yellow-900 bg-yellow-400 shadow-sm tracking-widest animate-pulse"; }
-
-            const caregiverSec = document.getElementById('modal-caregiver-section');
-            const clientSec = document.getElementById('modal-client-section');
-            const actionsDiv = document.getElementById('modal-action-buttons');
-            const cgDocs = document.querySelectorAll('.cg-doc');
-            const payoutSec = document.getElementById('modal-payout-section');
-            const payoutBal = document.getElementById('modal-payout-balance');
-            const settleBtn = document.getElementById('modal-settle-btn');
-            document.getElementById('payout-slip-file').value = ""; 
-            
-            const setImage = (imgId, errId, url) => {
-                const img = document.getElementById(imgId); const err = document.getElementById(errId);
-                if (url && url.startsWith("data:image")) { img.src = url; img.classList.remove('hidden'); err.classList.add('hidden'); } 
-                else { img.classList.add('hidden'); err.classList.remove('hidden'); }
-            };
-
-            if (user.role === 'CAREGIVER') {
-                caregiverSec.classList.remove('hidden'); clientSec.classList.add('hidden'); cgDocs.forEach(el => el.classList.remove('hidden'));
-                
-                payoutSec.classList.remove('hidden');
-                const bal = user.walletBalance || 0;
-                payoutBal.innerText = `Rs. ${bal.toFixed(2)}`;
-                settleBtn.onclick = () => window.settleCaregiverBalance(userId, bal);
-                if(bal <= 0) { settleBtn.disabled = true; settleBtn.classList.add('opacity-50', 'cursor-not-allowed'); } 
-                else { settleBtn.disabled = false; settleBtn.classList.remove('opacity-50', 'cursor-not-allowed'); }
-                
-                document.getElementById('modal-nic').innerText = user.nicNumber || '-'; document.getElementById('modal-dob').innerText = user.dob || '-'; document.getElementById('modal-gender').innerText = user.gender || '-'; document.getElementById('modal-address').innerText = user.address || '-'; document.getElementById('modal-experience').innerText = user.experienceYears ? user.experienceYears + ' Years' : 'Fresher'; document.getElementById('modal-categories').innerText = (user.categories && user.categories.length > 0) ? user.categories.join(', ') : 'Any Category'; document.getElementById('modal-service-types').innerText = (user.preferredServiceTypes && user.preferredServiceTypes.length > 0) ? user.preferredServiceTypes.join(', ') : 'Live-in / Live-out'; document.getElementById('modal-expected-salary').innerText = user.expectedSalary ? 'Rs. ' + user.expectedSalary : 'Not specified';
-                document.getElementById('modal-vaccination').innerText = user.vaccinationStatus || 'Not specified'; document.getElementById('modal-illnesses').innerText = user.chronicIllnesses || 'None reported'; document.getElementById('modal-bank-name').innerText = user.bankName || '-'; document.getElementById('modal-bank-acc').innerText = user.bankAccountNumber || '-'; document.getElementById('modal-bank-branch').innerText = user.bankBranch || '-'; document.getElementById('modal-skills').innerText = user.specialSkills || user.qualifications || 'No special skills listed.';
-                
-                setImage('modal-id-front', 'modal-id-front-err', user.nicFrontUrl || user.idFrontUrl); setImage('modal-id-back', 'modal-id-back-err', user.nicBackUrl || user.idBackUrl); setImage('modal-selfie', 'modal-selfie-err', user.selfieUrl); setImage('modal-police', 'modal-police-err', user.policeClearanceUrl); setImage('modal-bankbook', 'modal-bankbook-err', user.bankBookUrl); setImage('modal-cert', 'modal-cert-err', user.certificateUrl);
-            } else {
-                caregiverSec.classList.add('hidden'); clientSec.classList.remove('hidden'); payoutSec.classList.add('hidden'); cgDocs.forEach(el => el.classList.add('hidden'));
-                document.getElementById('modal-client-nic').innerText = user.nicNumber || '-'; document.getElementById('modal-client-address').innerText = user.address || '-'; document.getElementById('modal-client-svc-address').innerText = user.serviceAddress || '-'; document.getElementById('modal-client-billing-name').innerText = user.billingName || '-'; document.getElementById('modal-client-billing-address').innerText = user.billingAddress || '-';
-                setImage('modal-id-front', 'modal-id-front-err', user.nicFrontUrl || user.idFrontUrl); setImage('modal-id-back', 'modal-id-back-err', user.nicBackUrl || user.idBackUrl); setImage('modal-selfie', 'modal-selfie-err', user.selfieUrl);
-            }
-
-            // Fixed Null Reference Issue Here
-            if (actionsDiv) {
-                if (user.kycStatus === 'PENDING' || (!user.isVerified && user.kycStatus !== 'APPROVED')) {
-                    actionsDiv.classList.remove('hidden');
-                    const approveBtn = document.getElementById('modal-approve-btn');
-                    const rejectBtn = document.getElementById('modal-reject-btn');
-                    if(approveBtn) approveBtn.onclick = () => window.handleApprove(userId);
-                    if(rejectBtn) rejectBtn.onclick = () => window.handleReject(userId);
-                } else { 
-                    actionsDiv.classList.add('hidden'); 
-                }
-            }
-
-            document.getElementById('review-modal').classList.remove('hidden');
-            lucide.createIcons();
-        }
-
-        window.closeModal = function() { document.getElementById('review-modal').classList.add('hidden'); }
-
-        window.settleCaregiverBalance = async function(userId, currentBalance) {
-            if (currentBalance <= 0) { showToast("Balance is already zero.", "error"); return; }
-            const fileInput = document.getElementById('payout-slip-file');
-            if (!fileInput.files || fileInput.files.length === 0) { showToast("Please select the bank transfer slip image first!", "error"); return; }
-            
-            const btn = document.getElementById('modal-settle-btn');
-            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 mr-2 animate-spin"></i> Processing...';
-            btn.disabled = true; lucide.createIcons();
-
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = async function() {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 600; const MAX_HEIGHT = 600;
-                    let width = img.width; let height = img.height;
-                    
-                    if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } 
-                    else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
-                    
-                    canvas.width = width; canvas.height = height;
-                    const ctx = canvas.getContext('2d'); 
-                    ctx.fillStyle = "white";
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0, width, height);
-                    
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.4);
-
-                    if (compressedBase64.length > 1048000) {
-                        showToast("Image is still too large. Please use a smaller file.", "error");
-                        btn.innerHTML = '<i data-lucide="upload-cloud" class="w-4 h-4 mr-2"></i> Upload Slip & Settle';
-                        btn.disabled = false; lucide.createIcons();
-                        return;
-                    }
-
-                    try {
-                        const txId = Date.now().toString() + Math.random().toString(36).substring(2);
-                        const txData = { id: txId, userId: userId, amount: currentBalance, type: "DEBIT", description: "Earnings settled to Bank Account", timestamp: Date.now(), receiptImageUrl: compressedBase64 };
-                        
-                        await setDoc(doc(db, "transactions", txId), txData);
-                        await updateDoc(doc(db, "users", userId), { walletBalance: 0.0 });
-                        
-                        showToast("Payment settled and slip uploaded successfully!", "success");
-                        closeModal();
-                    } catch(error) { 
-                        showToast("Failed to settle payment.", "error"); 
-                        btn.innerHTML = '<i data-lucide="upload-cloud" class="w-4 h-4 mr-2"></i> Upload Slip & Settle';
-                        btn.disabled = false; lucide.createIcons();
-                    }
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        window.focusUserOnMap = function(lat, lng, userId) {
-            closeModal(); switchTab('map');
-            setTimeout(() => { if(adminMap && lat !== 0 && lng !== 0) { adminMap.setView([lat, lng], 17, { animate: true }); if(markersMap[userId]) markersMap[userId].openPopup(); } }, 500);
-        }
-
-        window.handleApprove = async function(userId) {
-            if(!confirm("Are you sure you want to APPROVE this user's documents?\n\nThey will be asked to pay the Registration Fee to activate their account.")) return;
-            try { await updateDoc(doc(db, "users", userId), { kycStatus: "APPROVED" }); showToast("Approved Successfully! Pending Payment.", "success"); closeModal(); } catch (error) { showToast("Failed.", "error"); }
-        }
-
-        window.handleReject = async function(userId) {
-            const reason = prompt("Reason for rejection:");
-            if(reason === null) return; 
-            try { await updateDoc(doc(db, "users", userId), { isVerified: false, kycStatus: "REJECTED", rejectionReason: reason || "Documents not clear." }); showToast("Rejected.", "error"); closeModal(); } catch (error) { showToast("Failed.", "error"); }
-        }
-
-        window.loadComplaints = async function() {
-            onSnapshot(query(collection(db, "bookings"), where("hasComplaint", "==", true)), (snapshot) => {
-                document.getElementById('stat-reports').innerText = snapshot.size;
-                const badge = document.getElementById('badge-reports');
-                if(snapshot.size > 0) { badge.innerText = snapshot.size; badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); }
-
-                let rows = '';
-                if(snapshot.empty) { reportsTableBody.innerHTML = `<tr><td colspan="4" class="p-12 text-center text-gray-500 font-medium"><i data-lucide="shield-check" class="w-12 h-12 text-green-200 mx-auto mb-3"></i>No active complaints.</td></tr>`; lucide.createIcons(); return; }
-                
-                snapshot.forEach(d => {
-                    const b = d.data(); window.allBookingsMap[d.id] = b;
-                    let cgName = window.allUsersDataMap[b.caregiverId]?.name || "Unknown Caregiver";
-                    
-                    let cgResponseHtml = b.caregiverResponse 
-                        ? `<div class="mt-3 p-2.5 bg-blue-50 border border-blue-100 rounded-lg"><span class="text-[10px] font-black text-blue-600 uppercase tracking-widest block mb-1"><i data-lucide="corner-down-right" class="w-3 h-3 inline mr-1"></i>Caregiver's Reply:</span><span class="text-[13px] text-blue-900 font-medium leading-tight">"${b.caregiverResponse}"</span></div>` 
-                        : `<div class="mt-2"><span class="text-[10px] bg-red-100 text-red-600 px-2 py-1 rounded font-bold uppercase tracking-widest animate-pulse">Waiting for reply...</span></div>`;
-
-                    rows += `
-                        <tr class="hover:bg-purple-50 transition border-b border-gray-100">
-                            <td class="p-5 font-bold text-gray-800">${cgName}</td>
-                            <td class="p-5 text-sm">
-                                <div class="text-red-700 font-bold mb-1"><i data-lucide="alert-circle" class="w-4 h-4 inline mr-1"></i>Client Note:</div>
-                                <div class="text-gray-700 font-medium italic mb-2 leading-relaxed">"${b.complaintNotes}"</div>
-                                ${cgResponseHtml}
-                            </td>
-                            <td class="p-5"><span class="bg-gray-100 px-3 py-1 rounded text-xs font-black text-gray-700">${(b.clientApprovedTasks||[]).length} / ${(b.requestedTasks||[]).length} Done</span></td>
-                            <td class="p-5 text-center"><button onclick="viewProofs('${d.id}')" class="bg-white border border-purple-200 text-purple-700 hover:bg-purple-600 hover:text-white px-4 py-2 rounded-lg font-bold text-xs shadow-sm transition inline-flex items-center uppercase tracking-widest"><i data-lucide="image" class="w-3.5 h-3.5 mr-2"></i> Inspect</button></td>
-                        </tr>
-                    `;
-                });
-                reportsTableBody.innerHTML = rows; lucide.createIcons();
-            });
-        }
-
-        window.viewProofs = function(bookingId) {
-            const booking = window.allBookingsMap[bookingId];
-            if(!booking) return;
-            document.getElementById('comp-notes').innerText = booking.complaintNotes;
-            const proofsDiv = document.getElementById('comp-proofs'); proofsDiv.innerHTML = '';
-            if (booking.taskProofs && booking.taskProofs.length > 0) {
-                booking.taskProofs.forEach(proof => { proofsDiv.innerHTML += `<div class="border border-gray-200 rounded-xl p-3 bg-white flex flex-col items-center shadow-sm hover:shadow-md transition"><p class="text-[11px] font-black text-gray-500 mb-2 truncate w-full text-center uppercase tracking-wider">${proof.taskName}</p><img src="${proof.photoUrl}" class="h-40 w-full object-cover rounded-lg cursor-pointer hover:opacity-80 transition" onclick="openImagePopup(this.src)"></div>`; });
-            } else { proofsDiv.innerHTML = '<div class="col-span-3 p-8 text-center bg-gray-50 rounded-xl border border-dashed border-gray-300"><p class="text-gray-400 font-medium text-sm">No photographic evidence.</p></div>'; }
-            document.getElementById('complaint-modal').classList.remove('hidden');
-        }
-        window.closeComplaintModal = function() { document.getElementById('complaint-modal').classList.add('hidden'); }
-
-        function initAdminMap() {
-            if (adminMap !== null) return; 
-            const mapContainer = document.getElementById('admin-map');
-            if(mapContainer.clientHeight === 0) { mapContainer.style.height = "600px"; }
-            adminMap = L.map('admin-map').setView([6.9271, 79.8612], 12);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(adminMap);
-        }
-
-        function startLiveMapTracking() {
-            onSnapshot(query(collection(db, "bookings"), where("status", "in", ["ACCEPTED", "IN_PROGRESS"])), (snapshot) => { activeBookingsData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})); updateMapConnections(); });
-            onSnapshot(collection(db, "users"), (snapshot) => {
-                snapshot.forEach((docSnap) => {
-                    const user = docSnap.data(); const userId = docSnap.id; window.allUsersDataMap[userId] = user;
-                    if (user.locationLat && user.locationLng && user.locationLat !== 0) {
-                        let markerColor = '#0D3B66'; let roleClass = 'role-client'; let roleDisplay = user.role;
-                        if (user.role === 'CAREGIVER') { if (user.isBusy) { markerColor = '#ef4444'; roleClass = 'role-caregiver-busy'; roleDisplay = 'BUSY CAREGIVER'; } else { markerColor = '#53A548'; roleClass = 'role-caregiver'; roleDisplay = 'FREE CAREGIVER'; } }
-                        const customIcon = L.divIcon({ className: 'custom-div-icon', html: `<div style="background-color:${markerColor}; width:18px; height:18px; border-radius:50%; border:3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: all 0.3s ease;"></div>`, iconSize: [18, 18], iconAnchor: [9, 9] });
-                        const popupContent = `<div class="map-popup-title">${user.name}</div><span class="map-popup-role ${roleClass}">${roleDisplay}</span><div style="margin-top:6px; font-size:11px; color:gray;"><i data-lucide="phone" style="width:10px; height:10px; display:inline;"></i> ${user.phone||'N/A'}</div>`;
-                        if (markersMap[userId]) { markersMap[userId].setLatLng([user.locationLat, user.locationLng]); markersMap[userId].setIcon(customIcon); markersMap[userId].getPopup().setContent(popupContent); } else { if (adminMap) { markersMap[userId] = L.marker([user.locationLat, user.locationLng], { icon: customIcon }).addTo(adminMap).bindPopup(popupContent); } }
-                    }
-                });
-                updateMapConnections();
-            });
-        }
-
-        function updateMapConnections() {
-            activePolylines.forEach(p => p.remove()); activePolylines = [];
-            const activeListHtml = []; const freeListHtml = [];
-            Object.keys(window.allUsersDataMap).forEach(uid => {
-                const u = window.allUsersDataMap[uid];
-                if (u.role === 'CAREGIVER' && !u.isBusy && u.isVerified) { 
-                    const clickAction = u.locationLat ? `focusUserOnMap(${u.locationLat}, ${u.locationLng}, '${uid}')` : `showToast('Location not shared', 'error')`;
-                    freeListHtml.push(`<div class="bg-white p-3.5 rounded-xl border border-green-100 shadow-sm mb-3 cursor-pointer hover:border-green-300 transition" onclick="${clickAction}"><span class="font-black text-green-800 block text-sm">${u.name}</span><span class="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest"><i data-lucide="map-pin" class="inline w-3 h-3 text-green-500"></i> Tap to locate</span></div>`); 
-                }
-            });
-            activeBookingsData.forEach(b => {
-                const cg = window.allUsersDataMap[b.caregiverId]; const cl = window.allUsersDataMap[b.clientId];
-                if (cg && cl) {
-                    const clickAction = cg.locationLat ? `focusUserOnMap(${cg.locationLat}, ${cg.locationLng}, '${b.caregiverId}')` : `showToast('Offline', 'error')`;
-                    activeListHtml.push(`<div class="bg-white p-4 rounded-xl border border-red-100 shadow-sm mb-3 cursor-pointer hover:border-red-300 transition" onclick="${clickAction}"><div class="font-black text-red-700 text-sm flex items-center"><div class="w-2 h-2 rounded-full bg-red-500 mr-2 animate-pulse"></div> ${cg.name}</div><div class="text-[10px] text-gray-400 my-2 font-black uppercase tracking-widest text-center border-y border-dashed py-1">Assigned to</div><div class="font-black text-blue-900 text-sm flex items-center justify-end">${cl.name} <div class="w-2 h-2 rounded-full bg-blue-500 ml-2"></div></div></div>`);
-                    const tLat = cl.locationLat || b.locationLat; const tLng = cl.locationLng || b.locationLng;
-                    if (adminMap && cg.locationLat && tLat) { const polyline = L.polyline([[cg.locationLat, cg.locationLng], [tLat, tLng]], {color: '#ef4444', dashArray: '8, 8', weight: 3, opacity: 0.8, lineCap: 'round'}).addTo(adminMap); activePolylines.push(polyline); }
-                }
-            });
-            document.getElementById('map-active-connections').innerHTML = activeListHtml.length ? activeListHtml.join('') : '<p class="text-xs font-medium text-gray-400 italic bg-gray-50 p-3 rounded-lg border border-dashed text-center">No active connections.</p>';
-            document.getElementById('map-free-caregivers').innerHTML = freeListHtml.length ? freeListHtml.join('') : '<p class="text-xs font-medium text-gray-400 italic bg-gray-50 p-3 rounded-lg border border-dashed text-center">All verified caregivers are busy.</p>';
-            lucide.createIcons();
-        }
-
-        window.switchTab = function(tabName) {
-            document.getElementById('header-title').innerText = titles[tabName].title; document.getElementById('header-subtitle').innerText = titles[tabName].sub;
-            ['overview', 'users', 'verification', 'bookings', 'callcenter', 'seylanbank', 'special', 'leaves', 'geofence', 'reports', 'map', 'promotions', 'settings'].forEach(t => {
-                document.getElementById(`section-${t}`).classList.add('hidden'); document.getElementById(`tab-${t}`).className = "w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition font-medium";
-            });
-            document.getElementById(`section-${tabName}`).classList.remove('hidden'); document.getElementById(`tab-${tabName}`).className = "w-full flex items-center p-3.5 rounded-xl bg-primary text-white shadow-md font-bold transition";
-            if (tabName === 'map') { setTimeout(() => { initAdminMap(); if(adminMap) { adminMap.invalidateSize(true); } }, 150); }
-            if (tabName === 'promotions') { loadPromotionData(); }
-        }
-
-        window.loadPromotionData = async function() {
-            try {
-                const docSnap = await getDoc(doc(db, "settings", "promotion"));
-                if (docSnap.exists()) {
-                    const data = docSnap.data(); let banners = data.banners || [];
-                    if (banners.length === 0 && (data.title || data.imageUrl)) { banners.push({ title: data.title || "", subtitle: data.subtitle || "", imageUrl: (data.images && data.images[0]) ? data.images[0] : (data.imageUrl || ""), showButton: data.showButton !== false, buttonText: data.buttonText || "", buttonLink: data.buttonLink || "" }); }
-                    for(let i=1; i<=3; i++) {
-                        const b = banners[i-1] || {};
-                        document.getElementById(`promo-title-${i}`).value = b.title || ""; document.getElementById(`promo-subtitle-${i}`).value = b.subtitle || ""; document.getElementById(`promo-img-${i}`).value = b.imageUrl || ""; document.getElementById(`promo-btn-show-${i}`).checked = b.showButton !== false; document.getElementById(`promo-btn-text-${i}`).value = b.buttonText || ""; document.getElementById(`promo-btn-link-${i}`).value = b.buttonLink || "";
-                    }
-                }
-            } catch(e) { console.error(e); }
-        }
-
-        window.savePromotion = async function() {
-            const banners = [];
-            for(let i=1; i<=3; i++) {
-                const img = document.getElementById(`promo-img-${i}`).value.trim(); const title = document.getElementById(`promo-title-${i}`).value.trim(); const subtitle = document.getElementById(`promo-subtitle-${i}`).value.trim();
-                if(img || title || subtitle) { banners.push({ title: title, subtitle: subtitle, imageUrl: img, showButton: document.getElementById(`promo-btn-show-${i}`).checked, buttonText: document.getElementById(`promo-btn-text-${i}`).value.trim(), buttonLink: document.getElementById(`promo-btn-link-${i}`).value.trim() }); }
-            }
-            try { await setDoc(doc(db, "settings", "promotion"), { banners: banners, updatedAt: Date.now() }, { merge: true }); showToast("All Promotion Banners Updated Successfully!", "success"); } catch(e) { showToast("Failed to save banners", "error"); }
-        }
-
-        function listenForAlerts() {
-            onSnapshot(collection(db, "alerts"), async (snapshot) => {
-                let currentAwayCount = 0;
-                const rawIncidents = [];
-
-                for (const d of snapshot.docs) {
-                    const alertData = d.data();
-                    if(alertData.message && (alertData.message.includes("50") || alertData.message.includes("Geofence"))) {
-                        rawIncidents.push(alertData);
-                    }
-                }
-
-                const alertsByBooking = {};
-                for (const inc of rawIncidents) {
-                    if (!alertsByBooking[inc.bookingId]) alertsByBooking[inc.bookingId] = [];
-                    alertsByBooking[inc.bookingId].push(inc);
-                }
-
-                const sessions = [];
-                for (const bookingId in alertsByBooking) {
-                    const alerts = alertsByBooking[bookingId];
-                    alerts.sort((a,b) => a.timestamp - b.timestamp);
-                    
-                    let currentSession = null;
-                    for (let i = 0; i < alerts.length; i++) {
-                        const alert = alerts[i];
-                        if (!currentSession) {
-                            currentSession = { bookingId: bookingId, awayTime: alert.timestamp, lastAlertTime: alert.timestamp };
-                            sessions.push(currentSession);
-                        } else {
-                            if (alert.timestamp - currentSession.lastAlertTime > 5 * 60 * 1000) {
-                                currentSession.returnedTime = currentSession.lastAlertTime + (60 * 1000); 
-                                currentSession = { bookingId: bookingId, awayTime: alert.timestamp, lastAlertTime: alert.timestamp };
-                                sessions.push(currentSession);
-                            } else {
-                                currentSession.lastAlertTime = alert.timestamp;
-                            }
-                        }
-                    }
-                    if (currentSession) currentSession.isLatest = true;
-                }
-
-                sessions.sort((a,b) => b.awayTime - a.awayTime); 
-                let rowsHtml = '';
-                
-                for (const session of sessions) {
-                    let cgName = "Unknown Caregiver";
-                    let clName = "Unknown Client";
-                    let statusBadge = '<span class="bg-red-50 text-red-700 text-[10px] px-3 py-1 uppercase tracking-widest rounded-md font-black border border-red-200 shadow-sm flex items-center inline-flex w-max"><span class="w-1.5 h-1.5 rounded-full bg-red-500 mr-2 animate-pulse"></span>AWAY</span>';
-                    let isAway = true;
-                    let returnedTimeStr = '<span class="italic text-gray-400 font-medium text-xs">Still outside range</span>';
-
-                    try {
-                        if (session.bookingId) {
-                            const bDoc = await getDoc(doc(db, "bookings", session.bookingId));
-                            if (bDoc.exists()) {
-                                const bData = bDoc.data();
-                                cgName = window.allUsersDataMap[bData.caregiverId]?.name || "Unknown Caregiver";
-                                clName = window.allUsersDataMap[bData.clientId]?.name || "Unknown Client";
-                                
-                                const cgUser = window.allUsersDataMap[bData.caregiverId];
-                                
-                                if (bData.status === "COMPLETED" || bData.status === "CANCELLED" || bData.status === "REJECTED") {
-                                    statusBadge = '<span class="bg-gray-100 text-gray-700 text-[10px] px-3 py-1 uppercase tracking-widest rounded-md font-bold border border-gray-200">JOB ENDED</span>';
-                                    isAway = false;
-                                    returnedTimeStr = session.returnedTime ? new Date(session.returnedTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Ended';
-                                } 
-                                else if (session.isLatest && cgUser && cgUser.locationLat && bData.locationLat) {
-                                    const dist = getDistanceFromLatLonInM(cgUser.locationLat, cgUser.locationLng, bData.locationLat, bData.locationLng);
-                                    if (dist <= 50) {
-                                        statusBadge = '<span class="bg-green-50 text-green-700 text-[10px] px-3 py-1 uppercase tracking-widest rounded-md font-bold border border-green-200">RETURNED</span>';
-                                        isAway = false;
-                                        returnedTimeStr = new Date(session.lastAlertTime + 60000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); 
-                                    }
-                                } else if (!session.isLatest) {
-                                    statusBadge = '<span class="bg-green-50 text-green-700 text-[10px] px-3 py-1 uppercase tracking-widest rounded-md font-bold border border-green-200">RETURNED</span>';
-                                    isAway = false;
-                                    returnedTimeStr = new Date(session.returnedTime || session.lastAlertTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                                }
-                            } else {
-                                statusBadge = '<span class="bg-gray-100 text-gray-700 text-[10px] px-3 py-1 uppercase tracking-widest rounded-md font-bold border border-gray-200">JOB DELETED</span>';
-                                isAway = false;
-                                returnedTimeStr = 'Deleted';
-                            }
-                        }
-                    } catch(e) { console.error(e); }
-
-                    if (isAway && session.isLatest) currentAwayCount++;
-
-                    const timeStr = new Date(session.awayTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    const dateStr = new Date(session.awayTime).toLocaleDateString();
-
-                    rowsHtml += `
-                        <tr class="hover:bg-gray-50 transition border-b border-gray-100">
-                            <td class="p-5 font-bold text-gray-900">${cgName}</td>
-                            <td class="p-5 text-gray-600 font-medium">${clName}</td>
-                            <td class="p-5 font-bold text-orange-600">${dateStr} <span class="text-xs text-gray-400 ml-1">${timeStr}</span></td>
-                            <td class="p-5 font-bold text-sky-600">${returnedTimeStr}</td>
-                            <td class="p-5 text-center">${statusBadge}</td>
-                        </tr>
-                    `;
-                }
-
-                const tbody = document.getElementById('geofence-table-body');
-                if (sessions.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="p-12 text-center text-gray-500 font-medium"><i data-lucide="shield-check" class="w-12 h-12 text-green-200 mx-auto mb-3"></i>No geofence violations recorded.</td></tr>`;
-                } else {
-                    tbody.innerHTML = rowsHtml;
-                }
-
-                document.getElementById('stat-alerts').innerText = currentAwayCount;
-                const badge = document.getElementById('badge-alerts');
-                if(currentAwayCount > 0) { badge.innerText = currentAwayCount; badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); }
-
-                lucide.createIcons();
-                
-                if (!isFirstLoadAlerts && sessions.length > 0 && sessions[0].isLatest) {
-                    if (Date.now() - sessions[0].awayTime < 30000) { showToast("🚨 Critical Geofence Breach Alert!", "error"); }
-                }
-                isFirstLoadAlerts = false;
-            });
-        }
-
-        function getDistanceFromLatLonInM(lat1, lon1, lat2, lon2) {
-            var R = 6371; var dLat = (lat2-lat1) * (Math.PI/180); var dLon = (lon2-lon1) * (Math.PI/180); 
-            var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * (Math.PI/180)) * Math.cos(lat2 * (Math.PI/180)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
-            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-            return R * c * 1000; 
-        }
-
-        // Security guard to prevent iframes from redirecting the parent window
-        window.isSystemLogout = false;
-        window.addEventListener('beforeunload', function (e) {
-            if (!document.getElementById('dashboard-screen').classList.contains('hidden') && !window.isSystemLogout) {
-                e.preventDefault();
-                e.returnValue = 'Are you sure you want to leave? Your admin session is still active.';
-                return e.returnValue;
-            }
-        });
-
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        // ------------------ Firebase Interactions: Main Site Forms ------------------ //
+        window.submitClientBooking = async (e) => {
             e.preventDefault();
-            try { await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value); } catch (error) {}
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "Processing..."; btn.disabled = true;
+
+            try {
+                await addDoc(collection(db, "bookings"), {
+                    name: document.getElementById('clientName').value,
+                    phone: document.getElementById('clientPhone').value,
+                    service: document.getElementById('clientService').value,
+                    address: document.getElementById('clientAddress').value,
+                    status: 'New Request',
+                    timestamp: Date.now()
+                });
+                
+                e.target.reset();
+                const msg = document.getElementById('mainSuccessMessage');
+                msg.classList.remove('hidden');
+                setTimeout(() => msg.classList.add('hidden'), 5000);
+            } catch (err) {
+                alert("Error submitting booking: " + err.message);
+            } finally {
+                btn.innerHTML = originalText; btn.disabled = false;
+            }
+        };
+
+        window.submitStaffApplication = async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "Processing..."; btn.disabled = true;
+
+            try {
+                await addDoc(collection(db, "applications"), {
+                    name: document.getElementById('staffName').value,
+                    phone: document.getElementById('staffPhone').value,
+                    position: document.getElementById('staffPosition').value,
+                    experience: document.getElementById('staffExp').value,
+                    message: document.getElementById('staffMessage').value,
+                    status: 'Pending Review',
+                    timestamp: Date.now()
+                });
+                
+                e.target.reset();
+                const msg = document.getElementById('mainSuccessMessage');
+                document.getElementById('mainSuccessText').innerText = "Application submitted successfully!";
+                msg.classList.remove('hidden');
+                setTimeout(() => msg.classList.add('hidden'), 5000);
+            } catch (err) {
+                alert("Error submitting application: " + err.message);
+            } finally {
+                btn.innerHTML = originalText; btn.disabled = false;
+            }
+        };
+
+        // ------------------ Firebase Interactions: Investor Portal ------------------ //
+        let userDocUnsubscribe = null;
+        let investmentsUnsubscribe = null;
+
+        // Listen for Authentication State
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                if (userDocUnsubscribe) userDocUnsubscribe();
+                userDocUnsubscribe = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        window.currentUserData = data;
+                        
+                        if (data.role === "INVESTOR") {
+                            document.getElementById('investor-name-display').innerText = data.name;
+                            document.getElementById('investor-auth-section').classList.add('hidden');
+                            document.getElementById('investor-dashboard-section').classList.remove('hidden');
+                            document.getElementById('investor-dashboard-section').classList.add('flex');
+                            listenToInvestments(user.uid);
+                        }
+                    }
+                });
+            } else {
+                window.currentUserData = null;
+                document.getElementById('investor-auth-section').classList.remove('hidden');
+                document.getElementById('investor-dashboard-section').classList.add('hidden');
+                document.getElementById('investor-dashboard-section').classList.remove('flex');
+            }
         });
-        
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            window.isSystemLogout = true;
-            signOut(auth);
-        });
-        
-        lucide.createIcons();
+
+        window.handleInvestorLogin = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-inv-login');
+            btn.innerHTML = "Authenticating..."; btn.disabled = true;
+            try {
+                await signInWithEmailAndPassword(auth, document.getElementById('inv-login-email').value, document.getElementById('inv-login-password').value);
+                // State observer will route to dashboard
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                btn.innerHTML = `Secure Sign In <i class="ph-bold ph-arrow-right"></i>`; 
+                btn.disabled = false;
+            }
+        };
+
+        window.handleInvestorRegister = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-inv-register');
+            btn.innerHTML = "Applying..."; btn.disabled = true;
+            try {
+                const name = document.getElementById('inv-reg-name').value;
+                const email = document.getElementById('inv-reg-email').value;
+                const pass = document.getElementById('inv-reg-password').value;
+
+                const userCred = await createUserWithEmailAndPassword(auth, email, pass);
+                // Add user to Firestore
+                await setDoc(doc(db, "users", userCred.user.uid), {
+                    id: userCred.user.uid,
+                    name: name,
+                    email: email,
+                    role: 'INVESTOR',
+                    status: 'Active', 
+                    timestamp: Date.now()
+                });
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                btn.innerHTML = "Apply as Investor"; 
+                btn.disabled = false;
+            }
+        };
+
+        window.handleInvestorLogout = async () => {
+            if(investmentsUnsubscribe) investmentsUnsubscribe();
+            if(userDocUnsubscribe) userDocUnsubscribe();
+            await signOut(auth);
+            alert("Successfully logged out.");
+        };
+
+        // ------------------ INVESTOR Operations (Dashboard) ------------------ //
+        let selectedProject = '';
+        const modal = document.getElementById('investModal');
+        const modalContent = document.getElementById('modalContent');
+
+        window.openInvestModal = (projectName) => {
+            selectedProject = projectName;
+            document.getElementById('modalProjectName').innerText = projectName;
+            document.getElementById('investAmount').value = '';
+            document.getElementById('modalReturnDisplay').innerText = 'Rs. 0';
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            }, 10);
+        };
+
+        window.closeInvestModal = () => {
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        };
+
+        window.calculateReturn = () => {
+            const amount = parseFloat(document.getElementById('investAmount').value) || 0;
+            const annualReturn = amount * 0.40; // 40% Return
+            document.getElementById('modalReturnDisplay').innerText = window.formatMoney(annualReturn);
+        };
+
+        window.submitInvestment = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-investment');
+            btn.innerHTML = "Processing..."; btn.disabled = true;
+
+            const amount = parseFloat(document.getElementById('investAmount').value);
+            const annualReturn = amount * 0.40;
+            const user = auth.currentUser;
+
+            try {
+                // Save investment under the user's sub-collection
+                const invRef = collection(db, "users", user.uid, "investments");
+                await addDoc(invRef, {
+                    project: selectedProject,
+                    amount: amount,
+                    returnAmount: annualReturn,
+                    status: 'Pending Review',
+                    timestamp: Date.now()
+                });
+                
+                window.closeInvestModal();
+                alert(`Successfully submitted investment request for ${selectedProject}. We will review and accept shortly.`);
+            } catch (err) {
+                console.error(err);
+                alert("Error submitting investment. Please try again.");
+            } finally {
+                btn.innerHTML = `<i class="ph-bold ph-check-circle text-lg"></i> Confirm Investment`;
+                btn.disabled = false;
+            }
+        };
+
+        // Fetch Investments Real-time
+        function listenToInvestments(uid) {
+            if(investmentsUnsubscribe) investmentsUnsubscribe();
+            
+            const invRef = collection(db, "users", uid, "investments");
+            investmentsUnsubscribe = onSnapshot(invRef, (snapshot) => {
+                const tableBody = document.getElementById('investmentTableBody');
+                let totalInvested = 0;
+                let totalReturn = 0;
+                let rowsHTML = '';
+
+                if (snapshot.empty) {
+                    tableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400 font-medium">No investments yet. Click on a project roadmap above to start investing.</td></tr>`;
+                    document.getElementById('statTotalInvested').innerText = "Rs. 0";
+                    document.getElementById('statAnnualReturn').innerText = "Rs. 0";
+                    return;
+                }
+
+                // Sorting internally
+                const dataArray = [];
+                snapshot.forEach(doc => dataArray.push(doc.data()));
+                dataArray.sort((a,b) => b.timestamp - a.timestamp);
+
+                dataArray.forEach(inv => {
+                    totalInvested += inv.amount;
+                    totalReturn += inv.returnAmount;
+
+                    let statusClass = inv.status === 'Accepted' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200';
+                    
+                    rowsHTML += `
+                        <tr class="hover:bg-gray-50 transition border-b border-gray-50">
+                            <td class="p-4 font-bold text-brand-blue">${inv.project}</td>
+                            <td class="p-4 font-semibold text-gray-700">${window.formatMoney(inv.amount)}</td>
+                            <td class="p-4 font-bold text-brand-green">${window.formatMoney(inv.returnAmount)} <span class="text-[10px] text-gray-400 font-normal">/yr</span></td>
+                            <td class="p-4">
+                                <span class="${statusClass} text-xs font-bold px-3 py-1.5 rounded-full border inline-flex items-center gap-1">
+                                    <i class="ph-fill ph-clock"></i> ${inv.status}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                tableBody.innerHTML = rowsHTML;
+                document.getElementById('statTotalInvested').innerText = window.formatMoney(totalInvested);
+                document.getElementById('statAnnualReturn').innerText = window.formatMoney(totalReturn);
+            }, (error) => {
+                console.error("Error fetching investments:", error);
+            });
+        }
     </script>
 </body>
 </html>
