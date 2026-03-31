@@ -74,14 +74,17 @@
                     <li><button onclick="switchTab('verification')" id="tab-verification" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition relative"><i data-lucide="shield-check" class="w-5 h-5 mr-3"></i>KYC Approvals <span id="badge-pending" class="absolute right-3 bg-yellow-500 text-black text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span></button></li>
                     <li><button onclick="switchTab('bookings')" id="tab-bookings" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="calendar" class="w-5 h-5 mr-3"></i>Manage Bookings</button></li>
                     
-                    <!-- NEW FINANCE TAB -->
+                    <!-- FINANCE TAB -->
                     <li><button onclick="switchTab('finance')" id="tab-finance" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="pie-chart" class="w-5 h-5 mr-3"></i>Financial Summary</button></li>
 
-                    <!-- NEW INVESTMENTS TAB -->
+                    <!-- INVESTMENTS TAB -->
                     <li><button onclick="switchTab('investments')" id="tab-investments" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="briefcase" class="w-5 h-5 mr-3"></i>Investments</button></li>
                     
-                    <!-- NEW WEB LEADS TAB -->
+                    <!-- WEB LEADS TAB -->
                     <li><button onclick="switchTab('webleads')" id="tab-webleads" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition relative"><i data-lucide="globe" class="w-5 h-5 mr-3"></i>Website Leads <span id="badge-webleads" class="absolute right-3 bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span></button></li>
+
+                    <!-- NEW: WEBSITE CONTENT TAB -->
+                    <li><button onclick="switchTab('webcontent')" id="tab-webcontent" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="layout" class="w-5 h-5 mr-3"></i>Website Content</button></li>
 
                     <!-- Call Center & Seylan Bank as Electron Webviews -->
                     <li><button onclick="switchTab('callcenter')" id="tab-callcenter" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="headset" class="w-5 h-5 mr-3"></i>Call Center</button></li>
@@ -107,7 +110,7 @@
 
         <!-- MAIN CONTENT AREA -->
         <main class="flex-1 flex flex-col h-full bg-[#f8fafc] overflow-hidden relative">
-            <header class="h-20 bg-white shadow-sm flex items-center justify-between px-8 z-10">
+            <header class="h-20 bg-white shadow-sm flex items-center justify-between px-8 z-10 flex-shrink-0">
                 <div>
                     <h2 class="text-2xl font-extrabold text-gray-800 tracking-tight" id="header-title">Dashboard Overview</h2>
                     <p class="text-sm text-gray-500 font-medium" id="header-subtitle">Welcome to Golden Hand Caregivers control panel.</p>
@@ -141,6 +144,21 @@
                             <div class="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600"><i data-lucide="message-square" class="w-8 h-8"></i></div>
                         </div>
                     </div>
+
+                    <!-- 🌟 NEW: APPROVED BOOKINGS CALENDAR VIEW -->
+                    <div class="mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-extrabold text-gray-800 flex items-center"><i data-lucide="calendar-days" class="mr-2 w-5 h-5 text-indigo-600"></i> Website Bookings Calendar</h3>
+                                <p class="text-xs font-bold text-gray-500 mt-1 uppercase tracking-widest">Upcoming Approved Care Packages</p>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div id="dashboard-calendar-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                                <p class="text-gray-400 text-sm italic col-span-full text-center py-6">Loading schedule...</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 2. ALL USERS -->
@@ -155,7 +173,7 @@
                                         <button onclick="filterUsers('NURSE')" id="btn-filter-nurse" class="px-5 py-2 rounded-xl text-sm font-bold bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all">Nurses</button>
                                         <button onclick="filterUsers('CLIENT')" id="btn-filter-client" class="px-5 py-2 rounded-xl text-sm font-bold bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all">Clients</button>
                                     </div>
-                                    <!-- NEW: Gender Filters for Staff -->
+                                    <!-- Gender Filters for Staff -->
                                     <div id="gender-filters" class="flex flex-wrap gap-2 items-center bg-gray-100 p-1.5 rounded-lg border border-gray-200 w-max">
                                         <span class="text-[10px] font-black uppercase text-gray-500 ml-2 mr-1">Filter by Gender:</span>
                                         <button onclick="filterGender('ALL')" id="btn-gender-all" class="px-4 py-1.5 rounded-md text-xs font-bold bg-gray-800 text-white shadow-sm transition-all">All</button>
@@ -304,7 +322,7 @@
                     </div>
                 </div>
 
-                <!-- 🌟 NEW: INVESTMENTS SECTION -->
+                <!-- 🌟 INVESTMENTS SECTION -->
                 <div id="section-investments" class="hidden">
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                         <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
@@ -334,21 +352,28 @@
                     </div>
                 </div>
 
-                <!-- 🌟 NEW: WEBSITE LEADS SECTION -->
+                <!-- 🌟 WEBSITE LEADS SECTION (UPDATED TABS) -->
                 <div id="section-webleads" class="hidden">
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-6 border-b border-blue-100 flex justify-between items-center bg-blue-50">
-                            <div>
-                                <h3 class="text-lg font-extrabold text-blue-900 flex items-center"><i data-lucide="globe" class="mr-2 w-5 h-5"></i> Website Inquiries & Applications</h3>
-                                <p class="text-sm text-blue-700 font-medium mt-1">Review requests coming directly from the main website.</p>
+                        
+                        <!-- NEW FILTER UI -->
+                        <div class="p-6 border-b border-blue-100 bg-blue-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div class="w-full">
+                                <h3 class="text-lg font-extrabold text-blue-900 flex items-center mb-3"><i data-lucide="globe" class="mr-2 w-5 h-5"></i> Website Inquiries & Bookings</h3>
+                                <div class="flex flex-wrap gap-2">
+                                    <button onclick="filterWebLeads('LOCAL_CLIENT')" id="btn-lead-local" class="px-4 py-2 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-md transition-all">Local Bookings</button>
+                                    <button onclick="filterWebLeads('TOURIST')" id="btn-lead-tourist" class="px-4 py-2 rounded-lg text-xs font-bold bg-white border border-gray-300 text-gray-600 hover:bg-gray-100 transition-all">Tourist Bookings</button>
+                                    <button onclick="filterWebLeads('STAFF_APPLICATION')" id="btn-lead-staff" class="px-4 py-2 rounded-lg text-xs font-bold bg-white border border-gray-300 text-gray-600 hover:bg-gray-100 transition-all">Join Staff</button>
+                                </div>
                             </div>
-                            <button onclick="loadWebLeads()" class="text-sm bg-white hover:bg-blue-100 px-4 py-2.5 rounded-lg text-blue-700 font-bold border border-blue-200 shadow-sm flex items-center transition"><i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i> Sync Leads</button>
+                            <button onclick="loadWebLeads()" class="text-sm bg-white hover:bg-blue-100 px-4 py-2.5 rounded-lg text-blue-700 font-bold border border-blue-200 shadow-sm flex items-center transition whitespace-nowrap"><i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i> Sync Leads</button>
                         </div>
+
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
                                 <thead>
                                     <tr class="bg-white text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
-                                        <th class="p-5 font-bold">Date & Type</th>
+                                        <th class="p-5 font-bold">Date Submitted</th>
                                         <th class="p-5 font-bold">Contact Details</th>
                                         <th class="p-5 font-bold">Requirement / Info</th>
                                         <th class="p-5 font-bold text-center">Status</th>
@@ -359,6 +384,74 @@
                                     <tr><td colspan="5" class="p-8 text-center text-gray-500 font-medium">Loading data...</td></tr>
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🌟 WEBSITE CONTENT & PRICING -->
+                <div id="section-webcontent" class="hidden space-y-6">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden max-w-5xl mx-auto">
+                        <div class="p-6 border-b border-gray-100 bg-gray-50 flex items-center">
+                            <i data-lucide="layout" class="w-6 h-6 mr-3 text-indigo-600"></i>
+                            <div>
+                                <h3 class="text-lg font-extrabold text-gray-900">Website Packages & Pricing</h3>
+                                <p class="text-xs font-bold text-gray-500 mt-1 uppercase tracking-widest">Update Local and Tourist Package Rates</p>
+                            </div>
+                        </div>
+                        <div class="p-8 space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">Elderly Care (Rs/Day)</label>
+                                    <input type="number" id="pkg-elderly" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition font-bold" placeholder="3500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">Patient Care (Rs/Day)</label>
+                                    <input type="number" id="pkg-patient" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition font-bold" placeholder="5000">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">Baby Care (Rs/Day)</label>
+                                    <input type="number" id="pkg-baby" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition font-bold" placeholder="3000">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">Tourist Elderly ($/Day)</label>
+                                    <input type="number" id="pkg-tourist-elderly" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition font-bold text-orange-700" placeholder="15">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">Tourist Medical ($/Day)</label>
+                                    <input type="number" id="pkg-tourist-patient" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition font-bold text-orange-700" placeholder="20">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden max-w-5xl mx-auto">
+                        <div class="p-6 border-b border-gray-100 bg-gray-50 flex items-center">
+                            <i data-lucide="youtube" class="w-6 h-6 mr-3 text-red-600"></i>
+                            <div>
+                                <h3 class="text-lg font-extrabold text-gray-900">Website YouTube Videos</h3>
+                                <p class="text-xs font-bold text-gray-500 mt-1 uppercase tracking-widest">Add YouTube links to display on the main website</p>
+                            </div>
+                        </div>
+                        <div class="p-8 space-y-6">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">Video 1 (About Us / Intro)</label>
+                                <input type="text" id="yt-vid-1" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition" placeholder="https://www.youtube.com/watch?v=...">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">Video 2 (How to Book)</label>
+                                <input type="text" id="yt-vid-2" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition" placeholder="https://www.youtube.com/watch?v=...">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">Video 3 (For Investors)</label>
+                                <input type="text" id="yt-vid-3" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition" placeholder="https://www.youtube.com/watch?v=...">
+                            </div>
+                            <div class="pt-6 border-t border-gray-100 flex justify-end">
+                                <button onclick="saveWebContent()" class="bg-dark hover:bg-gray-800 text-white px-8 py-3 rounded-xl font-extrabold shadow-lg transition flex items-center uppercase tracking-wide text-sm">
+                                    <i data-lucide="save" class="w-5 h-5 mr-2"></i> Save Web Content
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -637,7 +730,7 @@
                     </div>
                 </div>
 
-                <!-- 13. CALL CENTER (MOBITEL) - ELECTRON WEBVIEW -->
+                <!-- 13. CALL CENTER (MOBITEL) -->
                 <div id="section-callcenter" class="hidden h-full flex flex-col w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <div class="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center z-10 flex-shrink-0">
                         <div>
@@ -649,7 +742,7 @@
                     <webview id="mobitel-webview" src="https://mcallcenter.mobitel.lk/index.php?page=call_agents" class="w-full flex-1 border-0 bg-white" style="display:flex;"></webview>
                 </div>
 
-                <!-- 14. SEYLAN BANK PORTAL - ELECTRON WEBVIEW -->
+                <!-- 14. SEYLAN BANK PORTAL -->
                 <div id="section-seylanbank" class="hidden h-full flex flex-col w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <div class="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center z-10 flex-shrink-0">
                         <div>
@@ -724,34 +817,6 @@
                                 </div>
                             </div>
 
-<div id="modal-interview-section" class="bg-indigo-50 p-5 rounded-2xl border border-indigo-100 mb-8 flex flex-col gap-4 shadow-sm hidden">
-    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-indigo-200 pb-4">
-        <div>
-            <h4 class="font-black text-indigo-900 text-sm"><i data-lucide="video" class="w-4 h-4 mr-1.5 inline"></i> Virtual KYC Interview</h4>
-            <p class="text-xs text-indigo-700 font-medium mt-1">Schedule or conduct a video interview to verify identity.</p>
-        </div>
-        <div id="interview-status-badge"></div>
-    </div>
-    
-    <div class="flex flex-col sm:flex-row gap-4 items-end bg-white p-4 rounded-xl border border-indigo-100">
-        <div class="flex-1 w-full">
-            <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Schedule Date & Time</label>
-            <input type="datetime-local" id="kyc-meeting-time" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-indigo-500">
-        </div>
-        <button onclick="scheduleMeeting()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-xs font-bold transition shadow-md w-full sm:w-auto">
-            Schedule Interview
-        </button>
-    </div>
-
-    <div id="start-recording-section" class="hidden mt-2 pt-4 flex-col sm:flex-row justify-between items-center gap-4 bg-red-50 p-4 rounded-xl border border-red-100">
-        <p class="text-xs font-bold text-red-800">Meeting is ready. <br><span class="text-[10px] text-gray-600 font-normal">Click below and select <b>"Current Tab"</b> to screen record the session.</span></p>
-        <button onclick="startVideoCallAndRecord()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition shadow-md flex items-center w-full sm:w-auto justify-center tracking-wide">
-            <i data-lucide="video" class="w-4 h-4 mr-2 text-white"></i> Start & Record Call
-        </button>
-    </div>
-</div>
-
-
                             <div id="modal-client-section" class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hidden">
                                 <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest mb-5 flex items-center"><i data-lucide="user" class="w-4 h-4 mr-2 text-primary"></i> Client Details</h3>
                                 <div class="space-y-4 text-sm font-medium">
@@ -762,7 +827,7 @@
                                     <div class="flex flex-col mt-2"><span class="text-gray-500 mb-2 text-xs font-bold uppercase">Billing Address:</span><span class="font-bold text-gray-800 bg-gray-50 p-3 rounded-xl border border-gray-100" id="modal-client-billing-address">-</span></div>
                                 </div>
 
-                                <!-- NEW PATIENT DETAILS SECTION -->
+                                <!-- PATIENT DETAILS SECTION -->
                                 <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest mb-5 mt-10 flex items-center"><i data-lucide="bed" class="w-4 h-4 mr-2 text-primary"></i> Patient Information</h3>
                                 <div class="space-y-4 text-sm font-medium bg-indigo-50/50 p-5 rounded-xl border border-indigo-100">
                                     <div class="flex justify-between items-center py-1 border-b border-dashed border-indigo-200"><span class="text-gray-500">Patient Name:</span><span class="font-bold text-gray-900" id="modal-patient-name">-</span></div>
@@ -823,36 +888,35 @@
                 </div>
             </div>
 
-<div id="lead-schedule-modal" class="absolute inset-0 bg-slate-900/80 z-[150] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-        <div class="flex justify-between items-center mb-4 border-b pb-2">
-            <h3 class="font-bold text-lg text-blue-900"><i data-lucide="calendar" class="w-5 h-5 inline mr-2"></i>Schedule Lead Interview</h3>
-            <button onclick="closeLeadScheduleModal()" class="text-gray-400 hover:text-red-500"><i data-lucide="x" class="w-5 h-5"></i></button>
-        </div>
-        <label class="block text-sm font-bold text-gray-700 mb-2">Select Date & Time</label>
-        <input type="datetime-local" id="lead-meeting-time" class="w-full border border-gray-300 p-3 rounded-xl mb-6 outline-none focus:ring-2 focus:ring-blue-500">
-        <button onclick="saveLeadSchedule()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-md">
-            Confirm & Schedule
-        </button>
-    </div>
-</div>
+            <!-- MODALS FOR LEADS SCHEDULE & CALL RECORDING -->
+            <div id="lead-schedule-modal" class="absolute inset-0 bg-slate-900/80 z-[150] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+                <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h3 class="font-bold text-lg text-blue-900"><i data-lucide="calendar" class="w-5 h-5 inline mr-2"></i>Schedule Lead Interview</h3>
+                        <button onclick="closeLeadScheduleModal()" class="text-gray-400 hover:text-red-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    </div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Select Date & Time</label>
+                    <input type="datetime-local" id="lead-meeting-time" class="w-full border border-gray-300 p-3 rounded-xl mb-6 outline-none focus:ring-2 focus:ring-blue-500">
+                    <button onclick="saveLeadSchedule()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-md">
+                        Confirm & Schedule
+                    </button>
+                </div>
+            </div>
 
+            <div id="video-call-container" class="hidden fixed inset-0 z-[200] bg-gray-900 flex-col">
+                <div class="flex justify-between items-center p-4 bg-gray-900 text-white shadow-md z-10 border-b border-gray-800">
+                    <div class="flex items-center gap-3">
+                        <div class="w-3 h-3 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_red]"></div>
+                        <h3 class="font-bold text-sm tracking-widest uppercase text-red-500">Recording KYC Interview...</h3>
+                    </div>
+                    <button onclick="stopRecordingAndCall()" class="bg-red-600 hover:bg-red-700 px-5 py-2 rounded-lg font-bold text-xs shadow-lg shadow-red-500/50 flex items-center transition text-white">
+                        <i data-lucide="stop-circle" class="w-4 h-4 mr-2"></i> End Call & Save Recording
+                    </button>
+                </div>
+                <iframe id="jitsi-iframe" class="w-full flex-1 border-0" allow="camera; microphone; display-capture; autoplay; fullscreen"></iframe>
+            </div>
 
-<div id="video-call-container" class="hidden fixed inset-0 z-[200] bg-gray-900 flex-col">
-    <div class="flex justify-between items-center p-4 bg-gray-900 text-white shadow-md z-10 border-b border-gray-800">
-        <div class="flex items-center gap-3">
-            <div class="w-3 h-3 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_red]"></div>
-            <h3 class="font-bold text-sm tracking-widest uppercase text-red-500">Recording KYC Interview...</h3>
-        </div>
-        <button onclick="stopRecordingAndCall()" class="bg-red-600 hover:bg-red-700 px-5 py-2 rounded-lg font-bold text-xs shadow-lg shadow-red-500/50 flex items-center transition text-white">
-            <i data-lucide="stop-circle" class="w-4 h-4 mr-2"></i> End Call & Save Recording
-        </button>
-    </div>
-    <iframe id="jitsi-iframe" class="w-full flex-1 border-0" allow="camera; microphone; display-capture; autoplay; fullscreen"></iframe>
-</div>
-
-
-
+            <!-- POPUP FOR IMAGES -->
             <div id="image-viewer-modal" class="absolute inset-0 bg-slate-900/95 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-md" onclick="closeImagePopup()">
                 <div class="relative max-w-6xl max-h-full p-4">
                     <img id="viewer-img" src="" class="max-h-[85vh] object-contain mx-auto rounded-xl shadow-2xl ring-1 ring-white/20">
@@ -860,6 +924,7 @@
                 </div>
             </div>
 
+            <!-- COMPLAINT POPUP -->
             <div id="complaint-modal" class="absolute inset-0 bg-slate-900/80 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
                 <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
                     <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-white">
@@ -894,6 +959,7 @@
             'finance': { title: 'Financial Summary', sub: 'Monthly revenue, expenses and net profit calculations.' },
             'investments': { title: 'Investor Management', sub: 'Review and approve investor portfolios and project funding.' },
             'webleads': { title: 'Website Inquiries', sub: 'Manage new leads and applications from the landing page.' },
+            'webcontent': { title: 'Website Content', sub: 'Manage website package prices and YouTube videos.' },
             'special': { title: 'Subscription Plans', sub: 'Create packages and assign premium caregivers.' }, 
             'leaves': { title: 'Staff Leave Requests', sub: 'Manage caregiver off-days and approvals.' }, 
             'geofence': { title: 'Geofence Logs', sub: 'Monitor caregiver location violations.' }, 
@@ -949,6 +1015,12 @@
         window.allUsersDataMap = {}; 
         window.geofenceIncidents = {}; 
         window.allBookingsMap = {};
+        window.allLeadsMap = {}; // 🌟 Store all web leads
+
+        // 🌟 Global settings for web pricing calculation
+        window.webPackages = {
+            elderly: 3500, patient: 5000, baby: 3000, touristElderly: 15, touristPatient: 20
+        };
         
         let adminMap = null;
         let markersMap = {}; 
@@ -967,12 +1039,13 @@
                 loadAllUsers();
                 loadComplaints(); 
                 loadAllBookings(); 
-            loadSubscriptionPlans(); 
-            loadLeaveRequests();
-            loadSettings();
-            loadWebLeads();
-            startLiveMapTracking(); 
-            listenForAlerts(); 
+                loadSubscriptionPlans(); 
+                loadLeaveRequests();
+                loadSettings();
+                loadWebContent();
+                loadWebLeads(); 
+                startLiveMapTracking(); 
+                listenForAlerts(); 
             } else {
                 loginScreen.classList.remove('hidden');
                 dashboardScreen.classList.add('hidden');
@@ -1030,7 +1103,6 @@
             const y = document.getElementById('finance-year').value;
             const docId = `${y}_${m}`;
 
-            // Fetch Expenses
             let expenses = { rent: 0, electricity: 0, water: 0, other: 0 };
             try {
                 const expenseDoc = await getDoc(doc(db, "finance_expenses", docId));
@@ -1044,18 +1116,15 @@
 
             let totalExp = (expenses.rent || 0) + (expenses.electricity || 0) + (expenses.water || 0) + (expenses.other || 0);
 
-            // Calculate Revenue and Payouts from Bookings Map
             let totalRev = 0; let totalPayouts = 0; let dutyCount = 0;
 
             Object.values(window.allBookingsMap).forEach(b => {
                 if(b.status === 'COMPLETED') {
-                    // Check completion date logic
                     const date = new Date(b.completedTime || b.requestedTime || 0);
                     if((date.getMonth() + 1).toString().padStart(2, '0') === m && date.getFullYear().toString() === y) {
                         dutyCount++;
                         const amt = parseFloat(b.totalAmount) || 0;
                         totalRev += amt;
-                        // Defaults to 85% caregiver share if not explicitly saved
                         const payout = b.caregiverEarnings ? parseFloat(b.caregiverEarnings) : (amt * 0.85);
                         totalPayouts += payout;
                     }
@@ -1123,6 +1192,63 @@
             } catch(e) { showToast("Failed to save settings", "error"); }
         }
 
+        /* --- WEBSITE CONTENT --- */
+        window.loadWebContent = async function() {
+            try {
+                const docSnap = await getDoc(doc(db, "settings", "website_content"));
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if(data.packages) {
+                        document.getElementById('pkg-elderly').value = data.packages.elderly || '';
+                        document.getElementById('pkg-patient').value = data.packages.patient || '';
+                        document.getElementById('pkg-baby').value = data.packages.baby || '';
+                        document.getElementById('pkg-tourist-elderly').value = data.packages.touristElderly || '';
+                        document.getElementById('pkg-tourist-patient').value = data.packages.touristPatient || '';
+
+                        // 🌟 Store in global variable for calculating prices in Admin Panel directly
+                        window.webPackages = {
+                            elderly: parseFloat(data.packages.elderly) || 3500,
+                            patient: parseFloat(data.packages.patient) || 5000,
+                            baby: parseFloat(data.packages.baby) || 3000,
+                            touristElderly: parseFloat(data.packages.touristElderly) || 15,
+                            touristPatient: parseFloat(data.packages.touristPatient) || 20
+                        };
+                    }
+                    if(data.videos) {
+                        document.getElementById('yt-vid-1').value = data.videos.vid1 || '';
+                        document.getElementById('yt-vid-2').value = data.videos.vid2 || '';
+                        document.getElementById('yt-vid-3').value = data.videos.vid3 || '';
+                    }
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        window.saveWebContent = async function() {
+            const data = {
+                packages: {
+                    elderly: document.getElementById('pkg-elderly').value,
+                    patient: document.getElementById('pkg-patient').value,
+                    baby: document.getElementById('pkg-baby').value,
+                    touristElderly: document.getElementById('pkg-tourist-elderly').value,
+                    touristPatient: document.getElementById('pkg-tourist-patient').value
+                },
+                videos: {
+                    vid1: document.getElementById('yt-vid-1').value,
+                    vid2: document.getElementById('yt-vid-2').value,
+                    vid3: document.getElementById('yt-vid-3').value
+                },
+                updatedAt: Date.now()
+            };
+            try {
+                await setDoc(doc(db, "settings", "website_content"), data, {merge: true});
+                showToast("Website Content Saved Successfully!", "success");
+                window.loadWebContent(); // refresh global vars
+            } catch(e) {
+                showToast("Error saving website content", "error");
+            }
+        }
+
+
         /* --- BOOKINGS & PLANS --- */
         window.loadAllBookings = async function() {
             bookingsTableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 italic">Loading bookings data...</td></tr>`;
@@ -1165,7 +1291,7 @@
                 }
                 bookingsTableBody.innerHTML = rows;
                 lucide.createIcons();
-                window.loadFinanceData(); // Update finance data when bookings refresh
+                window.loadFinanceData(); 
             });
         }
 
@@ -1309,7 +1435,6 @@
                 let count = 0;
                 snapshot.forEach((doc) => {
                     const user = doc.data(); 
-                    // ONLY allow Caregivers or Nurses in KYC list
                     if (user.role !== 'CAREGIVER' && user.role !== 'NURSE') return;
 
                     count++;
@@ -1379,7 +1504,6 @@
                 document.getElementById('modal-vaccination').innerText = user.vaccinationStatus || 'Not specified'; document.getElementById('modal-illnesses').innerText = user.chronicIllnesses || 'None reported'; document.getElementById('modal-bank-name').innerText = user.bankName || '-'; document.getElementById('modal-bank-acc').innerText = user.bankAccountNumber || '-'; document.getElementById('modal-bank-branch').innerText = user.bankBranch || '-'; document.getElementById('modal-skills').innerText = user.specialSkills || user.qualifications || 'No special skills listed.';
                 
                 setImage('modal-id-front', 'modal-id-front-err', user.nicFrontUrl || user.idFrontUrl); setImage('modal-id-back', 'modal-id-back-err', user.nicBackUrl || user.idBackUrl); setImage('modal-selfie', 'modal-selfie-err', user.selfieUrl); setImage('modal-police', 'modal-police-err', user.policeClearanceUrl); setImage('modal-bankbook', 'modal-bankbook-err', user.bankBookUrl); setImage('modal-cert', 'modal-cert-err', user.certificateUrl);
-                // SET CV
                 setImage('modal-cv', 'modal-cv-err', user.cvUrl || user.resumeUrl);
 
             } else {
@@ -1388,7 +1512,7 @@
 
                 document.getElementById('modal-client-nic').innerText = user.nicNumber || '-'; document.getElementById('modal-client-address').innerText = user.address || '-'; document.getElementById('modal-client-svc-address').innerText = user.serviceAddress || '-'; document.getElementById('modal-client-billing-name').innerText = user.billingName || '-'; document.getElementById('modal-client-billing-address').innerText = user.billingAddress || '-';
                 
-                // Populate Patient Details
+                // Patient Details
                 document.getElementById('modal-patient-name').innerText = user.patientName || 'Not specified';
                 document.getElementById('modal-patient-age').innerText = user.patientAge || '-';
                 document.getElementById('modal-patient-gender').innerText = user.patientGender || '-';
@@ -1532,7 +1656,7 @@
 
         window.switchTab = function(tabName) {
             document.getElementById('header-title').innerText = titles[tabName].title; document.getElementById('header-subtitle').innerText = titles[tabName].sub;
-            ['overview', 'users', 'verification', 'bookings', 'finance', 'investments', 'webleads', 'callcenter', 'seylanbank', 'special', 'leaves', 'geofence', 'reports', 'map', 'promotions', 'settings'].forEach(t => {
+            ['overview', 'users', 'verification', 'bookings', 'finance', 'investments', 'webleads', 'webcontent', 'callcenter', 'seylanbank', 'special', 'leaves', 'geofence', 'reports', 'map', 'promotions', 'settings'].forEach(t => {
                 document.getElementById(`section-${t}`).classList.add('hidden'); document.getElementById(`tab-${t}`).className = "w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition font-medium";
             });
             document.getElementById(`section-${tabName}`).classList.remove('hidden'); document.getElementById(`tab-${tabName}`).className = "w-full flex items-center p-3.5 rounded-xl bg-primary text-white shadow-md font-bold transition";
@@ -1541,6 +1665,7 @@
             if (tabName === 'finance') { loadFinanceData(); }
             if (tabName === 'investments') { loadInvestments(); }
             if (tabName === 'webleads') { loadWebLeads(); }
+            if (tabName === 'webcontent') { loadWebContent(); }
         }
 
         window.loadPromotionData = async function() {
@@ -1629,40 +1754,71 @@
             if (!document.getElementById('dashboard-screen').classList.contains('hidden') && !window.isSystemLogout) { e.preventDefault(); e.returnValue = 'Are you sure you want to leave? Your admin session is still active.'; return e.returnValue; }
         });
 
-        /* --- WEBSITE LEADS LOGIC --- */
-       /* 🌟 LOAD WEB LEADS & SHOW SCHEDULE / START CALL BUTTON */
-        window.loadWebLeads = function() {
-            const tbody = document.getElementById('webleads-table-body');
-            tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 italic">Loading leads...</td></tr>`;
+        /* 🌟 1. WEBSITE LEADS CATEGORIZATION & RENDERING LOGIC */
+        window.currentLeadFilter = 'LOCAL_CLIENT'; // Default filter
+
+        window.filterWebLeads = function(type) {
+            window.currentLeadFilter = type;
             
-            onSnapshot(collection(db, "website_leads"), (snapshot) => {
-                let rows = '';
-                let newCount = 0;
+            // UI Button Highlighting
+            document.getElementById('btn-lead-local').className = type === 'LOCAL_CLIENT' ? "px-4 py-2 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-md transition-all" : "px-4 py-2 rounded-lg text-xs font-bold bg-white border border-gray-300 text-gray-600 hover:bg-gray-100 transition-all";
+            document.getElementById('btn-lead-tourist').className = type === 'TOURIST' ? "px-4 py-2 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-md transition-all" : "px-4 py-2 rounded-lg text-xs font-bold bg-white border border-gray-300 text-gray-600 hover:bg-gray-100 transition-all";
+            document.getElementById('btn-lead-staff').className = type === 'STAFF_APPLICATION' ? "px-4 py-2 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-md transition-all" : "px-4 py-2 rounded-lg text-xs font-bold bg-white border border-gray-300 text-gray-600 hover:bg-gray-100 transition-all";
+            
+            window.renderWebLeadsTable();
+        };
+
+        window.renderWebLeadsTable = function() {
+            const tbody = document.getElementById('webleads-table-body');
+            let rows = '';
+            let newCount = 0;
+            let displayCount = 0;
+
+            const sortedLeads = Object.values(window.allLeadsMap).sort((a,b) => b.timestamp - a.timestamp);
+
+            sortedLeads.forEach(lead => {
+                // Filter logic
+                if (lead.type !== window.currentLeadFilter && !(lead.type === 'CLIENT' && window.currentLeadFilter === 'LOCAL_CLIENT')) return;
                 
-                if (snapshot.empty) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="p-12 text-center text-gray-500 font-medium">No inquiries from the website yet.</td></tr>`;
-                    document.getElementById('badge-webleads').classList.add('hidden');
-                    return;
-                }
+                displayCount++;
+                if (lead.status === 'NEW' || !lead.status) newCount++;
                 
-                const docs = snapshot.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.timestamp - a.timestamp);
+                const dateStr = new Date(lead.timestamp).toLocaleDateString() + ' ' + new Date(lead.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 
-                for (const lead of docs) {
-                    if (lead.status === 'NEW' || !lead.status) newCount++;
-                    const dateStr = new Date(lead.timestamp).toLocaleDateString() + ' ' + new Date(lead.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                let typeBadge = '';
+                let reqInfo = '';
+                let statusBadge = '';
+                let actionBtn = '';
+
+                // ---------- LOCAL & TOURIST BOOKINGS ----------
+                if (lead.type === 'LOCAL_CLIENT' || lead.type === 'CLIENT' || lead.type === 'TOURIST') {
+                    const isLocal = (lead.type === 'LOCAL_CLIENT' || lead.type === 'CLIENT');
+                    typeBadge = `<span class="bg-${isLocal?'indigo':'orange'}-100 text-${isLocal?'indigo':'orange'}-800 text-[10px] px-2 py-1 rounded font-black uppercase">${isLocal ? 'Local Booking' : 'Tourist Booking'}</span>`;
                     
-                    let typeBadge = lead.type === 'CLIENT' 
-                        ? `<span class="bg-indigo-100 text-indigo-800 text-[10px] px-2 py-1 rounded font-black uppercase">Client Booking</span>`
-                        : `<span class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-1 rounded font-black uppercase">Staff Apply</span>`;
+                    reqInfo = `
+                        <div class="font-bold text-gray-800">${lead.service || 'N/A'}</div>
+                        <div class="text-[11px] text-gray-600 mt-1 font-bold"><i data-lucide="clock" class="w-3 h-3 inline"></i> ${lead.durationDays || '-'} Days ${isLocal ? `| Start: ${lead.startDate || '-'} @ ${lead.startTime || '-'}` : ''}</div>
+                        <div class="text-xs text-gray-500 mt-1"><i data-lucide="map-pin" class="w-3 h-3 inline"></i> ${lead.address || 'N/A'}</div>
+                        ${!isLocal ? `<div class="text-xs text-blue-600 font-bold mt-1"><i data-lucide="message-circle" class="w-3 h-3 inline"></i> WA: ${lead.whatsapp || 'N/A'}</div>` : ''}
+                    `;
 
-                    let reqInfo = lead.type === 'CLIENT' 
-                        ? `<div class="font-bold text-gray-800">${lead.service || 'N/A'}</div><div class="text-xs text-gray-500 mt-1"><i data-lucide="map-pin" class="w-3 h-3 inline"></i> ${lead.address || 'N/A'}</div>`
-                        : `<div class="font-bold text-gray-800">${lead.position || 'N/A'} <span class="bg-gray-100 px-1 rounded ml-1">${lead.experience || 0} Yrs</span></div><div class="text-xs text-gray-500 mt-1 italic">"${lead.message || 'N/A'}"</div>`;
+                    if (lead.status === 'APPROVED') {
+                        statusBadge = `<span class="bg-green-100 text-green-800 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-black border border-green-200">APPROVED</span>`;
+                        actionBtn = `<span class="text-xs font-bold text-gray-400">Notified</span>`;
+                    } else {
+                        statusBadge = `<span class="bg-yellow-50 text-yellow-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-yellow-200 animate-pulse">PENDING</span>`;
+                        actionBtn = `<button onclick="approveLeadBooking('${lead.id}')" class="text-white bg-green-600 hover:bg-green-700 px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-md w-full mb-1 flex items-center justify-center"><i data-lucide="check-circle" class="w-3.5 h-3.5 inline mr-1"></i> Approve</button>`;
+                    }
 
-                    let statusBadge = '';
-                    let actionBtn = '';
+                // ---------- JOIN STAFF APPLICATIONS ----------
+                } else if (lead.type === 'STAFF_APPLICATION' || lead.type === 'STAFF') {
+                    typeBadge = `<span class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-1 rounded font-black uppercase">Staff Apply</span>`;
+                    reqInfo = `
+                        <div class="font-bold text-gray-800">${lead.position || 'N/A'} <span class="bg-gray-100 px-1 rounded ml-1">${lead.experience || 0} Yrs</span></div>
+                        <div class="text-[11px] text-gray-500 mt-1 font-medium"><span class="font-bold text-gray-700">NVQ:</span> ${lead.nvq || '-'} | <span class="font-bold text-gray-700">SLMC:</span> ${lead.slmc || '-'}</div>
+                        <div class="text-[11px] text-gray-400 mt-1 italic leading-tight">"${lead.message || 'No additional message'}"</div>
+                    `;
 
-                    // 1. කෝල් එක ෂෙඩියුල් කරලා නම් (වෙලාව සහ Start Call බොත්තම පෙන්වීම)
                     if (lead.kycMeetingStatus === 'SCHEDULED') {
                         const meetingTime = new Date(lead.kycMeetingDateMs).toLocaleString();
                         statusBadge = `<span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-lg border border-blue-200 font-bold uppercase tracking-widest">SCHEDULED</span><br>
@@ -1670,37 +1826,150 @@
                         
                         actionBtn = `<button onclick="startScheduledLeadCall('${lead.name}', '${lead.kycMeetingUrl}')" class="text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-md flex items-center w-full justify-center mb-1"><i data-lucide="video" class="w-3.5 h-3.5 mr-1"></i> Start Call</button>
                                      <button onclick="markLeadContacted('${lead.id}')" class="text-blue-600 hover:text-white hover:bg-blue-600 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-blue-200 transition shadow-sm w-full"><i data-lucide="check" class="w-3 h-3 inline"></i> Done</button>`;
-                    
-                    // 2. අලුත් කෙනෙක් නම් (Schedule බොත්තම පෙන්වීම)
                     } else if (lead.status === 'NEW' || !lead.status) {
                         statusBadge = `<span class="bg-yellow-50 text-yellow-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-yellow-200 animate-pulse">NEW</span>`;
                         actionBtn = `<button onclick="openLeadScheduleModal('${lead.id}', '${lead.phone}', '${lead.name}')" class="text-green-700 hover:text-white hover:bg-green-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-green-300 transition shadow-sm w-full mb-1"><i data-lucide="calendar-plus" class="w-3.5 h-3.5 inline mr-1"></i> Schedule</button>
                                      <button onclick="markLeadContacted('${lead.id}')" class="text-blue-600 hover:text-white hover:bg-blue-600 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-blue-200 transition shadow-sm w-full"><i data-lucide="check" class="w-3 h-3 inline"></i> Contacted</button>`;
-                    
-                    // 3. වෙනත් Status එකක් නම් (CONTACTED වගේ)
                     } else {
                         statusBadge = `<span class="bg-gray-100 text-gray-500 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-gray-200">${lead.status}</span>`;
+                        actionBtn = `<span class="text-xs font-bold text-gray-400">Processed</span>`;
                     }
-
-                    rows += `
-                        <tr class="hover:bg-blue-50/50 border-b border-gray-100 transition">
-                            <td class="p-5"><div class="text-xs font-bold text-gray-500 mb-1">${dateStr}</div>${typeBadge}</td>
-                            <td class="p-5"><div class="font-bold text-gray-900 text-base">${lead.name}</div><div class="text-sm font-bold text-blue-600 mt-1"><i data-lucide="phone" class="w-3 h-3 inline"></i> ${lead.phone}</div></td>
-                            <td class="p-5">${reqInfo}</td>
-                            <td class="p-5 text-center align-middle">${statusBadge}</td>
-                            <td class="p-5 text-center whitespace-nowrap align-middle">
-                                ${actionBtn}
-                                <div class="mt-1"><button onclick="deleteLead('${lead.id}')" class="text-red-500 hover:text-white hover:bg-red-500 p-1 rounded-lg text-[10px] font-bold border border-red-200 transition shadow-sm w-full"><i data-lucide="trash" class="w-3 h-3 inline"></i> Delete</button></div>
-                            </td>
-                        </tr>
-                    `;
                 }
-                tbody.innerHTML = rows;
-                const badge = document.getElementById('badge-webleads');
-                if (newCount > 0) { badge.innerText = newCount; badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); }
-                lucide.createIcons();
+
+                rows += `
+                    <tr class="hover:bg-blue-50/50 border-b border-gray-100 transition">
+                        <td class="p-5"><div class="text-xs font-bold text-gray-500 mb-1">${dateStr}</div>${typeBadge}</td>
+                        <td class="p-5"><div class="font-bold text-gray-900 text-base">${lead.name}</div><div class="text-sm font-bold text-blue-600 mt-1"><i data-lucide="phone" class="w-3 h-3 inline"></i> ${lead.phone || lead.whatsapp || '-'}</div></td>
+                        <td class="p-5">${reqInfo}</td>
+                        <td class="p-5 text-center align-middle">${statusBadge}</td>
+                        <td class="p-5 text-center whitespace-nowrap align-middle">
+                            ${actionBtn}
+                            <div class="mt-1"><button onclick="deleteLead('${lead.id}')" class="text-red-500 hover:text-white hover:bg-red-500 p-1 rounded-lg text-[10px] font-bold border border-red-200 transition shadow-sm w-full"><i data-lucide="trash" class="w-3 h-3 inline"></i> Delete</button></div>
+                        </td>
+                    </tr>
+                `;
             });
-        }
+
+            if (displayCount === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-12 text-center text-gray-500 font-medium">No records found for ${window.currentLeadFilter.replace('_', ' ')}.</td></tr>`;
+            } else {
+                tbody.innerHTML = rows;
+            }
+
+            const badge = document.getElementById('badge-webleads');
+            if (newCount > 0) { badge.innerText = newCount; badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); }
+            
+            lucide.createIcons();
+            renderDashboardCalendar(); // Update dashboard calendar based on updated data
+        };
+
+        window.loadWebLeads = function() {
+            document.getElementById('webleads-table-body').innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 italic">Loading leads...</td></tr>`;
+            onSnapshot(collection(db, "website_leads"), (snapshot) => {
+                window.allLeadsMap = {};
+                if (!snapshot.empty) {
+                    snapshot.docs.forEach(d => { window.allLeadsMap[d.id] = {id: d.id, ...d.data()}; });
+                }
+                window.renderWebLeadsTable();
+            });
+        };
+
+        /* 🌟 2. APPROVE BOOKING & WHATSAPP MESSAGE LOGIC */
+        window.approveLeadBooking = async function(leadId) {
+            const lead = window.allLeadsMap[leadId];
+            if(!lead) return;
+
+            if(!confirm(`Are you sure you want to approve the booking for ${lead.name}?`)) return;
+
+            // Calculate Total Amount
+            let total = 0; 
+            let currency = "LKR";
+            let pricePerDay = 0;
+            
+            if(lead.type === 'LOCAL_CLIENT' || lead.type === 'CLIENT') {
+               if(lead.service.includes('Elderly')) pricePerDay = window.webPackages.elderly;
+               else if(lead.service.includes('Patient')) pricePerDay = window.webPackages.patient;
+               else pricePerDay = window.webPackages.baby;
+               total = pricePerDay * parseInt(lead.durationDays || 1);
+            } else {
+               currency = "USD";
+               if(lead.service.includes('Elderly')) pricePerDay = window.webPackages.touristElderly;
+               else pricePerDay = window.webPackages.touristPatient;
+               total = pricePerDay * parseInt(lead.durationDays || 1);
+            }
+
+            try {
+                // DB Update to APPROVED
+                await updateDoc(doc(db, "website_leads", leadId), { status: "APPROVED" });
+                
+                // Construct Professional WhatsApp Message
+                let cleanPhone = (lead.whatsapp || lead.phone || '').replace(/[^0-9]/g, '');
+                if (cleanPhone.startsWith('0')) cleanPhone = '94' + cleanPhone.substring(1);
+
+                const message = `Hello ${lead.name}, 🌟\n\nThank you for choosing *Golden Hand Caregivers*.\nWe are pleased to inform you that your booking request has been *APPROVED*.\n\n📋 *Booking Details:*\n- *Service:* ${lead.service}\n- *Duration:* ${lead.durationDays} Days\n${lead.startDate ? `- *Start Date:* ${lead.startDate} at ${lead.startTime}\n` : ''}- *Location:* ${lead.address}\n\n💵 *Total Estimated Amount: ${currency} ${total.toLocaleString('en-US')}*\n\nOur team will assign a dedicated caregiver and will contact you shortly with further details.\n\nBest Regards,\n*Golden Hand Caregivers Team*\n_Sri Lanka's Premium Care Service_`;
+                
+                window.showToast("Booking Approved! Opening WhatsApp...", "success");
+                
+                // Open WhatsApp to send message
+                if(cleanPhone.length >= 10) {
+                    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
+                } else {
+                    alert("Invalid phone number format, unable to open WhatsApp.");
+                }
+
+            } catch (e) {
+                window.showToast("Error approving booking", "error");
+            }
+        };
+
+        /* 🌟 3. DASHBOARD CALENDAR RENDERING */
+        window.renderDashboardCalendar = function() {
+            const grid = document.getElementById('dashboard-calendar-grid');
+            if(!grid) return;
+            
+            let html = '';
+            let approvedBookings = Object.values(window.allLeadsMap).filter(l => l.status === 'APPROVED' && (l.type === 'LOCAL_CLIENT' || l.type === 'CLIENT' || l.type === 'TOURIST'));
+            
+            // Sort by Start Date (or timestamp) closest first
+            approvedBookings.sort((a,b) => {
+                let dateA = a.startDate ? new Date(a.startDate).getTime() : a.timestamp;
+                let dateB = b.startDate ? new Date(b.startDate).getTime() : b.timestamp;
+                return dateA - dateB;
+            });
+
+            if(approvedBookings.length === 0) {
+                grid.innerHTML = '<p class="text-gray-400 text-sm italic col-span-full text-center py-6">No approved bookings scheduled.</p>';
+                return;
+            }
+
+            approvedBookings.forEach(b => {
+                const isTourist = b.type === 'TOURIST';
+                html += `
+                    <div class="bg-white border ${isTourist ? 'border-orange-200' : 'border-indigo-200'} rounded-2xl p-5 shadow-sm relative hover:shadow-md transition">
+                        <div class="absolute top-0 right-0 ${isTourist ? 'bg-orange-500' : 'bg-indigo-600'} text-white text-[10px] font-black px-3 py-1 rounded-bl-xl rounded-tr-2xl uppercase tracking-widest">
+                            ${isTourist ? 'Tourist' : 'Local'}
+                        </div>
+                        <div class="flex items-center mb-3">
+                            <div class="w-10 h-10 rounded-full ${isTourist ? 'bg-orange-50 text-orange-600' : 'bg-indigo-50 text-indigo-600'} flex items-center justify-center font-black mr-3 text-lg">
+                                ${new Date(b.startDate || b.timestamp).getDate()}
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-gray-800">${b.name}</p>
+                                <p class="text-[10px] text-gray-500 font-bold"><i data-lucide="map-pin" class="w-3 h-3 inline"></i> ${b.address}</p>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                            <p class="text-xs font-bold text-gray-700 mb-1">${b.service}</p>
+                            <p class="text-[11px] text-gray-500"><i data-lucide="clock" class="w-3 h-3 inline"></i> ${b.durationDays} Days | Start: ${b.startDate || 'TBA'} ${b.startTime ? '@ '+b.startTime : ''}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            grid.innerHTML = html;
+            lucide.createIcons();
+        };
+
 
         /* 🌟 LEAD CONTACT & DELETE LOGIC */
         window.markLeadContacted = async function(id) {
@@ -1741,6 +2010,7 @@
             const meetUrl = "https://meet.jit.si/" + meetId;
 
             try {
+                // 1. Database Update
                 await updateDoc(doc(db, "website_leads", window.currentLeadIdForSchedule), { 
                     kycMeetingDateMs: dateMs, 
                     kycMeetingUrl: meetUrl, 
@@ -1751,96 +2021,13 @@
                 window.showToast("Lead Interview Scheduled successfully!", "success");
                 window.closeLeadScheduleModal();
 
-                if(window.currentLeadPhone) {
-                    let cleanPhone = window.currentLeadPhone.replace(/[^0-9]/g, '');
-                    if (cleanPhone.startsWith('0')) cleanPhone = '94' + cleanPhone.substring(1);
-                    const message = `ආයුබෝවන් ${window.currentLeadName},\n\nGolden Hand Caregivers සම්මුඛ පරීක්ෂණය (Interview) පහත දිනයට වෙන් කර ඇත:\n\n📅 දිනය සහ වේලාව: ${dateStr}\n🔗 Video Call Link: ${meetUrl}\n\nකරුණාකර නියමිත වේලාවට මෙම ලින්ක් එක මගින් සම්බන්ධ වන්න.`;
-                    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
-                }
-            } catch (e) { 
-                window.showToast("Failed to schedule.", "error"); 
-            }
-        }
-
-        /* 🌟 ADMIN JOIN SCHEDULED LEAD CALL */
-        window.startScheduledLeadCall = async function(name, url) {
-            if(!url) return window.showToast("Meeting URL is missing", "error");
-            window.currentMeetingUrl = url;
-            window.currentMeetingUserId = "LEAD-" + name.replace(/\s+/g, '_');
-
-            try {
-                const stream = await navigator.mediaDevices.getDisplayMedia({ video: { displaySurface: "browser" }, audio: true });
-                window.mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-                window.recordedChunks = [];
-                window.mediaRecorder.ondataavailable = function(e) { if (e.data.size > 0) window.recordedChunks.push(e.data); };
-
-                window.mediaRecorder.onstop = function() {
-                    const blob = new Blob(window.recordedChunks, { type: 'video/webm' });
-                    const urlObj = URL.createObjectURL(blob);
-                    const a = document.createElement('a'); a.style.display = 'none'; a.href = urlObj;
-                    a.download = `Lead_Interview_${window.currentMeetingUserId}.webm`;
-                    document.body.appendChild(a); a.click(); URL.revokeObjectURL(urlObj);
-                    window.showToast("Recording downloaded successfully!");
-                };
-
-                stream.getVideoTracks()[0].onended = function () { window.stopRecordingAndCall(); };
-                window.mediaRecorder.start();
-
-                const container = document.getElementById('video-call-container');
-                container.classList.remove('hidden'); container.classList.add('flex');
-                document.getElementById('jitsi-iframe').src = url;
-            } catch(e) {
-                window.showToast("Screen recording permission is required.", "error");
-            }
-        }
-
-/* 🌟 LEAD SCHEDULING & WHATSAPP LOGIC */
-        window.currentLeadIdForSchedule = null;
-        window.currentLeadPhone = null;
-        window.currentLeadName = null;
-
-        window.openLeadScheduleModal = function(leadId, phone, name) {
-            window.currentLeadIdForSchedule = leadId;
-            window.currentLeadPhone = phone;
-            window.currentLeadName = name;
-            document.getElementById('lead-meeting-time').value = '';
-            document.getElementById('lead-schedule-modal').classList.remove('hidden');
-        }
-
-        window.closeLeadScheduleModal = function() {
-            document.getElementById('lead-schedule-modal').classList.add('hidden');
-        }
-
-        window.saveLeadSchedule = async function() {
-            if(!window.currentLeadIdForSchedule) return;
-            const timeInput = document.getElementById('lead-meeting-time').value;
-            if(!timeInput) return window.showToast("කරුණාකර දිනයක් සහ වෙලාවක් තෝරන්න", "error");
-
-            const dateMs = new Date(timeInput).getTime();
-            const dateStr = new Date(dateMs).toLocaleString();
-            const meetId = "GoldenHand-Lead-" + Date.now();
-            const meetUrl = "https://meet.jit.si/" + meetId;
-
-            try {
-                // 1. Database එක Update කිරීම
-                await updateDoc(doc(db, "website_leads", window.currentLeadIdForSchedule), { 
-                    kycMeetingDateMs: dateMs, 
-                    kycMeetingUrl: meetUrl, 
-                    kycMeetingStatus: "SCHEDULED",
-                    status: "CONTACTED" 
-                });
-                
-                window.showToast("Lead Interview Scheduled successfully!", "success");
-                window.closeLeadScheduleModal();
-
-                // 2. WhatsApp එකෙන් Message එක යැවීම
+                // 2. WhatsApp Message
                 if(window.currentLeadPhone) {
                     let cleanPhone = window.currentLeadPhone.replace(/[^0-9]/g, '');
                     if (cleanPhone.startsWith('0')) cleanPhone = '94' + cleanPhone.substring(1);
                     
                     const message = `ආයුබෝවන් ${window.currentLeadName},\n\nGolden Hand Caregivers සම්මුඛ පරීක්ෂණය (Interview) පහත දිනයට වෙන් කර ඇත:\n\n📅 දිනය සහ වේලාව: ${dateStr}\n🔗 Video Call Link: ${meetUrl}\n\nකරුණාකර නියමිත වේලාවට මෙම ලින්ක් එක මගින් සම්බන්ධ වන්න.`;
                     
-                    // Electron එක ඇතුලේ WhatsApp Web ඕපන් වෙනවා
                     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
                 }
 
@@ -1856,7 +2043,6 @@
         window.loadInvestments = function() {
             const tbody = document.getElementById('investments-table-body');
             
-            // Clear previous listeners
             window.investmentUnsubscribers.forEach(unsub => unsub());
             window.investmentUnsubscribers = [];
             window.allInvestmentsData = [];
@@ -1960,37 +2146,30 @@
         document.getElementById('loginForm').addEventListener('submit', async (e) => { e.preventDefault(); try { await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value); } catch (error) {} });
         document.getElementById('logout-btn').addEventListener('click', () => { window.isSystemLogout = true; signOut(auth); });
 
-/* 🌟 STOP RECORDING, SAVE & GO TO MAIN PAGE */
         window.stopRecordingAndCall = async function() {
-            // 1. රෙකෝඩින් එක සහ කැමරාව/මයික් ඕෆ් කිරීම
             if(window.mediaRecorder && window.mediaRecorder.state !== 'inactive') {
                 window.mediaRecorder.stop(); 
                 window.mediaRecorder.stream.getTracks().forEach(t => t.stop());
             }
             
-            // 2. Video Call තිරය (Iframe එක) අයින් කිරීම
             const container = document.getElementById('video-call-container');
             container.classList.add('hidden'); 
             container.classList.remove('flex');
             document.getElementById('jitsi-iframe').src = "";
 
-            // 3. Database එක අප්ඩේට් කිරීම
             try {
                 if (window.currentMeetingUserId && !window.currentMeetingUserId.startsWith("LEAD-")) {
                     await updateDoc(doc(db, "users", window.currentMeetingUserId), { kycMeetingStatus: "COMPLETED" });
                 }
             } catch(e) { console.log(e); }
 
-            // 4. ඕපන් වෙලා තියෙන අනිත් Modals (Popups) වසා දැමීම
             try {
                 document.getElementById('review-modal').classList.add('hidden');
                 document.getElementById('lead-schedule-modal').classList.add('hidden');
             } catch(e) {}
             
-            // 5. කෙලින්ම Main Page (Dashboard Overview) එකට මාරු වීම
             window.switchTab('overview'); 
         }
-
         
         lucide.createIcons();
 
