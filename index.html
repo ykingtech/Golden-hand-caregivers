@@ -1031,8 +1031,15 @@
 
         // 🌟 Global settings for web pricing calculation
         window.webPackages = {
-            elderly: 3500, patient: 5000, baby: 3000, touristElderly: 15, touristPatient: 20
-        };
+    elderly: 4000,
+    elderlyMax: 5000,
+    patient: 5000,
+    baby: 5000,
+    hospital: 4500,
+    house_maid: 85000,
+    touristElderly: 15,
+    touristPatient: 20
+};
         
         let adminMap = null;
         let markersMap = {}; 
@@ -2180,7 +2187,22 @@ window.webPackages = {
             }
         }
 
-        document.getElementById('loginForm').addEventListener('submit', async (e) => { e.preventDefault(); try { await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value); } catch (error) {} });
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('login-btn');
+    const errorEl = document.getElementById('login-error');
+    btn.innerText = 'Signing in...';
+    btn.disabled = true;
+    errorEl.classList.add('hidden');
+    try {
+        await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value);
+    } catch (error) {
+        errorEl.innerText = 'Invalid email or password. Please try again.';
+        errorEl.classList.remove('hidden');
+        btn.innerText = 'Sign In to Dashboard';
+        btn.disabled = false;
+    }
+});
         document.getElementById('logout-btn').addEventListener('click', () => { window.isSystemLogout = true; signOut(auth); });
 
         window.stopRecordingAndCall = async function() {
