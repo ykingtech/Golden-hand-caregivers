@@ -1552,7 +1552,7 @@ window.webPackages = {
             }
 
             if (actionsDiv) {
-                if ((user.role === 'CAREGIVER' || user.role === 'NURSE') && (user.kycStatus === 'PENDING' || (!user.isVerified && user.kycStatus !== 'APPROVED'))) {
+                if (user.kycStatus === 'PENDING' || (!user.isVerified && user.kycStatus !== 'APPROVED' && user.kycStatus !== 'REJECTED')) {
                     actionsDiv.classList.remove('hidden');
                     const approveBtn = document.getElementById('modal-approve-btn'); const rejectBtn = document.getElementById('modal-reject-btn');
                     if(approveBtn) approveBtn.onclick = () => window.handleApprove(userId);
