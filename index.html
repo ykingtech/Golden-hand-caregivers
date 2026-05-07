@@ -404,6 +404,10 @@
                                     <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">Elderly Care (Rs/Day)</label>
                                     <input type="number" id="pkg-elderly" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition font-bold" placeholder="3500">
                                 </div>
+<div>
+    <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">Elderly Care MAX (Rs/Day)</label>
+    <input type="number" id="pkg-elderly-max" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition font-bold" placeholder="5000">
+</div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">Patient Care (Rs/Day)</label>
                                     <input type="number" id="pkg-patient" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition font-bold" placeholder="5000">
@@ -412,6 +416,14 @@
                                     <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">Baby Care (Rs/Day)</label>
                                     <input type="number" id="pkg-baby" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition font-bold" placeholder="3000">
                                 </div>
+<div>
+    <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">Hospital Care (Rs/Day)</label>
+    <input type="number" id="pkg-hospital" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition font-bold" placeholder="6000">
+</div>
+<div>
+    <label class="block text-xs font-bold text-gray-600 mb-2 uppercase">House Maid (Rs/Month)</label>
+    <input type="number" id="pkg-housemaid" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition font-bold" placeholder="85000">
+</div>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
                                 <div>
@@ -1200,19 +1212,23 @@
                     const data = docSnap.data();
                     if(data.packages) {
                         document.getElementById('pkg-elderly').value = data.packages.elderly || '';
-                        document.getElementById('pkg-patient').value = data.packages.patient || '';
-                        document.getElementById('pkg-baby').value = data.packages.baby || '';
-                        document.getElementById('pkg-tourist-elderly').value = data.packages.touristElderly || '';
-                        document.getElementById('pkg-tourist-patient').value = data.packages.touristPatient || '';
-
-                        // 🌟 Store in global variable for calculating prices in Admin Panel directly
-                        window.webPackages = {
-                            elderly: parseFloat(data.packages.elderly) || 4000-5000,
-                            patient: parseFloat(data.packages.patient) || 5000,
-                            baby: parseFloat(data.packages.baby) || 3000,
-                            touristElderly: parseFloat(data.packages.touristElderly) || 15,
-                            touristPatient: parseFloat(data.packages.touristPatient) || 20
-                        };
+document.getElementById('pkg-patient').value = data.packages.patient || '';
+document.getElementById('pkg-baby').value = data.packages.baby || '';
+document.getElementById('pkg-hospital').value = data.packages.hospital || '';
+document.getElementById('pkg-house_maid').value = data.packages.house_maid || '';
+document.getElementById('pkg-tourist-elderly').value = data.packages.touristElderly || '';
+document.getElementById('pkg-tourist-patient').value = data.packages.touristPatient || '';
+document.getElementById('pkg-elderly-max').value = data.packages.elderlyMax || '';
+window.webPackages = {
+    elderly: parseFloat(data.packages.elderly) || 4000,
+       elderlyMax: parseFloat(data.packages.elderlyMax) || 5000,
+    patient: parseFloat(data.packages.patient) || 5000,
+    baby: parseFloat(data.packages.baby) || 3000,
+    hospital: parseFloat(data.packages.hospital) || 6000,
+    house_maid: parseFloat(data.packages.house_maid) || 85000,
+    touristElderly: parseFloat(data.packages.touristElderly) || 15,
+    touristPatient: parseFloat(data.packages.touristPatient) || 20
+};
                     }
                     if(data.videos) {
                         document.getElementById('yt-vid-1').value = data.videos.vid1 || '';
@@ -1224,14 +1240,17 @@
         }
 
         window.saveWebContent = async function() {
-            const data = {
-                packages: {
-                    elderly: document.getElementById('pkg-elderly').value,
-                    patient: document.getElementById('pkg-patient').value,
-                    baby: document.getElementById('pkg-baby').value,
-                    touristElderly: document.getElementById('pkg-tourist-elderly').value,
-                    touristPatient: document.getElementById('pkg-tourist-patient').value
-                },
+    const data = {
+        packages: {
+            elderly: document.getElementById('pkg-elderly').value,
+            elderlyMax: document.getElementById('pkg-elderly-max').value,
+            patient: document.getElementById('pkg-patient').value,
+            baby: document.getElementById('pkg-baby').value,
+            hospital: document.getElementById('pkg-hospital').value,
+            house_maid: document.getElementById('pkg-house_maid').value,
+            touristElderly: document.getElementById('pkg-tourist-elderly').value,
+            touristPatient: document.getElementById('pkg-tourist-patient').value
+        },
                 videos: {
                     vid1: document.getElementById('yt-vid-1').value,
                     vid2: document.getElementById('yt-vid-2').value,
@@ -1886,11 +1905,29 @@
             let currency = "LKR";
             let pricePerDay = 0;
             
-            if(lead.type === 'LOCAL_CLIENT' || lead.type === 'CLIENT') {
-               if(lead.service.includes('Elderly')) pricePerDay = window.webPackages.elderly;
-               else if(lead.service.includes('Patient')) pricePerDay = window.webPackages.patient;
-               else pricePerDay = window.webPackages.baby;
-               total = pricePerDay * parseInt(lead.durationDays || 1);
+            if (lead.service === 'House Maid') {
+    pricePerDay = window.webPackages.housemaid;
+    total = pricePerDay * parseInt(lead.durationDays || 1);
+    currency = "LKR (Monthly)";
+} else {
+    if (lead.service === 'House Maid') {
+    pricePerDay = window.webPackages.house_maid;
+    total = pricePerDay * parseInt(lead.durationDays || 1);
+    currency = "LKR (Monthly)";
+} else if (lead.service.includes('Elderly')) {
+    pricePerDay = window.webPackages.elderly;
+    total = pricePerDay * parseInt(lead.durationDays || 1);
+} else if (lead.service.includes('Patient') || lead.service.includes('Hospital')) {
+    pricePerDay = window.webPackages.patient;
+    total = pricePerDay * parseInt(lead.durationDays || 1);
+} else if (lead.service.includes('Hospital')) {
+    pricePerDay = window.webPackages.hospital;
+    total = pricePerDay * parseInt(lead.durationDays || 1);
+} else {
+    pricePerDay = window.webPackages.baby;
+    total = pricePerDay * parseInt(lead.durationDays || 1);
+};
+}
             } else {
                currency = "USD";
                if(lead.service.includes('Elderly')) pricePerDay = window.webPackages.touristElderly;
