@@ -26,6 +26,7 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-div-icon { background: none !important; border: none !important; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased text-gray-900 h-screen flex overflow-hidden">
@@ -262,12 +263,12 @@
 
                 <!-- 5. FINANCE & ACCOUNTS -->
                 <div id="section-finance" class="hidden space-y-6">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-                            <h3 class="text-lg font-extrabold text-gray-800">Monthly Profit & Loss</h3>
-                            <p class="text-sm text-gray-500 font-medium">Select a month to view the financial summary and calculate net profit.</p>
+                            <h3 class="text-lg font-extrabold text-gray-800">Monthly / Daily Profit & Loss</h3>
+                            <p class="text-sm text-gray-500 font-medium">Select a month or a specific date to view the financial summary.</p>
                         </div>
-                        <div class="flex space-x-3">
+                        <div class="flex flex-wrap gap-3 items-center">
                             <select id="finance-month" class="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-primary outline-none font-bold text-gray-700" onchange="loadFinanceData()">
                                 <option value="01">January</option><option value="02">February</option><option value="03">March</option>
                                 <option value="04">April</option><option value="05">May</option><option value="06">June</option>
@@ -279,6 +280,11 @@
                                 <option value="2026">2026</option>
                                 <option value="2027">2027</option>
                             </select>
+                            <div class="flex items-center gap-2 bg-yellow-50 border border-yellow-200 px-3 py-1.5 rounded-xl">
+                                <label class="text-xs font-black text-yellow-700 uppercase tracking-widest whitespace-nowrap">Day:</label>
+                                <input type="date" id="finance-date" class="bg-transparent border-0 outline-none font-bold text-gray-700 text-sm" onchange="loadFinanceData()" title="Select a specific day (leave empty for full month)">
+                                <button onclick="document.getElementById('finance-date').value=''; loadFinanceData();" class="text-gray-400 hover:text-red-500 transition text-xs font-bold" title="Clear date">✕</button>
+                            </div>
                         </div>
                     </div>
 
@@ -306,15 +312,20 @@
                     </div>
 
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-6 border-b border-gray-100 bg-gray-50">
+                        <div class="p-6 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
                             <h3 class="text-sm font-extrabold text-gray-800 uppercase tracking-widest"><i data-lucide="receipt" class="inline w-4 h-4 mr-2"></i> Monthly Operating Expenses</h3>
+                            <button onclick="addCustomExpense()" class="flex items-center gap-1.5 bg-primary hover:bg-green-600 text-white px-3 py-2 rounded-xl font-bold text-xs shadow-sm transition">
+                                <i data-lucide="plus" class="w-4 h-4"></i> Add Expense
+                            </button>
                         </div>
-                        <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="expenses-grid">
                             <div><label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Office Rent (Rs)</label><input type="number" id="exp-rent" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-primary outline-none transition" onkeyup="calculateFinPreview()" onchange="calculateFinPreview()"></div>
                             <div><label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Electricity Bill (Rs)</label><input type="number" id="exp-light" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-primary outline-none transition" onkeyup="calculateFinPreview()" onchange="calculateFinPreview()"></div>
                             <div><label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Water Bill (Rs)</label><input type="number" id="exp-water" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-primary outline-none transition" onkeyup="calculateFinPreview()" onchange="calculateFinPreview()"></div>
                             <div><label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Other Expenses (Rs)</label><input type="number" id="exp-other" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-primary outline-none transition" onkeyup="calculateFinPreview()" onchange="calculateFinPreview()"></div>
                         </div>
+                        <!-- Custom expenses container -->
+                        <div id="custom-expenses-container" class="px-6 pb-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
                         <div class="p-5 border-t border-gray-100 bg-gray-50 flex justify-between items-center">
                             <p class="text-sm font-bold text-gray-600">Total Expenses: <span id="fin-exp" class="text-red-500 font-black ml-2 text-lg">Rs. 0.00</span></p>
                             <button onclick="saveExpenses()" class="bg-dark hover:bg-gray-800 text-white px-8 py-3 rounded-xl font-bold shadow-md transition flex items-center text-sm"><i data-lucide="save" class="w-4 h-4 mr-2"></i> Save Expenses</button>
@@ -391,12 +402,17 @@
                 <!-- 🌟 WEBSITE CONTENT & PRICING -->
                 <div id="section-webcontent" class="hidden space-y-6">
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden max-w-5xl mx-auto">
-                        <div class="p-6 border-b border-gray-100 bg-gray-50 flex items-center">
+                        <div class="p-6 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                            <div class="flex items-center">
                             <i data-lucide="layout" class="w-6 h-6 mr-3 text-indigo-600"></i>
                             <div>
                                 <h3 class="text-lg font-extrabold text-gray-900">Website Packages & Pricing</h3>
                                 <p class="text-xs font-bold text-gray-500 mt-1 uppercase tracking-widest">Update Local and Tourist Package Rates</p>
                             </div>
+                            </div>
+                            <button onclick="addCustomWebPackage()" class="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl font-bold text-xs shadow-sm transition">
+                                <i data-lucide="plus" class="w-4 h-4"></i> Add Package
+                            </button>
                         </div>
                         <div class="p-8 space-y-6">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -439,6 +455,8 @@
                                     <input type="number" id="pkg-tourist-patient" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition font-bold text-orange-700" placeholder="20">
                                 </div>
                             </div>
+                            <!-- Custom Packages Container -->
+                            <div id="custom-web-packages-container" class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-gray-100 hidden"></div>
                         </div>
                     </div>
 
@@ -551,15 +569,47 @@
 
                 <!-- 8. LIVE MAP -->
                 <div id="section-map" class="hidden h-[calc(100vh-160px)] flex-col relative">
-                    <div class="bg-white rounded-t-2xl shadow-sm border border-gray-100 p-5 flex justify-between items-center z-20 flex-shrink-0">
+                    <div class="bg-white rounded-t-2xl shadow-sm border border-gray-100 p-5 flex flex-wrap justify-between items-center z-20 flex-shrink-0 gap-3">
                         <div>
                             <h3 class="text-lg font-extrabold text-gray-800">Live God View Tracking</h3>
                             <p class="text-sm text-gray-500 font-medium mt-1">Real-time GPS tracking of active jobs and users.</p>
                         </div>
-                        <div class="flex space-x-6 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                            <div class="flex items-center"><span class="w-3.5 h-3.5 rounded-full bg-[#53A548] mr-2 shadow-sm border border-white"></span><span class="text-xs font-extrabold text-gray-600">FREE CAREGIVER</span></div>
-                            <div class="flex items-center"><span class="w-3.5 h-3.5 rounded-full bg-[#ef4444] mr-2 shadow-sm border border-white"></span><span class="text-xs font-extrabold text-gray-600">BUSY CAREGIVER</span></div>
-                            <div class="flex items-center"><span class="w-3.5 h-3.5 rounded-full bg-[#0D3B66] mr-2 shadow-sm border border-white"></span><span class="text-xs font-extrabold text-gray-600">CLIENT</span></div>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <!-- District Filter -->
+                            <select id="map-district-filter" onchange="applyMapDistrictFilter()" class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-primary outline-none font-bold text-gray-700 text-sm">
+                                <option value="">සියලු දිස්ත්‍රික්ක (All Districts)</option>
+                                <option value="Colombo">Colombo</option>
+                                <option value="Gampaha">Gampaha</option>
+                                <option value="Kalutara">Kalutara</option>
+                                <option value="Kandy">Kandy</option>
+                                <option value="Matale">Matale</option>
+                                <option value="Nuwara Eliya">Nuwara Eliya</option>
+                                <option value="Galle">Galle</option>
+                                <option value="Matara">Matara</option>
+                                <option value="Hambantota">Hambantota</option>
+                                <option value="Jaffna">Jaffna</option>
+                                <option value="Kilinochchi">Kilinochchi</option>
+                                <option value="Mannar">Mannar</option>
+                                <option value="Vavuniya">Vavuniya</option>
+                                <option value="Mullaitivu">Mullaitivu</option>
+                                <option value="Batticaloa">Batticaloa</option>
+                                <option value="Ampara">Ampara</option>
+                                <option value="Trincomalee">Trincomalee</option>
+                                <option value="Kurunegala">Kurunegala</option>
+                                <option value="Puttalam">Puttalam</option>
+                                <option value="Anuradhapura">Anuradhapura</option>
+                                <option value="Polonnaruwa">Polonnaruwa</option>
+                                <option value="Badulla">Badulla</option>
+                                <option value="Monaragala">Monaragala</option>
+                                <option value="Ratnapura">Ratnapura</option>
+                                <option value="Kegalle">Kegalle</option>
+                            </select>
+                            <div class="flex space-x-4 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
+                                <div class="flex items-center"><span class="w-3.5 h-3.5 rounded-full bg-[#53A548] mr-2 shadow-sm border border-white"></span><span class="text-xs font-extrabold text-gray-600">FREE CG</span></div>
+                                <div class="flex items-center"><span class="w-3.5 h-3.5 rounded-full bg-[#ef4444] mr-2 shadow-sm border border-white"></span><span class="text-xs font-extrabold text-gray-600">BUSY CG</span></div>
+                                <div class="flex items-center"><span class="w-3.5 h-3.5 rounded-full bg-[#3b82f6] mr-2 shadow-sm border border-white"></span><span class="text-xs font-extrabold text-gray-600">NURSE</span></div>
+                                <div class="flex items-center"><span class="w-3.5 h-3.5 rounded-full bg-[#0D3B66] mr-2 shadow-sm border border-white"></span><span class="text-xs font-extrabold text-gray-600">CLIENT</span></div>
+                            </div>
                         </div>
                     </div>
                     
@@ -568,6 +618,7 @@
                         <div class="w-80 bg-white shadow-[-10px_0_15px_-3px_rgba(0,0,0,0.1)] z-[15] border-l border-gray-200 flex flex-col h-full absolute right-0 top-0 bottom-0">
                             <div class="p-5 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200 flex justify-between items-center flex-shrink-0">
                                 <h3 class="font-extrabold text-gray-800 text-sm tracking-wider uppercase"><i data-lucide="activity" class="inline w-5 h-5 mr-2 text-primary"></i> Live Operations</h3>
+                                <span id="map-district-label" class="text-[10px] font-black text-primary bg-green-50 border border-green-200 px-2 py-1 rounded-lg hidden">All</span>
                             </div>
                             <div class="flex-1 overflow-y-auto custom-scrollbar">
                                 <div class="p-5 border-b border-gray-100 bg-red-50/30">
@@ -576,10 +627,22 @@
                                         <p class="text-xs text-gray-400 font-medium italic">Loading active jobs...</p>
                                     </div>
                                 </div>
-                                <div class="p-5 bg-green-50/30 min-h-[300px]">
-                                    <h4 class="text-xs font-black text-green-600 mb-4 tracking-wider uppercase flex items-center"><i data-lucide="user-check" class="w-4 h-4 mr-2"></i> Available Staff</h4>
+                                <div class="p-5 border-b border-gray-100 bg-green-50/30">
+                                    <h4 class="text-xs font-black text-green-600 mb-4 tracking-wider uppercase flex items-center"><i data-lucide="user-check" class="w-4 h-4 mr-2"></i> Free Caregivers</h4>
                                     <div id="map-free-caregivers" class="space-y-3">
-                                        <p class="text-xs text-gray-400 font-medium italic">Loading available staff...</p>
+                                        <p class="text-xs text-gray-400 font-medium italic">Loading...</p>
+                                    </div>
+                                </div>
+                                <div class="p-5 border-b border-gray-100 bg-blue-50/30">
+                                    <h4 class="text-xs font-black text-blue-600 mb-4 tracking-wider uppercase flex items-center"><i data-lucide="stethoscope" class="w-4 h-4 mr-2"></i> Nurses</h4>
+                                    <div id="map-nurses-list" class="space-y-3">
+                                        <p class="text-xs text-gray-400 font-medium italic">Loading...</p>
+                                    </div>
+                                </div>
+                                <div class="p-5 bg-indigo-50/30 min-h-[150px]">
+                                    <h4 class="text-xs font-black text-indigo-600 mb-4 tracking-wider uppercase flex items-center"><i data-lucide="users" class="w-4 h-4 mr-2"></i> Clients</h4>
+                                    <div id="map-clients-list" class="space-y-3">
+                                        <p class="text-xs text-gray-400 font-medium italic">Loading...</p>
                                     </div>
                                 </div>
                             </div>
@@ -966,7 +1029,120 @@
         <span id="toast-message">Action Successful!</span>
     </div>
 
+    <!-- ✅ CUSTOM MODAL SYSTEM (replaces all browser confirm/prompt/alert) -->
+    <div id="app-modal-overlay" class="fixed inset-0 bg-black/60 z-[300] hidden items-center justify-center p-4 backdrop-blur-sm flex" style="display:none!important">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100 animate-none">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <div class="flex items-center gap-3">
+                    <div id="app-modal-icon" class="w-9 h-9 rounded-xl flex items-center justify-center text-white text-lg font-bold bg-primary"></div>
+                    <h3 class="font-extrabold text-gray-900 text-base" id="app-modal-title">Confirm</h3>
+                </div>
+                <button onclick="window.closeAppModal()" class="text-gray-400 hover:text-red-500 p-1.5 bg-white rounded-lg border border-gray-200 hover:bg-red-50 transition">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="p-6" id="app-modal-body"></div>
+            <div class="px-6 pb-5 flex gap-3 justify-end" id="app-modal-buttons"></div>
+        </div>
+    </div>
+
     <script>
+        /* ============================================================
+           ✅ CUSTOM MODAL SYSTEM — replaces all prompt/confirm/alert
+        ============================================================ */
+        window._modalCallback = null;
+
+        window.showAppModal = function(config) {
+            /* config = {
+                title, icon (lucide name), iconColor, message,
+                inputs: [{id, label, type, placeholder, value, options:[{value,label}]}],
+                buttons: [{text, style:'primary'|'danger'|'gray', onClick}]
+               }
+            */
+            const overlay = document.getElementById('app-modal-overlay');
+            document.getElementById('app-modal-title').innerText = config.title || 'Confirm';
+
+            // Icon
+            const iconEl = document.getElementById('app-modal-icon');
+            const iconColors = { primary: 'bg-primary', danger: 'bg-red-500', warning: 'bg-yellow-500', info: 'bg-blue-600' };
+            iconEl.className = `w-9 h-9 rounded-xl flex items-center justify-center text-white ${iconColors[config.iconColor || 'primary']}`;
+            iconEl.innerHTML = `<i data-lucide="${config.icon || 'help-circle'}" class="w-5 h-5"></i>`;
+
+            // Body
+            let bodyHtml = config.message ? `<p class="text-gray-700 font-medium mb-4 leading-relaxed">${config.message}</p>` : '';
+            (config.inputs || []).forEach(inp => {
+                bodyHtml += `<div class="mb-4">
+                    <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-widest">${inp.label}</label>`;
+                if (inp.type === 'select') {
+                    bodyHtml += `<select id="${inp.id}" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary font-bold text-gray-800">
+                        ${(inp.options || []).map(o => `<option value="${o.value}" ${o.value === (inp.value||'') ? 'selected' : ''}>${o.label}</option>`).join('')}
+                    </select>`;
+                } else if (inp.type === 'textarea') {
+                    bodyHtml += `<textarea id="${inp.id}" rows="3" placeholder="${inp.placeholder||''}" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary font-medium text-gray-800 resize-none">${inp.value||''}</textarea>`;
+                } else {
+                    bodyHtml += `<input type="${inp.type||'text'}" id="${inp.id}" value="${inp.value||''}" placeholder="${inp.placeholder||''}" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary font-medium text-gray-800">`;
+                }
+                bodyHtml += `</div>`;
+            });
+            document.getElementById('app-modal-body').innerHTML = bodyHtml;
+
+            // Buttons
+            const btnStyles = {
+                primary: 'bg-primary hover:bg-green-600 text-white px-6 py-2.5 rounded-xl font-extrabold shadow-md shadow-green-200 transition',
+                danger: 'bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-xl font-bold transition',
+                gray: 'bg-white hover:bg-gray-100 text-gray-700 px-6 py-2.5 rounded-xl font-bold border border-gray-200 transition',
+                dark: 'bg-dark hover:bg-gray-800 text-white px-6 py-2.5 rounded-xl font-bold transition'
+            };
+            let btnsHtml = '';
+            (config.buttons || []).forEach((btn, i) => {
+                const styleClass = btnStyles[btn.style || 'primary'];
+                btnsHtml += `<button id="app-modal-btn-${i}" class="${styleClass}">${btn.text}</button>`;
+            });
+            document.getElementById('app-modal-buttons').innerHTML = btnsHtml;
+
+            // Bind onclick after render
+            (config.buttons || []).forEach((btn, i) => {
+                document.getElementById(`app-modal-btn-${i}`).onclick = () => {
+                    if (btn.onClick) btn.onClick();
+                };
+            });
+
+            overlay.style.display = 'flex';
+            lucide.createIcons();
+        };
+
+        window.closeAppModal = function() {
+            document.getElementById('app-modal-overlay').style.display = 'none';
+        };
+
+        window.getModalVal = function(id) {
+            return (document.getElementById(id)?.value || '').trim();
+        };
+
+        // ---- Confirm helper (like browser confirm) ----
+        window.appConfirm = function(message, onYes, { title='Confirm Action', icon='alert-triangle', iconColor='warning' } = {}) {
+            showAppModal({
+                title, icon, iconColor,
+                message: `<span class="font-semibold text-gray-800">${message}</span>`,
+                buttons: [
+                    { text: 'Cancel', style: 'gray', onClick: closeAppModal },
+                    { text: 'Yes, Confirm', style: 'primary', onClick: () => { closeAppModal(); onYes(); } }
+                ]
+            });
+        };
+
+        // ---- Danger confirm ----
+        window.appDanger = function(message, onYes, { title='Are You Sure?' } = {}) {
+            showAppModal({
+                title, icon: 'trash-2', iconColor: 'danger',
+                message: `<span class="font-semibold text-gray-800">${message}</span>`,
+                buttons: [
+                    { text: 'Cancel', style: 'gray', onClick: closeAppModal },
+                    { text: 'Yes, Delete', style: 'danger', onClick: () => { closeAppModal(); onYes(); } }
+                ]
+            });
+        };
+
         const titles = { 
             'overview': { title: 'Dashboard Overview', sub: 'Welcome to Golden Hand Caregivers control panel.' }, 
             'users': { title: 'User Database', sub: 'Manage all registered clients and caregivers.' }, 
@@ -1124,12 +1300,13 @@
         window.loadFinanceData = async function() {
             const m = document.getElementById('finance-month').value;
             const y = document.getElementById('finance-year').value;
+            const specificDate = document.getElementById('finance-date').value; // e.g. "2026-05-09"
             const docId = `${y}_${m}`;
 
-            let expenses = { rent: 0, electricity: 0, water: 0, other: 0 };
+            let expenses = { rent: 0, electricity: 0, water: 0, other: 0, customExpenses: [] };
             try {
                 const expenseDoc = await getDoc(doc(db, "finance_expenses", docId));
-                if(expenseDoc.exists()) expenses = expenseDoc.data();
+                if(expenseDoc.exists()) expenses = {...expenses, ...expenseDoc.data()};
             } catch(e) {}
             
             document.getElementById('exp-rent').value = expenses.rent || 0;
@@ -1137,14 +1314,30 @@
             document.getElementById('exp-water').value = expenses.water || 0;
             document.getElementById('exp-other').value = expenses.other || 0;
 
+            // Render custom expenses
+            window.currentCustomExpenses = expenses.customExpenses || [];
+            renderCustomExpenses();
+
             let totalExp = (expenses.rent || 0) + (expenses.electricity || 0) + (expenses.water || 0) + (expenses.other || 0);
+            (expenses.customExpenses || []).forEach(ce => totalExp += (parseFloat(ce.amount) || 0));
 
             let totalRev = 0; let totalPayouts = 0; let dutyCount = 0;
 
             Object.values(window.allBookingsMap).forEach(b => {
                 if(b.status === 'COMPLETED') {
                     const date = new Date(b.completedTime || b.requestedTime || 0);
-                    if((date.getMonth() + 1).toString().padStart(2, '0') === m && date.getFullYear().toString() === y) {
+                    const bMonth = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const bYear = date.getFullYear().toString();
+                    const bDay = date.toISOString().split('T')[0]; // "YYYY-MM-DD"
+
+                    let matches = false;
+                    if (specificDate) {
+                        matches = (bDay === specificDate);
+                    } else {
+                        matches = (bMonth === m && bYear === y);
+                    }
+
+                    if (matches) {
                         dutyCount++;
                         const amt = parseFloat(b.totalAmount) || 0;
                         totalRev += amt;
@@ -1154,6 +1347,7 @@
                 }
             });
 
+            const label = specificDate ? `Day: ${specificDate}` : `${m}/${y}`;
             document.getElementById('fin-duties').innerText = dutyCount;
             document.getElementById('fin-rev').innerText = `Rs. ${totalRev.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
             document.getElementById('fin-payouts').innerText = `Rs. ${totalPayouts.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
@@ -1168,7 +1362,11 @@
             const l = parseFloat(document.getElementById('exp-light').value) || 0;
             const w = parseFloat(document.getElementById('exp-water').value) || 0;
             const o = parseFloat(document.getElementById('exp-other').value) || 0;
-            const total = r + l + w + o;
+            let customTotal = 0;
+            (window.currentCustomExpenses || []).forEach((_, idx) => {
+                customTotal += parseFloat(document.getElementById(`exp-custom-${idx}`)?.value || 0);
+            });
+            const total = r + l + w + o + customTotal;
             document.getElementById('fin-exp').innerText = `Rs. ${total.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
             
             const revText = document.getElementById('fin-rev').innerText.replace(/[^0-9.-]+/g,"");
@@ -1177,15 +1375,72 @@
             document.getElementById('fin-profit').innerText = `Rs. ${profit.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
         }
 
+        window.currentCustomExpenses = [];
+
+        window.renderCustomExpenses = function() {
+            const container = document.getElementById('custom-expenses-container');
+            if (!container) return;
+            container.innerHTML = '';
+            (window.currentCustomExpenses || []).forEach((ce, idx) => {
+                container.innerHTML += `
+                    <div class="relative">
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase flex items-center justify-between">
+                            <span>${ce.name}</span>
+                            <button onclick="removeCustomExpense(${idx})" class="text-red-400 hover:text-red-600 ml-2 font-black">✕</button>
+                        </label>
+                        <input type="number" id="exp-custom-${idx}" value="${ce.amount || 0}" class="w-full px-4 py-2.5 bg-purple-50 border border-purple-200 rounded-xl focus:ring-purple-400 outline-none transition font-bold text-purple-800" onkeyup="calculateFinPreview()" onchange="calculateFinPreview()">
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        window.addCustomExpense = function() {
+            showAppModal({
+                title: 'Add Custom Expense',
+                icon: 'plus-circle',
+                iconColor: 'primary',
+                inputs: [
+                    { id: 'modal-exp-name', label: 'Expense Name', type: 'text', placeholder: 'e.g. Internet Bill, Staff Salary' },
+                    { id: 'modal-exp-amount', label: 'Amount (Rs.)', type: 'number', placeholder: '0' }
+                ],
+                buttons: [
+                    { text: 'Cancel', style: 'gray', onClick: closeAppModal },
+                    { text: 'Add Expense', style: 'primary', onClick: () => {
+                        const name = getModalVal('modal-exp-name');
+                        const amount = parseFloat(getModalVal('modal-exp-amount')) || 0;
+                        if (!name) { showToast('Please enter an expense name', 'error'); return; }
+                        closeAppModal();
+                        window.currentCustomExpenses = window.currentCustomExpenses || [];
+                        window.currentCustomExpenses.push({ name, amount });
+                        renderCustomExpenses();
+                        calculateFinPreview();
+                    }}
+                ]
+            });
+        }
+
+        window.removeCustomExpense = function(idx) {
+            window.currentCustomExpenses.splice(idx, 1);
+            renderCustomExpenses();
+            calculateFinPreview();
+        }
+
         window.saveExpenses = async function() {
             const m = document.getElementById('finance-month').value;
             const y = document.getElementById('finance-year').value;
             const docId = `${y}_${m}`;
+            // Collect custom expense current amounts
+            const customExpenses = (window.currentCustomExpenses || []).map((ce, idx) => ({
+                name: ce.name,
+                amount: parseFloat(document.getElementById(`exp-custom-${idx}`)?.value || 0)
+            }));
             const exp = {
                 rent: parseFloat(document.getElementById('exp-rent').value) || 0,
                 electricity: parseFloat(document.getElementById('exp-light').value) || 0,
                 water: parseFloat(document.getElementById('exp-water').value) || 0,
                 other: parseFloat(document.getElementById('exp-other').value) || 0,
+                customExpenses: customExpenses,
                 updatedAt: Date.now()
             };
             try {
@@ -1240,6 +1495,11 @@ window.webPackages = {
     touristElderly: parseFloat(data.packages.touristElderly) || 15,
     touristPatient: parseFloat(data.packages.touristPatient) || 20
 };
+                        // Load custom packages
+                        if (data.packages.customPackages && data.packages.customPackages.length > 0) {
+                            window.customWebPackages = data.packages.customPackages;
+                            renderCustomWebPackages();
+                        }
                     }
                     if(data.videos) {
                         document.getElementById('yt-vid-1').value = data.videos.vid1 || '';
@@ -1250,7 +1510,82 @@ window.webPackages = {
             } catch(e) { console.error(e); }
         }
 
+        window.customWebPackages = [];
+
+        window.addCustomWebPackage = function() {
+            showAppModal({
+                title: 'Add Custom Package',
+                icon: 'package',
+                iconColor: 'info',
+                inputs: [
+                    { id: 'modal-pkg-name', label: 'Package Name', type: 'text', placeholder: 'e.g. Live-in Care, Night Duty' },
+                    { id: 'modal-pkg-type', label: 'Package Type', type: 'select', options: [
+                        { value: 'LOCAL', label: '🇱🇰 Local Booking (Rs.)' },
+                        { value: 'TOURIST', label: '✈️ Tourist Booking ($)' }
+                    ]},
+                    { id: 'modal-pkg-unit', label: 'Price Unit', type: 'select', options: [
+                        { value: 'Rs/Day', label: 'Rs/Day' },
+                        { value: 'Rs/Month', label: 'Rs/Month' },
+                        { value: 'Rs/Hour', label: 'Rs/Hour' },
+                        { value: '$/Day', label: '$/Day' },
+                        { value: '$/Month', label: '$/Month' }
+                    ]},
+                    { id: 'modal-pkg-price', label: 'Price Amount', type: 'number', placeholder: '0' }
+                ],
+                buttons: [
+                    { text: 'Cancel', style: 'gray', onClick: closeAppModal },
+                    { text: '+ Add Package', style: 'dark', onClick: () => {
+                        const name = getModalVal('modal-pkg-name');
+                        const type = getModalVal('modal-pkg-type');
+                        const unit = getModalVal('modal-pkg-unit');
+                        const price = getModalVal('modal-pkg-price');
+                        if (!name) { showToast('Package name is required', 'error'); return; }
+                        closeAppModal();
+                        window.customWebPackages = window.customWebPackages || [];
+                        window.customWebPackages.push({ name, type, unit, price });
+                        renderCustomWebPackages();
+                        showToast(`Package "${name}" added! Remember to Save.`, 'success');
+                    }}
+                ]
+            });
+        }
+
+        window.removeCustomWebPackage = function(idx) {
+            window.customWebPackages.splice(idx, 1);
+            renderCustomWebPackages();
+        }
+
+        window.renderCustomWebPackages = function() {
+            const container = document.getElementById('custom-web-packages-container');
+            if (!container) return;
+            if (window.customWebPackages.length === 0) {
+                container.classList.add('hidden');
+                container.innerHTML = '';
+                return;
+            }
+            container.classList.remove('hidden');
+            const typeBadge = (t) => t === 'TOURIST'
+                ? `<span class="text-[9px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-black uppercase ml-1">Tourist</span>`
+                : `<span class="text-[9px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-black uppercase ml-1">Local</span>`;
+            container.innerHTML = window.customWebPackages.map((pkg, idx) => `
+                <div class="relative bg-indigo-50 rounded-xl border border-indigo-200 p-4">
+                    <button onclick="removeCustomWebPackage(${idx})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 font-black text-sm leading-none w-6 h-6 flex items-center justify-center bg-white rounded-full border border-red-100 hover:bg-red-50 transition">✕</button>
+                    <label class="block text-xs font-bold text-indigo-700 mb-2 uppercase pr-6 flex items-center flex-wrap gap-1">
+                        ${pkg.name}${typeBadge(pkg.type)}
+                        <span class="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-normal normal-case">${pkg.unit}</span>
+                    </label>
+                    <input type="number" id="pkg-custom-${idx}" value="${pkg.price || ''}" class="w-full px-4 py-2.5 bg-white border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition font-bold text-indigo-800" placeholder="Enter price">
+                </div>
+            `).join('');
+        }
+
         window.saveWebContent = async function() {
+            const customPackagesData = (window.customWebPackages || []).map((pkg, idx) => ({
+                name: pkg.name,
+                type: pkg.type || 'LOCAL',
+                unit: pkg.unit,
+                price: document.getElementById(`pkg-custom-${idx}`)?.value || ''
+            }));
     const data = {
         packages: {
             elderly: document.getElementById('pkg-elderly').value,
@@ -1260,7 +1595,8 @@ window.webPackages = {
             hospital: document.getElementById('pkg-hospital').value,
             house_maid: document.getElementById('pkg-house_maid').value,
             touristElderly: document.getElementById('pkg-tourist-elderly').value,
-            touristPatient: document.getElementById('pkg-tourist-patient').value
+            touristPatient: document.getElementById('pkg-tourist-patient').value,
+            customPackages: customPackagesData
         },
                 videos: {
                     vid1: document.getElementById('yt-vid-1').value,
@@ -1617,8 +1953,30 @@ window.webPackages = {
             setTimeout(() => { if(adminMap && lat !== 0 && lng !== 0) { adminMap.setView([lat, lng], 17, { animate: true }); if(markersMap[userId]) markersMap[userId].openPopup(); } }, 500);
         }
 
-        window.handleApprove = async function(userId) { if(!confirm("Are you sure you want to APPROVE this user's documents?")) return; try { await updateDoc(doc(db, "users", userId), { kycStatus: "APPROVED" }); showToast("Approved Successfully!", "success"); closeModal(); } catch (error) { showToast("Failed.", "error"); } }
-        window.handleReject = async function(userId) { const reason = prompt("Reason for rejection:"); if(reason === null) return; try { await updateDoc(doc(db, "users", userId), { isVerified: false, kycStatus: "REJECTED", rejectionReason: reason || "Documents not clear." }); showToast("Rejected.", "error"); closeModal(); } catch (error) { showToast("Failed.", "error"); } }
+        window.handleApprove = async function(userId) { 
+            appConfirm("Are you sure you want to <strong>APPROVE</strong> this user's KYC documents?", async () => {
+                try { await updateDoc(doc(db, "users", userId), { kycStatus: "APPROVED" }); showToast("Approved Successfully!", "success"); closeModal(); } 
+                catch (error) { showToast("Failed.", "error"); }
+            }, { title: 'Approve KYC', icon: 'check-circle', iconColor: 'primary' });
+        }
+        window.handleReject = async function(userId) {
+            showAppModal({
+                title: 'Reject KYC Application',
+                icon: 'x-circle',
+                iconColor: 'danger',
+                message: 'Please provide a reason for rejection. This will be visible to the applicant.',
+                inputs: [{ id: 'modal-reject-reason', label: 'Rejection Reason', type: 'textarea', placeholder: 'Documents not clear, Photo missing...' }],
+                buttons: [
+                    { text: 'Cancel', style: 'gray', onClick: closeAppModal },
+                    { text: 'Reject', style: 'danger', onClick: async () => {
+                        const reason = getModalVal('modal-reject-reason') || 'Documents not clear.';
+                        closeAppModal();
+                        try { await updateDoc(doc(db, "users", userId), { isVerified: false, kycStatus: "REJECTED", rejectionReason: reason }); showToast("Rejected.", "error"); closeModal(); } 
+                        catch (error) { showToast("Failed.", "error"); }
+                    }}
+                ]
+            });
+        }
 
         window.loadComplaints = async function() {
             onSnapshot(query(collection(db, "bookings"), where("hasComplaint", "==", true)), (snapshot) => {
@@ -1656,31 +2014,113 @@ window.webPackages = {
                 snapshot.forEach((docSnap) => {
                     const user = docSnap.data(); const userId = docSnap.id; window.allUsersDataMap[userId] = user;
                     if (user.locationLat && user.locationLng && user.locationLat !== 0) {
-                        let markerColor = '#0D3B66'; let roleClass = 'role-client'; let roleDisplay = user.role;
-                        if (user.role === 'CAREGIVER') { if (user.isBusy) { markerColor = '#ef4444'; roleClass = 'role-caregiver-busy'; roleDisplay = 'BUSY CAREGIVER'; } else { markerColor = '#53A548'; roleClass = 'role-caregiver'; roleDisplay = 'FREE CAREGIVER'; } }
-                        const customIcon = L.divIcon({ className: 'custom-div-icon', html: `<div style="background-color:${markerColor}; width:18px; height:18px; border-radius:50%; border:3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: all 0.3s ease;"></div>`, iconSize: [18, 18], iconAnchor: [9, 9] });
-                        const popupContent = `<div class="map-popup-title">${user.name}</div><span class="map-popup-role ${roleClass}">${roleDisplay}</span><div style="margin-top:6px; font-size:11px; color:gray;"><i data-lucide="phone" style="width:10px; height:10px; display:inline;"></i> ${user.phone||'N/A'}</div>`;
-                        if (markersMap[userId]) { markersMap[userId].setLatLng([user.locationLat, user.locationLng]); markersMap[userId].setIcon(customIcon); markersMap[userId].getPopup().setContent(popupContent); } else { if (adminMap) { markersMap[userId] = L.marker([user.locationLat, user.locationLng], { icon: customIcon }).addTo(adminMap).bindPopup(popupContent); } }
+                        const isNurse = user.role === 'NURSE' || (user.role === 'CAREGIVER' && user.categories && (user.categories.includes('Nurse') || user.categories.includes('NURSE')));
+                        let markerColor = '#0D3B66'; let roleClass = 'role-client'; let roleDisplay = 'CLIENT';
+                        if (isNurse) {
+                            markerColor = '#3b82f6'; roleClass = 'role-nurse'; roleDisplay = 'NURSE';
+                        } else if (user.role === 'CAREGIVER') {
+                            if (user.isBusy) { markerColor = '#ef4444'; roleClass = 'role-caregiver-busy'; roleDisplay = 'BUSY CAREGIVER'; }
+                            else { markerColor = '#53A548'; roleClass = 'role-caregiver'; roleDisplay = 'FREE CAREGIVER'; }
+                        } else if (user.role === 'CLIENT') {
+                            markerColor = '#0D3B66'; roleClass = 'role-client'; roleDisplay = 'CLIENT';
+                        } else { return; /* skip non-relevant roles */ }
+
+                        const customIcon = L.divIcon({
+                            className: 'custom-div-icon',
+                            html: `<div style="background-color:${markerColor}; width:18px; height:18px; border-radius:50%; border:3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.3);"></div>`,
+                            iconSize: [18, 18],
+                            iconAnchor: [9, 9]
+                        });
+                        const popupContent = `<div class="map-popup-title">${user.name || 'Unknown'}</div><span class="map-popup-role ${roleClass}" style="background-color:${markerColor}">${roleDisplay}</span><div style="margin-top:6px; font-size:11px; color:gray;">${user.phone || 'N/A'}</div>${user.district ? `<div style="font-size:11px; color:#555; margin-top:3px;">📍 ${user.district}</div>` : ''}`;
+
+                        if (markersMap[userId]) {
+                            markersMap[userId].setLatLng([user.locationLat, user.locationLng]);
+                            markersMap[userId].setIcon(customIcon);
+                            markersMap[userId].getPopup().setContent(popupContent);
+                        } else {
+                            if (adminMap) {
+                                markersMap[userId] = L.marker([user.locationLat, user.locationLng], { icon: customIcon }).addTo(adminMap).bindPopup(popupContent);
+                            }
+                        }
                     }
                 });
                 updateMapConnections();
             });
         }
 
+        window.currentMapDistrict = '';
+
+        window.applyMapDistrictFilter = function() {
+            window.currentMapDistrict = document.getElementById('map-district-filter').value;
+            const label = document.getElementById('map-district-label');
+            if (window.currentMapDistrict) {
+                label.innerText = window.currentMapDistrict;
+                label.classList.remove('hidden');
+            } else {
+                label.classList.add('hidden');
+            }
+            // Show/hide map markers based on district
+            Object.keys(markersMap).forEach(uid => {
+                const user = window.allUsersDataMap[uid];
+                if (!user) return;
+                const marker = markersMap[uid];
+                if (!window.currentMapDistrict) {
+                    if (adminMap && !adminMap.hasLayer(marker)) marker.addTo(adminMap);
+                } else {
+                    const userDistrict = (user.district || '').toLowerCase();
+                    const filterDistrict = window.currentMapDistrict.toLowerCase();
+                    if (userDistrict === filterDistrict) {
+                        if (adminMap && !adminMap.hasLayer(marker)) marker.addTo(adminMap);
+                    } else {
+                        if (adminMap && adminMap.hasLayer(marker)) adminMap.removeLayer(marker);
+                    }
+                }
+            });
+            updateMapConnections();
+        }
+
         function updateMapConnections() {
-            activePolylines.forEach(p => p.remove()); activePolylines = []; const activeListHtml = []; const freeListHtml = [];
-            Object.keys(window.allUsersDataMap).forEach(uid => { const u = window.allUsersDataMap[uid]; if (u.role === 'CAREGIVER' && !u.isBusy && u.isVerified) { const clickAction = u.locationLat ? `focusUserOnMap(${u.locationLat}, ${u.locationLng}, '${uid}')` : `showToast('Location not shared', 'error')`; freeListHtml.push(`<div class="bg-white p-3.5 rounded-xl border border-green-100 shadow-sm mb-3 cursor-pointer hover:border-green-300 transition" onclick="${clickAction}"><span class="font-black text-green-800 block text-sm">${u.name}</span><span class="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest"><i data-lucide="map-pin" class="inline w-3 h-3 text-green-500"></i> Tap to locate</span></div>`); } });
+            activePolylines.forEach(p => p.remove()); activePolylines = [];
+            const activeListHtml = []; const freeListHtml = []; const nurseListHtml = []; const clientListHtml = [];
+            const districtFilter = (window.currentMapDistrict || '').toLowerCase();
+
+            const matchesDistrict = (user) => {
+                if (!districtFilter) return true;
+                return (user.district || '').toLowerCase() === districtFilter;
+            };
+
+            Object.keys(window.allUsersDataMap).forEach(uid => {
+                const u = window.allUsersDataMap[uid];
+                if (!matchesDistrict(u)) return;
+                const isNurse = u.role === 'NURSE' || (u.role === 'CAREGIVER' && u.categories && (u.categories.includes('Nurse') || u.categories.includes('NURSE')));
+                const clickAction = u.locationLat ? `focusUserOnMap(${u.locationLat}, ${u.locationLng}, '${uid}')` : `showToast('Location not shared', 'error')`;
+                const distBadge = u.district ? `<span class="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded ml-1 font-bold">${u.district}</span>` : '';
+                const locIcon = u.locationLat ? `<i data-lucide="map-pin" class="inline w-3 h-3 text-green-500"></i>` : `<i data-lucide="map-pin-off" class="inline w-3 h-3 text-gray-300"></i>`;
+
+                if (isNurse) {
+                    nurseListHtml.push(`<div class="bg-white p-3 rounded-xl border border-blue-100 shadow-sm mb-2 cursor-pointer hover:border-blue-300 transition" onclick="${clickAction}"><span class="font-black text-blue-800 block text-sm">${u.name}${distBadge}</span><span class="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest">${locIcon} ${u.locationLat ? 'Tap to locate' : 'No location'}</span></div>`);
+                } else if (u.role === 'CAREGIVER' && !u.isBusy && u.isVerified) {
+                    freeListHtml.push(`<div class="bg-white p-3.5 rounded-xl border border-green-100 shadow-sm mb-2 cursor-pointer hover:border-green-300 transition" onclick="${clickAction}"><span class="font-black text-green-800 block text-sm">${u.name}${distBadge}</span><span class="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest">${locIcon} ${u.locationLat ? 'Tap to locate' : 'No location'}</span></div>`);
+                } else if (u.role === 'CLIENT') {
+                    clientListHtml.push(`<div class="bg-white p-3 rounded-xl border border-indigo-100 shadow-sm mb-2 cursor-pointer hover:border-indigo-300 transition" onclick="${clickAction}"><span class="font-black text-indigo-900 block text-sm">${u.name}${distBadge}</span><span class="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest">${locIcon} ${u.locationLat ? 'Tap to locate' : 'No location'}</span></div>`);
+                }
+            });
+
             activeBookingsData.forEach(b => {
                 const cg = window.allUsersDataMap[b.caregiverId]; const cl = window.allUsersDataMap[b.clientId];
                 if (cg && cl) {
+                    if (districtFilter && !(matchesDistrict(cg) || matchesDistrict(cl))) return;
                     const clickAction = cg.locationLat ? `focusUserOnMap(${cg.locationLat}, ${cg.locationLng}, '${b.caregiverId}')` : `showToast('Offline', 'error')`;
                     activeListHtml.push(`<div class="bg-white p-4 rounded-xl border border-red-100 shadow-sm mb-3 cursor-pointer hover:border-red-300 transition" onclick="${clickAction}"><div class="font-black text-red-700 text-sm flex items-center"><div class="w-2 h-2 rounded-full bg-red-500 mr-2 animate-pulse"></div> ${cg.name}</div><div class="text-[10px] text-gray-400 my-2 font-black uppercase tracking-widest text-center border-y border-dashed py-1">Assigned to</div><div class="font-black text-blue-900 text-sm flex items-center justify-end">${cl.name} <div class="w-2 h-2 rounded-full bg-blue-500 ml-2"></div></div></div>`);
                     const tLat = cl.locationLat || b.locationLat; const tLng = cl.locationLng || b.locationLng;
                     if (adminMap && cg.locationLat && tLat) { const polyline = L.polyline([[cg.locationLat, cg.locationLng], [tLat, tLng]], {color: '#ef4444', dashArray: '8, 8', weight: 3, opacity: 0.8, lineCap: 'round'}).addTo(adminMap); activePolylines.push(polyline); }
                 }
             });
+
             document.getElementById('map-active-connections').innerHTML = activeListHtml.length ? activeListHtml.join('') : '<p class="text-xs font-medium text-gray-400 italic bg-gray-50 p-3 rounded-lg border border-dashed text-center">No active connections.</p>';
-            document.getElementById('map-free-caregivers').innerHTML = freeListHtml.length ? freeListHtml.join('') : '<p class="text-xs font-medium text-gray-400 italic bg-gray-50 p-3 rounded-lg border border-dashed text-center">All verified caregivers are busy.</p>';
+            document.getElementById('map-free-caregivers').innerHTML = freeListHtml.length ? freeListHtml.join('') : '<p class="text-xs font-medium text-gray-400 italic bg-gray-50 p-3 rounded-lg border border-dashed text-center">None available.</p>';
+            document.getElementById('map-nurses-list').innerHTML = nurseListHtml.length ? nurseListHtml.join('') : '<p class="text-xs font-medium text-gray-400 italic bg-gray-50 p-3 rounded-lg border border-dashed text-center">No nurses found.</p>';
+            document.getElementById('map-clients-list').innerHTML = clientListHtml.length ? clientListHtml.join('') : '<p class="text-xs font-medium text-gray-400 italic bg-gray-50 p-3 rounded-lg border border-dashed text-center">No clients found.</p>';
             lucide.createIcons();
         }
 
@@ -1909,10 +2349,24 @@ window.webPackages = {
             const lead = window.allLeadsMap[leadId];
             if(!lead) return;
 
-            if(!confirm(`Are you sure you want to approve the booking for ${lead.name}?`)) return;
+            showAppModal({
+                title: 'Approve Booking',
+                icon: 'check-circle',
+                iconColor: 'primary',
+                message: `Approve the booking for <strong>${lead.name}</strong>? A WhatsApp message with the estimated amount will be opened.`,
+                buttons: [
+                    { text: 'Cancel', style: 'gray', onClick: closeAppModal },
+                    { text: '✓ Approve & WhatsApp', style: 'primary', onClick: async () => {
+                        closeAppModal();
+                        await _doApproveLeadBooking(leadId);
+                    }}
+                ]
+            });
+        };
 
-            // Calculate Total Amount
-            let total = 0; 
+        async function _doApproveLeadBooking(leadId) {
+            const lead = window.allLeadsMap[leadId];
+            if(!lead) return;
             let currency = "LKR";
             let pricePerDay = 0;
             
@@ -1957,13 +2411,13 @@ window.webPackages = {
                 if(cleanPhone.length >= 10) {
                     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
                 } else {
-                    alert("Invalid phone number format, unable to open WhatsApp.");
+                    showToast("Invalid phone number format, unable to open WhatsApp.", "error");
                 }
 
             } catch (e) {
                 window.showToast("Error approving booking", "error");
             }
-        };
+        }; // end _doApproveLeadBooking
 
         /* 🌟 3. DASHBOARD CALENDAR RENDERING */
         window.renderDashboardCalendar = function() {
@@ -2020,9 +2474,10 @@ window.webPackages = {
             catch(e) { window.showToast("Error updating lead", "error"); }
         }
         window.deleteLead = async function(id) {
-            if(!confirm("Are you sure you want to delete this inquiry?")) return;
-            try { await deleteDoc(doc(db, "website_leads", id)); window.showToast("Lead deleted", "success"); } 
-            catch(e) { window.showToast("Error deleting lead", "error"); }
+            appDanger("This inquiry will be permanently deleted and cannot be recovered.", async () => {
+                try { await deleteDoc(doc(db, "website_leads", id)); window.showToast("Lead deleted", "success"); } 
+                catch(e) { window.showToast("Error deleting lead", "error"); }
+            }, { title: 'Delete Inquiry' });
         }
 
         /* 🌟 LEAD SCHEDULING & WHATSAPP LOGIC */
@@ -2174,16 +2629,13 @@ window.webPackages = {
         }
 
         window.updateInvestmentStatus = async function(userId, docId, newStatus) {
-            if(!confirm(`Are you sure you want to mark this investment as ${newStatus}?`)) return;
-            try {
-                await updateDoc(doc(db, "users", userId, "investments", docId), {
-                    status: newStatus,
-                    updatedAt: Date.now()
-                });
-                showToast(`Investment ${newStatus} Successfully!`, "success");
-            } catch(e) {
-                showToast("Failed to update status.", "error");
-            }
+            const isReject = newStatus === 'Rejected';
+            appConfirm(`Are you sure you want to mark this investment as <strong>${newStatus}</strong>?`, async () => {
+                try {
+                    await updateDoc(doc(db, "users", userId, "investments", docId), { status: newStatus, updatedAt: Date.now() });
+                    showToast(`Investment ${newStatus} Successfully!`, isReject ? "error" : "success");
+                } catch(e) { showToast("Failed to update status.", "error"); }
+            }, { title: `Mark as ${newStatus}`, iconColor: isReject ? 'danger' : 'primary' });
         }
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
