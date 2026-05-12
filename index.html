@@ -261,76 +261,263 @@
                     </div>
                 </div>
 
-                <!-- 5. FINANCE & ACCOUNTS -->
+                <!-- 5. COMPLETE DAILY FINANCE SYSTEM (NEW) -->
                 <div id="section-finance" class="hidden space-y-6">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <div>
-                            <h3 class="text-lg font-extrabold text-gray-800">Monthly / Daily Profit & Loss</h3>
-                            <p class="text-sm text-gray-500 font-medium">Select a month or a specific date to view the financial summary.</p>
-                        </div>
-                        <div class="flex flex-wrap gap-3 items-center">
-                            <select id="finance-month" class="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-primary outline-none font-bold text-gray-700" onchange="loadFinanceData()">
-                                <option value="01">January</option><option value="02">February</option><option value="03">March</option>
-                                <option value="04">April</option><option value="05">May</option><option value="06">June</option>
-                                <option value="07">July</option><option value="08">August</option><option value="09">September</option>
-                                <option value="10">October</option><option value="11">November</option><option value="12">December</option>
-                            </select>
-                            <select id="finance-year" class="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-primary outline-none font-bold text-gray-700" onchange="loadFinanceData()">
-                                <option value="2025">2025</option>
-                                <option value="2026">2026</option>
-                                <option value="2027">2027</option>
-                            </select>
-                            <div class="flex items-center gap-2 bg-yellow-50 border border-yellow-200 px-3 py-1.5 rounded-xl">
-                                <label class="text-xs font-black text-yellow-700 uppercase tracking-widest whitespace-nowrap">Day:</label>
-                                <input type="date" id="finance-date" class="bg-transparent border-0 outline-none font-bold text-gray-700 text-sm" onchange="loadFinanceData()" title="Select a specific day (leave empty for full month)">
-                                <button onclick="document.getElementById('finance-date').value=''; loadFinanceData();" class="text-gray-400 hover:text-red-500 transition text-xs font-bold" title="Clear date">✕</button>
+
+                    <!-- DATE SELECTOR & CONTROLS -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                            <div>
+                                <h3 class="text-2xl font-extrabold text-gray-800">📊 Complete Finance Dashboard</h3>
+                                <p class="text-sm text-gray-500 font-medium mt-1">Daily income tracking (9 types), expense management (13 categories), and P&L analysis.</p>
+                            </div>
+                            <div class="flex flex-wrap gap-3 items-center w-full md:w-auto">
+                                <div class="flex items-center gap-2 bg-indigo-50 border border-indigo-200 px-4 py-2.5 rounded-xl">
+                                    <label class="text-xs font-black text-indigo-700 uppercase tracking-widest whitespace-nowrap">Date:</label>
+                                    <input type="date" id="finance-date-daily" class="bg-transparent border-0 outline-none font-bold text-gray-700 text-sm" onchange="loadCompleteFinanceData()">
+                                </div>
+                                <button onclick="goToPreviousDayFin()" class="bg-white hover:bg-gray-100 border border-gray-200 px-4 py-2.5 rounded-xl font-bold text-sm text-gray-700 transition shadow-sm"><i data-lucide="chevron-left" class="w-4 h-4 inline"></i></button>
+                                <button onclick="goToNextDayFin()" class="bg-white hover:bg-gray-100 border border-gray-200 px-4 py-2.5 rounded-xl font-bold text-sm text-gray-700 transition shadow-sm"><i data-lucide="chevron-right" class="w-4 h-4 inline"></i></button>
+                                <button onclick="setTodayDateFin()" class="bg-primary hover:bg-green-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition shadow-md shadow-green-200"><i data-lucide="calendar" class="w-4 h-4 inline mr-1.5"></i> Today</button>
                             </div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <!-- Duty Count -->
-                        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-                            <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-2 flex items-center"><i data-lucide="check-square" class="w-4 h-4 mr-1.5 text-blue-500"></i> Completed Duties</p>
-                            <p class="text-3xl font-black text-blue-600" id="fin-duties">0</p>
+                    <!-- INCOME SOURCES GRID -->
+                    <div class="bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl shadow-sm border border-emerald-200 overflow-hidden">
+                        <div class="p-6 border-b border-emerald-200 bg-gradient-to-r from-emerald-100 to-green-100 flex justify-between items-center">
+                            <div>
+                                <h3 class="text-lg font-extrabold text-emerald-900 flex items-center"><i data-lucide="trending-up" class="w-5 h-5 mr-2"></i> Daily Income Sources (9 Types)</h3>
+                                <p class="text-xs font-bold text-emerald-700 mt-1 uppercase tracking-widest">Summary by service type</p>
+                            </div>
+                            <button onclick="expandIncomeSourceForm()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl font-bold text-sm transition shadow-md"><i data-lucide="plus" class="w-4 h-4 inline mr-1.5"></i> Log Income</button>
                         </div>
-                        <!-- Revenue -->
-                        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-                            <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-2 flex items-center"><i data-lucide="trending-up" class="w-4 h-4 mr-1.5 text-emerald-500"></i> Total Revenue</p>
-                            <p class="text-3xl font-black text-emerald-600" id="fin-rev">Rs. 0.00</p>
-                        </div>
-                        <!-- Payouts -->
-                        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-                            <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-2 flex items-center"><i data-lucide="coins" class="w-4 h-4 mr-1.5 text-orange-500"></i> Caregiver Payouts</p>
-                            <p class="text-3xl font-black text-orange-500" id="fin-payouts">Rs. 0.00</p>
-                        </div>
-                        <!-- Net Profit -->
-                        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 bg-gradient-to-br from-green-50 to-white">
-                            <p class="text-xs text-green-700 font-bold uppercase tracking-wider mb-2 flex items-center"><i data-lucide="piggy-bank" class="w-4 h-4 mr-1.5"></i> Net Profit</p>
-                            <p class="text-3xl font-black text-green-800" id="fin-profit">Rs. 0.00</p>
+                        <div id="income-sources-grid" class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                            <div class="bg-white p-4 rounded-xl border border-gray-200 text-center">
+                                <p class="text-xs text-gray-500 font-bold uppercase mb-1">Loading...</p>
+                                <p class="text-2xl font-black text-gray-300">--</p>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-6 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-                            <h3 class="text-sm font-extrabold text-gray-800 uppercase tracking-widest"><i data-lucide="receipt" class="inline w-4 h-4 mr-2"></i> Monthly Operating Expenses</h3>
-                            <button onclick="addCustomExpense()" class="flex items-center gap-1.5 bg-primary hover:bg-green-600 text-white px-3 py-2 rounded-xl font-bold text-xs shadow-sm transition">
-                                <i data-lucide="plus" class="w-4 h-4"></i> Add Expense
-                            </button>
+                    <!-- QUICK INCOME ENTRY -->
+                    <div id="income-entry-panel" class="hidden bg-emerald-50 rounded-2xl border-2 border-emerald-200 shadow-md overflow-hidden">
+                        <div class="p-5 border-b border-emerald-200 bg-gradient-to-r from-emerald-100 to-green-100 flex justify-between items-center">
+                            <h4 class="font-extrabold text-emerald-900 text-lg flex items-center"><i data-lucide="plus-circle" class="w-5 h-5 mr-2"></i> Log Daily Income</h4>
+                            <button onclick="expandIncomeSourceForm()" class="text-emerald-400 hover:text-emerald-600 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
                         </div>
-                        <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="expenses-grid">
-                            <div><label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Office Rent (Rs)</label><input type="number" id="exp-rent" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-primary outline-none transition" onkeyup="calculateFinPreview()" onchange="calculateFinPreview()"></div>
-                            <div><label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Electricity Bill (Rs)</label><input type="number" id="exp-light" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-primary outline-none transition" onkeyup="calculateFinPreview()" onchange="calculateFinPreview()"></div>
-                            <div><label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Water Bill (Rs)</label><input type="number" id="exp-water" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-primary outline-none transition" onkeyup="calculateFinPreview()" onchange="calculateFinPreview()"></div>
-                            <div><label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Other Expenses (Rs)</label><input type="number" id="exp-other" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-primary outline-none transition" onkeyup="calculateFinPreview()" onchange="calculateFinPreview()"></div>
-                        </div>
-                        <!-- Custom expenses container -->
-                        <div id="custom-expenses-container" class="px-6 pb-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
-                        <div class="p-5 border-t border-gray-100 bg-gray-50 flex justify-between items-center">
-                            <p class="text-sm font-bold text-gray-600">Total Expenses: <span id="fin-exp" class="text-red-500 font-black ml-2 text-lg">Rs. 0.00</span></p>
-                            <button onclick="saveExpenses()" class="bg-dark hover:bg-gray-800 text-white px-8 py-3 rounded-xl font-bold shadow-md transition flex items-center text-sm"><i data-lucide="save" class="w-4 h-4 mr-2"></i> Save Expenses</button>
+                        <div class="p-6 space-y-5">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-emerald-700 mb-2 uppercase tracking-widest">Income Type</label>
+                                    <select id="income-type-daily" class="w-full px-4 py-3 bg-white border border-emerald-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-gray-800">
+                                        <option value="">-- Select Type --</option>
+                                        <option value="Elderly Care">👴 Elderly Care</option>
+                                        <option value="Patient Care">🏥 Patient Care</option>
+                                        <option value="Baby Care">👶 Baby Care</option>
+                                        <option value="Hospital Care">🚑 Hospital Care</option>
+                                        <option value="House Maid">🧹 House Maid</option>
+                                        <option value="Nursing">👩‍⚕️ Nursing Service</option>
+                                        <option value="Training">📚 Training/Workshop</option>
+                                        <option value="Consultation">💬 Consultation</option>
+                                        <option value="Other">🔧 Other Income</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-emerald-700 mb-2 uppercase tracking-widest">Hours/Units</label>
+                                    <input type="number" id="income-quantity-daily" class="w-full px-4 py-3 bg-white border border-emerald-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-gray-800" placeholder="1" min="1">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-emerald-700 mb-2 uppercase tracking-widest">Amount (Rs.)</label>
+                                    <input type="number" id="income-amount-daily" class="w-full px-4 py-3 bg-white border border-emerald-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-gray-800" placeholder="0" min="0">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-emerald-700 mb-2 uppercase tracking-widest">Notes</label>
+                                <textarea id="income-notes-daily" rows="2" class="w-full px-4 py-3 bg-white border border-emerald-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-gray-800" placeholder="e.g., Service 10 AM-2 PM, Client name..."></textarea>
+                            </div>
+                            <div class="flex gap-3 justify-end">
+                                <button onclick="expandIncomeSourceForm()" class="bg-white hover:bg-gray-100 border border-emerald-200 text-emerald-600 font-bold px-6 py-3 rounded-xl transition shadow-sm">Cancel</button>
+                                <button onclick="addDailyIncome()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl transition shadow-lg shadow-emerald-200"><i data-lucide="check" class="w-4 h-4 inline mr-2"></i> Log</button>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- 5 MAIN METRICS -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                        <div class="bg-gradient-to-br from-emerald-50 to-white rounded-2xl shadow-sm p-6 border border-emerald-100">
+                            <p class="text-xs text-emerald-700 font-bold uppercase tracking-wider mb-2"><i data-lucide="trending-up" class="w-4 h-4 inline mr-1.5 text-emerald-600"></i> Total Income</p>
+                            <p class="text-3xl font-black text-emerald-600" id="fin-total-revenue">Rs. 0.00</p>
+                            <p class="text-[10px] text-emerald-600 font-bold mt-2" id="fin-total-revenue-breakdown">From 0 entries</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-orange-50 to-white rounded-2xl shadow-sm p-6 border border-orange-100">
+                            <p class="text-xs text-orange-700 font-bold uppercase tracking-wider mb-2"><i data-lucide="coins" class="w-4 h-4 inline mr-1.5 text-orange-600"></i> To Staff/Partners</p>
+                            <p class="text-3xl font-black text-orange-600" id="fin-total-payouts">Rs. 0.00</p>
+                            <p class="text-[10px] text-orange-600 font-bold mt-2">Amount paid out</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-red-50 to-white rounded-2xl shadow-sm p-6 border border-red-100">
+                            <p class="text-xs text-red-700 font-bold uppercase tracking-wider mb-2"><i data-lucide="receipt" class="w-4 h-4 inline mr-1.5 text-red-600"></i> Expenses</p>
+                            <p class="text-3xl font-black text-red-600" id="fin-total-expenses">Rs. 0.00</p>
+                            <p class="text-[10px] text-red-600 font-bold mt-2 cursor-pointer hover:underline" onclick="expandDailyExpenseEntry()">+ Log Expense</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-sm p-6 border border-blue-100">
+                            <p class="text-xs text-blue-700 font-bold uppercase tracking-wider mb-2"><i data-lucide="wallet" class="w-4 h-4 inline mr-1.5 text-blue-600"></i> Direct Profit</p>
+                            <p class="text-3xl font-black text-blue-600" id="fin-total-commission">Rs. 0.00</p>
+                            <p class="text-[10px] text-blue-600 font-bold mt-2">Company Keeps</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-indigo-50 via-purple-50 to-white rounded-2xl shadow-sm p-6 border border-indigo-100 ring-2 ring-indigo-200/50">
+                            <p class="text-xs text-indigo-700 font-bold uppercase tracking-wider mb-2"><i data-lucide="target" class="w-4 h-4 inline mr-1.5 text-indigo-600"></i> Net Profit</p>
+                            <p class="text-3xl font-black text-indigo-700" id="fin-total-profit">Rs. 0.00</p>
+                            <p class="text-[10px] text-indigo-600 font-bold mt-2">Income - Expenses</p>
+                        </div>
+                    </div>
+
+                    <!-- QUICK ACTION BUTTONS -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button onclick="expandIncomeSourceForm()" class="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white px-6 py-4 rounded-2xl font-bold text-lg transition shadow-lg shadow-emerald-200 flex items-center justify-center gap-3">
+                            <i data-lucide="plus-circle" class="w-6 h-6"></i> Log Daily Income
+                        </button>
+                        <button onclick="expandDailyExpenseEntry()" class="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white px-6 py-4 rounded-2xl font-bold text-lg transition shadow-lg shadow-red-200 flex items-center justify-center gap-3">
+                            <i data-lucide="minus-circle" class="w-6 h-6"></i> Log Expense
+                        </button>
+                    </div>
+
+                    <!-- QUICK EXPENSE ENTRY -->
+                    <div id="daily-expense-entry-panel" class="hidden bg-red-50 rounded-2xl border-2 border-red-200 shadow-md overflow-hidden">
+                        <div class="p-5 border-b border-red-200 bg-gradient-to-r from-red-100 to-red-50 flex justify-between items-center">
+                            <h4 class="font-extrabold text-red-900 text-lg flex items-center"><i data-lucide="plus-circle" class="w-5 h-5 mr-2"></i> Log Daily Expense</h4>
+                            <button onclick="expandDailyExpenseEntry()" class="text-red-400 hover:text-red-600 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+                        </div>
+                        <div class="p-6 space-y-5">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-red-700 mb-2 uppercase tracking-widest">Category (13 Types)</label>
+                                    <select id="expense-category-daily" class="w-full px-4 py-3 bg-white border border-red-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500 font-bold text-gray-800">
+                                        <option value="">-- Select Category --</option>
+                                        <option value="Office Rent">🏢 Office Rent</option>
+                                        <option value="Electricity">⚡ Electricity Bill</option>
+                                        <option value="Water">💧 Water Bill</option>
+                                        <option value="Internet">🌐 Internet Bill</option>
+                                        <option value="Staff Salary">💰 Staff Salary</option>
+                                        <option value="Transportation">🚗 Transportation</option>
+                                        <option value="Office Supplies">📝 Office Supplies</option>
+                                        <option value="Maintenance">🔧 Maintenance</option>
+                                        <option value="Marketing">📢 Marketing</option>
+                                        <option value="Equipment">⚙️ Equipment</option>
+                                        <option value="Training">📚 Training</option>
+                                        <option value="Insurance">🛡️ Insurance</option>
+                                        <option value="Other">❓ Other</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-red-700 mb-2 uppercase tracking-widest">Description</label>
+                                    <input type="text" id="expense-desc-daily" class="w-full px-4 py-3 bg-white border border-red-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500 font-medium text-gray-800" placeholder="e.g., Monthly rent">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-red-700 mb-2 uppercase tracking-widest">Amount (Rs.)</label>
+                                    <input type="number" id="expense-amount-daily" class="w-full px-4 py-3 bg-white border border-red-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500 font-bold text-gray-800" placeholder="0" min="0">
+                                </div>
+                            </div>
+                            <div class="flex gap-3 justify-end">
+                                <button onclick="expandDailyExpenseEntry()" class="bg-white hover:bg-gray-100 border border-red-200 text-red-600 font-bold px-6 py-3 rounded-xl transition shadow-sm">Cancel</button>
+                                <button onclick="addDailyExpense()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-3 rounded-xl transition shadow-lg shadow-red-200"><i data-lucide="check" class="w-4 h-4 inline mr-2"></i> Log</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- INCOME BREAKDOWN TABLE -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                            <div>
+                                <h3 class="text-lg font-extrabold text-gray-800"><i data-lucide="list" class="w-5 h-5 mr-2 inline text-emerald-600"></i> Daily Income Breakdown</h3>
+                                <p class="text-xs font-bold text-gray-500 mt-1">All entries for selected date by type</p>
+                            </div>
+                            <button onclick="loadCompleteFinanceData()" class="text-sm bg-white hover:bg-gray-100 px-4 py-2.5 rounded-lg text-gray-700 font-bold border border-gray-200 shadow-sm flex items-center transition"><i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i> Refresh</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-white text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
+                                        <th class="p-5 font-bold">Time</th>
+                                        <th class="p-5 font-bold">Type</th>
+                                        <th class="p-5 font-bold">Description</th>
+                                        <th class="p-5 font-bold text-center">Qty</th>
+                                        <th class="p-5 font-bold text-right">Amount</th>
+                                        <th class="p-5 font-bold text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="income-breakdown-body" class="divide-y divide-gray-50 bg-white text-sm">
+                                    <tr><td colspan="6" class="p-8 text-center text-gray-400 italic">No income logged yet.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- EXPENSES BREAKDOWN TABLE -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                            <h3 class="text-lg font-extrabold text-gray-800"><i data-lucide="credit-card" class="w-5 h-5 mr-2 inline text-red-600"></i> Daily Expenses Breakdown</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-white text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
+                                        <th class="p-5 font-bold">Time</th>
+                                        <th class="p-5 font-bold">Category</th>
+                                        <th class="p-5 font-bold">Description</th>
+                                        <th class="p-5 font-bold text-right">Amount</th>
+                                        <th class="p-5 font-bold text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expenses-breakdown-body" class="divide-y divide-gray-50 bg-white text-sm">
+                                    <tr><td colspan="5" class="p-8 text-center text-gray-400 italic">No expenses logged yet.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- INCOME SUMMARY BY TYPE -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 bg-gray-50">
+                            <h3 class="text-lg font-extrabold text-gray-800"><i data-lucide="pie-chart" class="w-5 h-5 mr-2 inline text-indigo-600"></i> Daily Income Summary by Type</h3>
+                        </div>
+                        <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="income-summary-grid">
+                            <div class="text-center p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                <p class="text-xs text-gray-500 font-bold mb-2">No income data</p>
+                                <p class="text-2xl font-black text-gray-300">--</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MONTHLY OVERVIEW -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 bg-gray-50">
+                            <h3 class="text-lg font-extrabold text-gray-800"><i data-lucide="bar-chart-3" class="w-5 h-5 mr-2 inline text-purple-600"></i> Current Month Overview</h3>
+                        </div>
+                        <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                            <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                                <p class="text-xs text-emerald-700 font-bold uppercase tracking-wider mb-1">Month Income</p>
+                                <p class="text-2xl font-black text-emerald-600" id="fin-month-revenue">Rs. 0.00</p>
+                            </div>
+                            <div class="p-4 bg-orange-50 rounded-xl border border-orange-100">
+                                <p class="text-xs text-orange-700 font-bold uppercase tracking-wider mb-1">To Staff/Partners</p>
+                                <p class="text-2xl font-black text-orange-600" id="fin-month-payouts">Rs. 0.00</p>
+                            </div>
+                            <div class="p-4 bg-red-50 rounded-xl border border-red-100">
+                                <p class="text-xs text-red-700 font-bold uppercase tracking-wider mb-1">Month Expenses</p>
+                                <p class="text-2xl font-black text-red-600" id="fin-month-expenses">Rs. 0.00</p>
+                            </div>
+                            <div class="p-4 bg-blue-50 rounded-xl border border-blue-100">
+                                <p class="text-xs text-blue-700 font-bold uppercase tracking-wider mb-1">Direct Profit</p>
+                                <p class="text-2xl font-black text-blue-600" id="fin-month-commission">Rs. 0.00</p>
+                            </div>
+                            <div class="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                                <p class="text-xs text-indigo-700 font-bold uppercase tracking-wider mb-1">Month Net Profit</p>
+                                <p class="text-2xl font-black text-indigo-600" id="fin-month-profit">Rs. 0.00</p>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- 🌟 INVESTMENTS SECTION -->
@@ -462,7 +649,7 @@
 
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden max-w-5xl mx-auto">
                         <div class="p-6 border-b border-gray-100 bg-gray-50 flex items-center">
-                            <i data-lucide="youtube" class="w-6 h-6 mr-3 text-red-600"></i>
+                            <i data-lucide="play-circle" class="w-6 h-6 mr-3 text-red-600"></i>
                             <div>
                                 <h3 class="text-lg font-extrabold text-gray-900">Website YouTube Videos</h3>
                                 <p class="text-xs font-bold text-gray-500 mt-1 uppercase tracking-widest">Add YouTube links to display on the main website</p>
@@ -1167,10 +1354,11 @@
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', options);
             
-            // Set initial Finance Month and Year dynamically
+            // Set initial Finance date to today
             const d = new Date();
-            document.getElementById('finance-month').value = (d.getMonth() + 1).toString().padStart(2, '0');
-            document.getElementById('finance-year').value = d.getFullYear().toString();
+            const today = d.toISOString().split('T')[0];
+            const finDateEl = document.getElementById('finance-date-daily');
+            if(finDateEl) finDateEl.value = today;
         }
         updateDate();
 
@@ -1296,158 +1484,442 @@
             onSnapshot(query(collection(db, "bookings"), where("status", "==", "IN_PROGRESS")), (snapshot) => { document.getElementById('stat-active-jobs').innerText = snapshot.size; });
         }
 
-        /* --- FINANCE & ACCOUNTS LOGIC --- */
-        window.loadFinanceData = async function() {
-            const m = document.getElementById('finance-month').value;
-            const y = document.getElementById('finance-year').value;
-            const specificDate = document.getElementById('finance-date').value; // e.g. "2026-05-09"
-            const docId = `${y}_${m}`;
+        /* --- COMPLETE DAILY FINANCE SYSTEM (NEW) --- */
 
-            let expenses = { rent: 0, electricity: 0, water: 0, other: 0, customExpenses: [] };
+        // Initialize date picker when switching to Finance tab
+        window.initFinanceDatePicker = function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('finance-date-daily').value = today;
+            loadCompleteFinanceData();
+        }
+
+        // Date navigation functions
+        window.setTodayDateFin = function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('finance-date-daily').value = today;
+            loadCompleteFinanceData();
+        }
+
+        window.goToPreviousDayFin = function() {
+            const current = document.getElementById('finance-date-daily').value;
+            const d = new Date(current);
+            d.setDate(d.getDate() - 1);
+            document.getElementById('finance-date-daily').value = d.toISOString().split('T')[0];
+            loadCompleteFinanceData();
+        }
+
+        window.goToNextDayFin = function() {
+            const current = document.getElementById('finance-date-daily').value;
+            const d = new Date(current);
+            d.setDate(d.getDate() + 1);
+            document.getElementById('finance-date-daily').value = d.toISOString().split('T')[0];
+            loadCompleteFinanceData();
+        }
+
+        // Toggle income entry panel
+        window.expandIncomeSourceForm = function() {
+            const panel = document.getElementById('income-entry-panel');
+            panel.classList.toggle('hidden');
+            if(!panel.classList.contains('hidden')) {
+                document.getElementById('income-type-daily').value = '';
+                document.getElementById('income-quantity-daily').value = '1';
+                document.getElementById('income-amount-daily').value = '';
+                document.getElementById('income-notes-daily').value = '';
+            }
+        }
+
+        // Toggle expense entry panel
+        window.expandDailyExpenseEntry = function() {
+            const panel = document.getElementById('daily-expense-entry-panel');
+            panel.classList.toggle('hidden');
+            if(!panel.classList.contains('hidden')) {
+                document.getElementById('expense-category-daily').value = '';
+                document.getElementById('expense-desc-daily').value = '';
+                document.getElementById('expense-amount-daily').value = '';
+            }
+        }
+
+        // Save daily income to Firestore
+        window.saveDailyIncomeToDB = async function(incomeId, income) {
             try {
-                const expenseDoc = await getDoc(doc(db, "finance_expenses", docId));
-                if(expenseDoc.exists()) expenses = {...expenses, ...expenseDoc.data()};
-            } catch(e) {}
-            
-            document.getElementById('exp-rent').value = expenses.rent || 0;
-            document.getElementById('exp-light').value = expenses.electricity || 0;
-            document.getElementById('exp-water').value = expenses.water || 0;
-            document.getElementById('exp-other').value = expenses.other || 0;
-
-            // Render custom expenses
-            window.currentCustomExpenses = expenses.customExpenses || [];
-            renderCustomExpenses();
-
-            let totalExp = (expenses.rent || 0) + (expenses.electricity || 0) + (expenses.water || 0) + (expenses.other || 0);
-            (expenses.customExpenses || []).forEach(ce => totalExp += (parseFloat(ce.amount) || 0));
-
-            let totalRev = 0; let totalPayouts = 0; let dutyCount = 0;
-
-            Object.values(window.allBookingsMap).forEach(b => {
-                if(b.status === 'COMPLETED') {
-                    const date = new Date(b.completedTime || b.requestedTime || 0);
-                    const bMonth = (date.getMonth() + 1).toString().padStart(2, '0');
-                    const bYear = date.getFullYear().toString();
-                    const bDay = date.toISOString().split('T')[0]; // "YYYY-MM-DD"
-
-                    let matches = false;
-                    if (specificDate) {
-                        matches = (bDay === specificDate);
-                    } else {
-                        matches = (bMonth === m && bYear === y);
-                    }
-
-                    if (matches) {
-                        dutyCount++;
-                        const amt = parseFloat(b.totalAmount) || 0;
-                        totalRev += amt;
-                        const payout = b.caregiverEarnings ? parseFloat(b.caregiverEarnings) : (amt * 0.85);
-                        totalPayouts += payout;
-                    }
+                const dateStr = income.dateStr;
+                const docId = `${dateStr}_income`;
+                
+                // Get existing doc or create new
+                const docRef = doc(db, "daily_incomes", docId);
+                const docSnap = await getDoc(docRef);
+                
+                let incomes = [];
+                if(docSnap.exists()) {
+                    incomes = docSnap.data().incomes || [];
                 }
-            });
-
-            const label = specificDate ? `Day: ${specificDate}` : `${m}/${y}`;
-            document.getElementById('fin-duties').innerText = dutyCount;
-            document.getElementById('fin-rev').innerText = `Rs. ${totalRev.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
-            document.getElementById('fin-payouts').innerText = `Rs. ${totalPayouts.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
-            document.getElementById('fin-exp').innerText = `Rs. ${totalExp.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
-            
-            let netProfit = totalRev - totalPayouts - totalExp;
-            document.getElementById('fin-profit').innerText = `Rs. ${netProfit.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+                
+                // Add or update income
+                incomes = incomes.filter(i => i.id !== incomeId);
+                incomes.push(income);
+                
+                // Save to Firestore
+                await setDoc(docRef, {
+                    dateStr: dateStr,
+                    incomes: incomes,
+                    updatedAt: Date.now()
+                });
+                
+                console.log(`✅ Income saved: ${income.type} - Rs. ${income.amount}`);
+            } catch(e) {
+                console.error("Error saving income:", e);
+                showToast("Failed to save income to database", "error");
+            }
         }
 
-        window.calculateFinPreview = function() {
-            const r = parseFloat(document.getElementById('exp-rent').value) || 0;
-            const l = parseFloat(document.getElementById('exp-light').value) || 0;
-            const w = parseFloat(document.getElementById('exp-water').value) || 0;
-            const o = parseFloat(document.getElementById('exp-other').value) || 0;
-            let customTotal = 0;
-            (window.currentCustomExpenses || []).forEach((_, idx) => {
-                customTotal += parseFloat(document.getElementById(`exp-custom-${idx}`)?.value || 0);
-            });
-            const total = r + l + w + o + customTotal;
-            document.getElementById('fin-exp').innerText = `Rs. ${total.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
-            
-            const revText = document.getElementById('fin-rev').innerText.replace(/[^0-9.-]+/g,"");
-            const payoutText = document.getElementById('fin-payouts').innerText.replace(/[^0-9.-]+/g,"");
-            const profit = (parseFloat(revText) || 0) - (parseFloat(payoutText) || 0) - total;
-            document.getElementById('fin-profit').innerText = `Rs. ${profit.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+        // Save daily expense to Firestore
+        window.saveDailyExpenseToDB = async function(expenseId, expense) {
+            try {
+                const dateStr = expense.dateStr;
+                const docId = `${dateStr}_expenses`;
+                
+                // Get existing doc or create new
+                const docRef = doc(db, "daily_expenses", docId);
+                const docSnap = await getDoc(docRef);
+                
+                let expenses = [];
+                if(docSnap.exists()) {
+                    expenses = docSnap.data().expenses || [];
+                }
+                
+                // Add or update expense
+                expenses = expenses.filter(e => e.id !== expenseId);
+                expenses.push(expense);
+                
+                // Save to Firestore
+                await setDoc(docRef, {
+                    dateStr: dateStr,
+                    expenses: expenses,
+                    updatedAt: Date.now()
+                });
+                
+                console.log(`✅ Expense saved: ${expense.category} - Rs. ${expense.amount}`);
+            } catch(e) {
+                console.error("Error saving expense:", e);
+                showToast("Failed to save expense to database", "error");
+            }
         }
 
-        window.currentCustomExpenses = [];
+        // Add daily income (with Firestore saving)
+        window.addDailyIncome = function() {
+            const type = document.getElementById('income-type-daily').value.trim();
+            const qty = parseFloat(document.getElementById('income-quantity-daily').value) || 1;
+            const amt = parseFloat(document.getElementById('income-amount-daily').value) || 0;
+            const notes = document.getElementById('income-notes-daily').value.trim();
 
-        window.renderCustomExpenses = function() {
-            const container = document.getElementById('custom-expenses-container');
-            if (!container) return;
-            container.innerHTML = '';
-            (window.currentCustomExpenses || []).forEach((ce, idx) => {
-                container.innerHTML += `
-                    <div class="relative">
-                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase flex items-center justify-between">
-                            <span>${ce.name}</span>
-                            <button onclick="removeCustomExpense(${idx})" class="text-red-400 hover:text-red-600 ml-2 font-black">✕</button>
-                        </label>
-                        <input type="number" id="exp-custom-${idx}" value="${ce.amount || 0}" class="w-full px-4 py-2.5 bg-purple-50 border border-purple-200 rounded-xl focus:ring-purple-400 outline-none transition font-bold text-purple-800" onkeyup="calculateFinPreview()" onchange="calculateFinPreview()">
+            if(!type) { showToast("Please select income type", "error"); return; }
+            if(amt <= 0) { showToast("Amount must be greater than 0", "error"); return; }
+
+            const dateStr = document.getElementById('finance-date-daily').value;
+            if(!window.dailyIncomes) window.dailyIncomes = {};
+            if(!window.dailyIncomes[dateStr]) window.dailyIncomes[dateStr] = [];
+
+            const incomeId = Date.now().toString();
+            const incomeData = {
+                id: incomeId,
+                type: type,
+                quantity: qty,
+                amount: amt,
+                notes: notes,
+                timestamp: Date.now(),
+                dateStr: dateStr
+            };
+
+            window.dailyIncomes[dateStr].push(incomeData);
+
+            // Save to Firestore live
+            saveDailyIncomeToDB(incomeId, incomeData);
+
+            showToast(`${type} logged successfully!`, "success");
+            expandIncomeSourceForm();
+            loadCompleteFinanceData();
+        }
+
+        // Add daily expense (with Firestore saving)
+        window.addDailyExpense = function() {
+            const category = document.getElementById('expense-category-daily').value.trim();
+            const desc = document.getElementById('expense-desc-daily').value.trim();
+            const amt = parseFloat(document.getElementById('expense-amount-daily').value) || 0;
+
+            if(!category) { showToast("Please select expense category", "error"); return; }
+            if(amt <= 0) { showToast("Amount must be greater than 0", "error"); return; }
+
+            const dateStr = document.getElementById('finance-date-daily').value;
+            if(!window.dailyExpenses) window.dailyExpenses = {};
+            if(!window.dailyExpenses[dateStr]) window.dailyExpenses[dateStr] = [];
+
+            const expenseId = Date.now().toString();
+            const expenseData = {
+                id: expenseId,
+                category: category,
+                desc: desc,
+                amount: amt,
+                timestamp: Date.now(),
+                dateStr: dateStr
+            };
+
+            window.dailyExpenses[dateStr].push(expenseData);
+
+            // Save to Firestore live
+            saveDailyExpenseToDB(expenseId, expenseData);
+
+            showToast(`${category} expense logged successfully!`, "success");
+            expandDailyExpenseEntry();
+            loadCompleteFinanceData();
+        }
+
+        // Delete daily income (with Firestore deletion)
+        window.deleteDailyIncome = function(incomeId, dateStr) {
+            appDanger("Delete this income entry?", async () => {
+                if(window.dailyIncomes && window.dailyIncomes[dateStr]) {
+                    window.dailyIncomes[dateStr] = window.dailyIncomes[dateStr].filter(i => i.id !== incomeId);
+                    
+                    // Delete from Firestore
+                    try {
+                        const docId = `${dateStr}_income`;
+                        const docRef = doc(db, "daily_incomes", docId);
+                        const docSnap = await getDoc(docRef);
+                        
+                        if(docSnap.exists()) {
+                            let incomes = docSnap.data().incomes || [];
+                            incomes = incomes.filter(i => i.id !== incomeId);
+                            
+                            if(incomes.length === 0) {
+                                await deleteDoc(docRef);
+                            } else {
+                                await setDoc(docRef, {
+                                    dateStr: dateStr,
+                                    incomes: incomes,
+                                    updatedAt: Date.now()
+                                });
+                            }
+                        }
+                    } catch(e) {
+                        console.error("Error deleting from Firestore:", e);
+                    }
+                    
+                    showToast("Income entry deleted", "success");
+                    loadCompleteFinanceData();
+                }
+            }, { title: "Delete Income" });
+        }
+
+        // Delete daily expense (with Firestore deletion)
+        window.deleteDailyExpense = function(expenseId, dateStr) {
+            appDanger("Delete this expense entry?", async () => {
+                if(window.dailyExpenses && window.dailyExpenses[dateStr]) {
+                    window.dailyExpenses[dateStr] = window.dailyExpenses[dateStr].filter(e => e.id !== expenseId);
+                    
+                    // Delete from Firestore
+                    try {
+                        const docId = `${dateStr}_expenses`;
+                        const docRef = doc(db, "daily_expenses", docId);
+                        const docSnap = await getDoc(docRef);
+                        
+                        if(docSnap.exists()) {
+                            let expenses = docSnap.data().expenses || [];
+                            expenses = expenses.filter(e => e.id !== expenseId);
+                            
+                            if(expenses.length === 0) {
+                                await deleteDoc(docRef);
+                            } else {
+                                await setDoc(docRef, {
+                                    dateStr: dateStr,
+                                    expenses: expenses,
+                                    updatedAt: Date.now()
+                                });
+                            }
+                        }
+                    } catch(e) {
+                        console.error("Error deleting from Firestore:", e);
+                    }
+                    
+                    showToast("Expense entry deleted", "success");
+                    loadCompleteFinanceData();
+                }
+            }, { title: "Delete Expense" });
+        }
+
+        // Main function to load and calculate all finance data (with Firestore integration)
+        window.loadCompleteFinanceData = async function() {
+            const dateStr = document.getElementById('finance-date-daily').value;
+            
+            // Load from Firestore
+            try {
+                // Load incomes
+                const incomesDocId = `${dateStr}_income`;
+                const incomesDocRef = doc(db, "daily_incomes", incomesDocId);
+                const incomesDocSnap = await getDoc(incomesDocRef);
+                
+                if(incomesDocSnap.exists()) {
+                    if(!window.dailyIncomes) window.dailyIncomes = {};
+                    window.dailyIncomes[dateStr] = incomesDocSnap.data().incomes || [];
+                }
+                
+                // Load expenses
+                const expensesDocId = `${dateStr}_expenses`;
+                const expensesDocRef = doc(db, "daily_expenses", expensesDocId);
+                const expensesDocSnap = await getDoc(expensesDocRef);
+                
+                if(expensesDocSnap.exists()) {
+                    if(!window.dailyExpenses) window.dailyExpenses = {};
+                    window.dailyExpenses[dateStr] = expensesDocSnap.data().expenses || [];
+                }
+            } catch(e) {
+                console.error("Error loading from Firestore:", e);
+            }
+            
+            // Get incomes for this date
+            const incomes = (window.dailyIncomes && window.dailyIncomes[dateStr]) || [];
+            const expenses = (window.dailyExpenses && window.dailyExpenses[dateStr]) || [];
+
+            // Calculate metrics - NO caregiver payout deduction (money is direct income)
+            let totalRevenue = 0;
+            const incomeByType = {};
+
+            incomes.forEach(inc => {
+                totalRevenue += inc.amount;
+                if(!incomeByType[inc.type]) incomeByType[inc.type] = 0;
+                incomeByType[inc.type] += inc.amount;
+            });
+
+            let totalExpenses = 0;
+            expenses.forEach(exp => {
+                totalExpenses += exp.amount;
+            });
+
+            // For Finance section: Profit = Revenue - Expenses (NO caregiver payout)
+            const dailyNetProfit = totalRevenue - totalExpenses;
+
+            // Update metric cards - SIMPLIFIED (no payout/commission)
+            document.getElementById('fin-total-revenue').innerText = `Rs. ${totalRevenue.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+            document.getElementById('fin-total-revenue-breakdown').innerText = `From ${incomes.length} entries`;
+            
+            // Hide/remove payout and commission cards - or just show as info
+            document.getElementById('fin-total-payouts').innerText = `Rs. ${totalRevenue.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+            document.getElementById('fin-total-commission').innerText = `Rs. 0.00`;
+            
+            document.getElementById('fin-total-expenses').innerText = `Rs. ${totalExpenses.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+            document.getElementById('fin-total-profit').innerText = `Rs. ${dailyNetProfit.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+
+            // Populate income sources grid
+            const incomeSourcesGrid = document.getElementById('income-sources-grid');
+            let sourcesHtml = '';
+            const incomeTypes = ['Elderly Care', 'Patient Care', 'Baby Care', 'Hospital Care', 'House Maid', 'Nursing', 'Training', 'Consultation', 'Other'];
+            
+            incomeTypes.forEach(type => {
+                const amount = incomeByType[type] || 0;
+                sourcesHtml += `
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 text-center hover:shadow-md transition">
+                        <p class="text-xs text-gray-500 font-bold uppercase mb-1">${type}</p>
+                        <p class="text-2xl font-black text-emerald-600">Rs. ${amount.toLocaleString(undefined, {minimumFractionDigits:0})}</p>
                     </div>
                 `;
             });
+            incomeSourcesGrid.innerHTML = sourcesHtml;
+
+            // Populate income breakdown table
+            const incomeBody = document.getElementById('income-breakdown-body');
+            let incomeRows = '';
+            if(incomes.length === 0) {
+                incomeRows = '<tr><td colspan="6" class="p-8 text-center text-gray-400 italic">No income logged yet.</td></tr>';
+            } else {
+                incomes.forEach(inc => {
+                    const time = new Date(inc.timestamp).toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
+                    incomeRows += `
+                        <tr class="hover:bg-gray-50 border-b border-gray-100">
+                            <td class="p-5 text-sm font-bold">${time}</td>
+                            <td class="p-5 font-bold text-emerald-600">${inc.type}</td>
+                            <td class="p-5 text-gray-600">${inc.notes || '--'}</td>
+                            <td class="p-5 text-center font-bold">${inc.quantity}</td>
+                            <td class="p-5 text-right font-black">Rs. ${inc.amount.toLocaleString(undefined, {minimumFractionDigits:2})}</td>
+                            <td class="p-5 text-center"><button onclick="deleteDailyIncome('${inc.id}', '${dateStr}')" class="text-red-400 hover:text-red-600 text-sm font-bold"><i data-lucide="trash-2" class="w-4 h-4 inline"></i></button></td>
+                        </tr>
+                    `;
+                });
+            }
+            incomeBody.innerHTML = incomeRows;
+
+            // Populate expense breakdown table
+            const expenseBody = document.getElementById('expenses-breakdown-body');
+            let expenseRows = '';
+            if(expenses.length === 0) {
+                expenseRows = '<tr><td colspan="5" class="p-8 text-center text-gray-400 italic">No expenses logged yet.</td></tr>';
+            } else {
+                expenses.forEach(exp => {
+                    const time = new Date(exp.timestamp).toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
+                    expenseRows += `
+                        <tr class="hover:bg-gray-50 border-b border-gray-100">
+                            <td class="p-5 text-sm font-bold">${time}</td>
+                            <td class="p-5 font-bold text-red-600">${exp.category}</td>
+                            <td class="p-5 text-gray-600">${exp.desc || '--'}</td>
+                            <td class="p-5 text-right font-black">Rs. ${exp.amount.toLocaleString(undefined, {minimumFractionDigits:2})}</td>
+                            <td class="p-5 text-center"><button onclick="deleteDailyExpense('${exp.id}', '${dateStr}')" class="text-red-400 hover:text-red-600 text-sm font-bold"><i data-lucide="trash-2" class="w-4 h-4 inline"></i></button></td>
+                        </tr>
+                    `;
+                });
+            }
+            expenseBody.innerHTML = expenseRows;
+
+            // Income summary by type grid
+            const summaryGrid = document.getElementById('income-summary-grid');
+            let summaryHtml = '';
+            Object.entries(incomeByType).forEach(([type, amount]) => {
+                const percentage = ((amount / totalRevenue) * 100).toFixed(1);
+                summaryHtml += `
+                    <div class="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                        <p class="text-xs text-blue-700 font-bold uppercase mb-2">${type}</p>
+                        <p class="text-2xl font-black text-blue-600">Rs. ${amount.toLocaleString(undefined, {minimumFractionDigits:0})}</p>
+                        <p class="text-[10px] text-blue-600 font-bold mt-1">${percentage}% of revenue</p>
+                    </div>
+                `;
+            });
+            if(summaryHtml === '') {
+                summaryHtml = '<div class="text-center p-4 bg-gray-50 rounded-xl border border-gray-200 col-span-full"><p class="text-xs text-gray-500 font-bold mb-2">No income data</p><p class="text-2xl font-black text-gray-300">--</p></div>';
+            }
+            summaryGrid.innerHTML = summaryHtml;
+
+            // Update monthly overview
+            updateMonthlySummaryFin(dateStr.substring(0, 7));
+
             lucide.createIcons();
         }
 
-        window.addCustomExpense = function() {
-            showAppModal({
-                title: 'Add Custom Expense',
-                icon: 'plus-circle',
-                iconColor: 'primary',
-                inputs: [
-                    { id: 'modal-exp-name', label: 'Expense Name', type: 'text', placeholder: 'e.g. Internet Bill, Staff Salary' },
-                    { id: 'modal-exp-amount', label: 'Amount (Rs.)', type: 'number', placeholder: '0' }
-                ],
-                buttons: [
-                    { text: 'Cancel', style: 'gray', onClick: closeAppModal },
-                    { text: 'Add Expense', style: 'primary', onClick: () => {
-                        const name = getModalVal('modal-exp-name');
-                        const amount = parseFloat(getModalVal('modal-exp-amount')) || 0;
-                        if (!name) { showToast('Please enter an expense name', 'error'); return; }
-                        closeAppModal();
-                        window.currentCustomExpenses = window.currentCustomExpenses || [];
-                        window.currentCustomExpenses.push({ name, amount });
-                        renderCustomExpenses();
-                        calculateFinPreview();
-                    }}
-                ]
+        // Update monthly summary cards
+        window.updateMonthlySummaryFin = function(yearMonth) {
+            // yearMonth format: "2026-05"
+            const [year, month] = yearMonth.split('-');
+            
+            let monthRevenue = 0, monthExpenses = 0;
+            const incomesByMonth = window.dailyIncomes || {};
+            const expensesByMonth = window.dailyExpenses || {};
+
+            // Sum all incomes and expenses for the month
+            Object.entries(incomesByMonth).forEach(([date, incs]) => {
+                if(date.startsWith(yearMonth)) {
+                    incs.forEach(inc => monthRevenue += inc.amount);
+                }
             });
-        }
 
-        window.removeCustomExpense = function(idx) {
-            window.currentCustomExpenses.splice(idx, 1);
-            renderCustomExpenses();
-            calculateFinPreview();
-        }
+            Object.entries(expensesByMonth).forEach(([date, exps]) => {
+                if(date.startsWith(yearMonth)) {
+                    exps.forEach(exp => monthExpenses += exp.amount);
+                }
+            });
 
-        window.saveExpenses = async function() {
-            const m = document.getElementById('finance-month').value;
-            const y = document.getElementById('finance-year').value;
-            const docId = `${y}_${m}`;
-            // Collect custom expense current amounts
-            const customExpenses = (window.currentCustomExpenses || []).map((ce, idx) => ({
-                name: ce.name,
-                amount: parseFloat(document.getElementById(`exp-custom-${idx}`)?.value || 0)
-            }));
-            const exp = {
-                rent: parseFloat(document.getElementById('exp-rent').value) || 0,
-                electricity: parseFloat(document.getElementById('exp-light').value) || 0,
-                water: parseFloat(document.getElementById('exp-water').value) || 0,
-                other: parseFloat(document.getElementById('exp-other').value) || 0,
-                customExpenses: customExpenses,
-                updatedAt: Date.now()
-            };
-            try {
-                await setDoc(doc(db, "finance_expenses", docId), exp);
-                showToast(`Expenses for ${m}/${y} saved successfully!`, "success");
-                window.loadFinanceData();
-            } catch(e) { showToast("Failed to save expenses", "error"); }
+            // NO caregiver payout or commission - direct income to company
+            const monthNetProfit = monthRevenue - monthExpenses;
+
+            document.getElementById('fin-month-revenue').innerText = `Rs. ${monthRevenue.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+            document.getElementById('fin-month-payouts').innerText = `Rs. ${monthRevenue.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+            document.getElementById('fin-month-expenses').innerText = `Rs. ${monthExpenses.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+            document.getElementById('fin-month-commission').innerText = `Rs. 0.00`;
+            document.getElementById('fin-month-profit').innerText = `Rs. ${monthNetProfit.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
         }
 
         /* --- SETTINGS --- */
@@ -2004,34 +2476,102 @@ window.webPackages = {
 
         /* --- MAP & GEOFENCE LOGIC --- */
         function initAdminMap() {
-            if (adminMap !== null) return; const mapContainer = document.getElementById('admin-map'); if(mapContainer.clientHeight === 0) { mapContainer.style.height = "600px"; }
-            adminMap = L.map('admin-map').setView([6.9271, 79.8612], 12); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(adminMap);
+            if (adminMap !== null) return; 
+            const mapContainer = document.getElementById('admin-map'); 
+            if(!mapContainer) { console.error("Map container not found"); return; }
+            if(mapContainer.clientHeight === 0) { mapContainer.style.height = "600px"; }
+            
+            // Initialize map
+            adminMap = L.map('admin-map').setView([6.9271, 79.8612], 12); 
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+                attribution: '&copy; OpenStreetMap',
+                maxZoom: 19
+            }).addTo(adminMap);
+            
+            // Force map to refresh size
+            setTimeout(() => { 
+                if(adminMap) { 
+                    adminMap.invalidateSize(true); 
+                    console.log("Map initialized successfully");
+                }
+            }, 100);
         }
 
         function startLiveMapTracking() {
-            onSnapshot(query(collection(db, "bookings"), where("status", "in", ["ACCEPTED", "IN_PROGRESS"])), (snapshot) => { activeBookingsData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})); updateMapConnections(); });
+            onSnapshot(query(collection(db, "bookings"), where("status", "in", ["ACCEPTED", "IN_PROGRESS"])), (snapshot) => { 
+                activeBookingsData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})); 
+                updateMapConnections(); 
+            });
+            
             onSnapshot(collection(db, "users"), (snapshot) => {
                 snapshot.forEach((docSnap) => {
-                    const user = docSnap.data(); const userId = docSnap.id; window.allUsersDataMap[userId] = user;
+                    const user = docSnap.data(); 
+                    const userId = docSnap.id; 
+                    window.allUsersDataMap[userId] = user;
+                    
                     if (user.locationLat && user.locationLng && user.locationLat !== 0) {
                         const isNurse = user.role === 'NURSE' || (user.role === 'CAREGIVER' && user.categories && (user.categories.includes('Nurse') || user.categories.includes('NURSE')));
-                        let markerColor = '#0D3B66'; let roleClass = 'role-client'; let roleDisplay = 'CLIENT';
+                        
+                        let markerColor = '#0D3B66'; 
+                        let roleClass = 'role-client'; 
+                        let roleDisplay = 'CLIENT';
+                        let markerEmoji = '👤';
+                        
                         if (isNurse) {
-                            markerColor = '#3b82f6'; roleClass = 'role-nurse'; roleDisplay = 'NURSE';
+                            markerColor = '#3b82f6'; 
+                            roleClass = 'role-nurse'; 
+                            roleDisplay = 'NURSE';
+                            markerEmoji = '👩‍⚕️';
                         } else if (user.role === 'CAREGIVER') {
-                            if (user.isBusy) { markerColor = '#ef4444'; roleClass = 'role-caregiver-busy'; roleDisplay = 'BUSY CAREGIVER'; }
-                            else { markerColor = '#53A548'; roleClass = 'role-caregiver'; roleDisplay = 'FREE CAREGIVER'; }
+                            if (user.isBusy) { 
+                                markerColor = '#ef4444'; 
+                                roleClass = 'role-caregiver-busy'; 
+                                roleDisplay = 'BUSY'; 
+                                markerEmoji = '🔴';
+                            }
+                            else { 
+                                markerColor = '#53A548'; 
+                                roleClass = 'role-caregiver'; 
+                                roleDisplay = 'FREE'; 
+                                markerEmoji = '🟢';
+                            }
                         } else if (user.role === 'CLIENT') {
-                            markerColor = '#0D3B66'; roleClass = 'role-client'; roleDisplay = 'CLIENT';
-                        } else { return; /* skip non-relevant roles */ }
+                            markerColor = '#0D3B66'; 
+                            roleClass = 'role-client'; 
+                            roleDisplay = 'CLIENT';
+                            markerEmoji = '👤';
+                        } else { 
+                            return; /* skip non-relevant roles */ 
+                        }
 
+                        // Create better visible custom icon
                         const customIcon = L.divIcon({
                             className: 'custom-div-icon',
-                            html: `<div style="background-color:${markerColor}; width:18px; height:18px; border-radius:50%; border:3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.3);"></div>`,
-                            iconSize: [18, 18],
-                            iconAnchor: [9, 9]
+                            html: `<div style="
+                                background-color:${markerColor}; 
+                                width:32px; 
+                                height:32px; 
+                                border-radius:50%; 
+                                border:3px solid white; 
+                                box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 16px;
+                                font-weight: bold;
+                                color: white;
+                            ">${markerEmoji}</div>`,
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 16],
+                            popupAnchor: [0, -16]
                         });
-                        const popupContent = `<div class="map-popup-title">${user.name || 'Unknown'}</div><span class="map-popup-role ${roleClass}" style="background-color:${markerColor}">${roleDisplay}</span><div style="margin-top:6px; font-size:11px; color:gray;">${user.phone || 'N/A'}</div>${user.district ? `<div style="font-size:11px; color:#555; margin-top:3px;">📍 ${user.district}</div>` : ''}`;
+                        
+                        const popupContent = `
+                            <div class="map-popup-title" style="font-weight: bold; font-size: 13px; margin-bottom: 4px;">${user.name || 'Unknown'}</div>
+                            <span class="map-popup-role" style="background-color:${markerColor}; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; display: inline-block;">${roleDisplay}</span>
+                            <div style="margin-top:6px; font-size:11px; color:gray;">${user.phone || 'N/A'}</div>
+                            ${user.district ? `<div style="font-size:11px; color:#555; margin-top:3px;">📍 ${user.district}</div>` : ''}
+                        `;
 
                         if (markersMap[userId]) {
                             markersMap[userId].setLatLng([user.locationLat, user.locationLng]);
@@ -2039,7 +2579,11 @@ window.webPackages = {
                             markersMap[userId].getPopup().setContent(popupContent);
                         } else {
                             if (adminMap) {
-                                markersMap[userId] = L.marker([user.locationLat, user.locationLng], { icon: customIcon }).addTo(adminMap).bindPopup(popupContent);
+                                const marker = L.marker([user.locationLat, user.locationLng], { icon: customIcon })
+                                    .addTo(adminMap)
+                                    .bindPopup(popupContent);
+                                markersMap[userId] = marker;
+                                console.log(`✅ Marker added: ${user.name} at [${user.locationLat}, ${user.locationLng}]`);
                             }
                         }
                     }
@@ -2132,7 +2676,7 @@ window.webPackages = {
             document.getElementById(`section-${tabName}`).classList.remove('hidden'); document.getElementById(`tab-${tabName}`).className = "w-full flex items-center p-3.5 rounded-xl bg-primary text-white shadow-md font-bold transition";
             if (tabName === 'map') { setTimeout(() => { initAdminMap(); if(adminMap) { adminMap.invalidateSize(true); } }, 150); }
             if (tabName === 'promotions') { loadPromotionData(); }
-            if (tabName === 'finance') { loadFinanceData(); }
+            if (tabName === 'finance') { setTimeout(() => { initFinanceDatePicker(); }, 100); }
             if (tabName === 'investments') { loadInvestments(); }
             if (tabName === 'webleads') { loadWebLeads(); }
             if (tabName === 'webcontent') { loadWebContent(); }
@@ -2203,10 +2747,23 @@ window.webPackages = {
                 }
 
                 const tbody = document.getElementById('geofence-table-body');
-                if (sessions.length === 0) { tbody.innerHTML = `<tr><td colspan="5" class="p-12 text-center text-gray-500 font-medium"><i data-lucide="shield-check" class="w-12 h-12 text-green-200 mx-auto mb-3"></i>No geofence violations recorded.</td></tr>`; } else { tbody.innerHTML = rowsHtml; }
+                if (tbody) {
+                    if (sessions.length === 0) { 
+                        tbody.innerHTML = `<tr><td colspan="5" class="p-12 text-center text-gray-500 font-medium"><i data-lucide="shield-check" class="w-12 h-12 text-green-200 mx-auto mb-3"></i>No geofence violations recorded.</td></tr>`; 
+                    } else { 
+                        tbody.innerHTML = rowsHtml; 
+                    }
+                }
 
-                document.getElementById('stat-alerts').innerText = currentAwayCount; const badge = document.getElementById('badge-alerts');
-                if(currentAwayCount > 0) { badge.innerText = currentAwayCount; badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); }
+                const badge = document.getElementById('badge-alerts');
+                if(badge) {
+                    if(currentAwayCount > 0) { 
+                        badge.innerText = currentAwayCount; 
+                        badge.classList.remove('hidden'); 
+                    } else { 
+                        badge.classList.add('hidden'); 
+                    }
+                }
                 lucide.createIcons();
                 if (!isFirstLoadAlerts && sessions.length > 0 && sessions[0].isLatest) { if (Date.now() - sessions[0].awayTime < 30000) { showToast("🚨 Critical Geofence Breach Alert!", "error"); } }
                 isFirstLoadAlerts = false;
