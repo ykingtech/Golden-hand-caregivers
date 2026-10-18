@@ -1,0 +1,6 @@
+functions/node_modules/
+.firebase/
+.firebase-cli/
+.npm-cache/
+firebase-debug.log
+firebase-debug.*.log

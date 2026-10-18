@@ -1,0 +1,58 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn() && request.auth.token.admin == true;
+    }
+
+    // The admin dashboard uses a verified custom claim. Firebase Admin SDK
+    // operations in Cloud Functions bypass these client rules.
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow update: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow delete: if isAdmin();
+
+      match /{nestedDocument=**} {
+        allow read, write: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      }
+    }
+
+    // Public discovery records contain only the limited fields copied by the
+    // backend. Signed-in users may browse them; owners may maintain their own
+    // profile while the migration to server-only writes is completed.
+    match /public_profiles/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow delete: if isAdmin();
+    }
+
+    match /public_jobs/{jobId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /live_locations/{uid} {
+      allow read: if signedIn();
+      allow create, update, delete: if isAdmin() || (signedIn() && request.auth.uid == uid);
+    }
+
+    // Transitional compatibility rule: the current Android/Flutter clients
+    // still perform booking, chat, wallet and care-log writes directly. This
+    // closes anonymous public access immediately without breaking those live
+    // flows. These collections should move to callable functions before this
+    // fallback is replaced with strict per-document ownership rules.
+    match /{collection}/{document} {
+      allow read, write: if signedIn()
+        && collection != 'users'
+        && collection != 'public_profiles'
+        && collection != 'public_jobs'
+        && collection != 'live_locations';
+    }
+  }
+}

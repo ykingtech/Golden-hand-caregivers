@@ -1370,6 +1370,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { getFirestore, collection, query, where, getDoc, doc, updateDoc, setDoc, deleteDoc, onSnapshot, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDjLaQSVtIk8w3nWve7PF5PwbtxGzjIogI",
@@ -1383,6 +1384,10 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const functions = getFunctions(app, "asia-south1");
+        const ensureAdminAccess = httpsCallable(functions, "ensureAdminAccess");
+        const deleteUserCompletely = httpsCallable(functions, "deleteUserCompletely");
+        const backfillPublicProfiles = httpsCallable(functions, "backfillPublicProfiles");
 
         const loginScreen = document.getElementById('login-screen');
         const dashboardScreen = document.getElementById('dashboard-screen');
@@ -1393,6 +1398,7 @@
         const specialTableBody = document.getElementById('special-table-body'); 
         
         window.allUsersDataMap = {}; 
+        window.liveLocationDataMap = {};
         window.geofenceIncidents = {}; 
         window.allBookingsMap = {};
         window.allLeadsMap = {}; // 🌟 Store all web leads
@@ -1415,8 +1421,25 @@
         let activePolylines = [];
         let activeBookingsData = [];
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
+                try {
+                    if ((user.email || '').toLowerCase() === 'goldenhandadmin@gmail.com' && user.emailVerified) {
+                        await ensureAdminAccess({});
+                        await user.getIdToken(true);
+                    }
+                    const token = await user.getIdTokenResult(true);
+                    if (token.claims.admin !== true) throw new Error('මෙම ගිණුමට පරිපාලක අවසර නැත.');
+                    await backfillPublicProfiles({});
+                } catch (error) {
+                    await signOut(auth);
+                    loginScreen.classList.remove('hidden');
+                    dashboardScreen.classList.add('hidden');
+                    const loginError = document.getElementById('login-error');
+                    loginError.textContent = error.message || 'Admin permission check failed.';
+                    loginError.classList.remove('hidden');
+                    return;
+                }
                 loginScreen.classList.add('hidden');
                 dashboardScreen.classList.remove('hidden');
                 document.getElementById('admin-email-display').innerText = user.email;
@@ -2244,7 +2267,7 @@ window.webPackages = {
                         nameDisplay += ` <span class="text-[10px] uppercase font-bold bg-gray-100 px-1.5 py-0.5 rounded ml-2 ${gColor}">${user.gender}</span>`;
                     }
 
-                    rows += `<tr class="hover:bg-gray-50 transition border-b border-gray-100"><td class="p-5 font-bold text-gray-900">${nameDisplay}</td><td class="p-5 text-gray-500 font-medium">${user.email}</td><td class="p-5">${roleBadge}</td><td class="p-5">${statusBadge}</td><td class="p-5 text-center"><button onclick="openReviewModal('${user.id}')" class="text-primary hover:text-white hover:bg-primary px-3 py-1.5 rounded-lg text-xs font-bold transition inline-flex items-center border border-primary/30"><i data-lucide="eye" class="w-3.5 h-3.5 mr-1.5"></i> View Details</button></td></tr>`;
+                    rows += `<tr class="hover:bg-gray-50 transition border-b border-gray-100"><td class="p-5 font-bold text-gray-900">${nameDisplay}</td><td class="p-5 text-gray-500 font-medium">${user.email}</td><td class="p-5">${roleBadge}</td><td class="p-5">${statusBadge}</td><td class="p-5 text-center"><button onclick="openReviewModal('${user.id}')" class="text-primary hover:text-white hover:bg-primary px-3 py-1.5 rounded-lg text-xs font-bold transition inline-flex items-center border border-primary/30"><i data-lucide="eye" class="w-3.5 h-3.5 mr-1.5"></i> View Details</button> <button onclick="deleteManagedUser('${user.id}')" class="ml-2 text-red-700 hover:text-white hover:bg-red-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-red-300">Delete account</button></td></tr>`;
                 }
             });
             
@@ -2252,6 +2275,21 @@ window.webPackages = {
             tbody.innerHTML = count === 0 ? `<tr><td colspan="5" class="p-8 text-center text-gray-500 font-medium">No ${window.currentUserFilter.toLowerCase()}s${filterText} found.</td></tr>` : rows;
             lucide.createIcons();
         }
+
+        window.deleteManagedUser = async function(uid) {
+            const target = window.allUsersDataMap[uid];
+            if (!target) return showToast('User record not found.', 'error');
+            if (uid === auth.currentUser?.uid || (target.email || '').toLowerCase() === 'goldenhandadmin@gmail.com') return showToast('Admin account cannot be deleted here.', 'error');
+            if (!confirm(`PERMANENTLY DELETE ${target.name || target.email || uid}? This removes the Firebase Auth account and user profile, linked bookings and their chats/care logs/alerts/reviews, elder profiles, SOS alerts, leave requests, transactions and nested user data. This cannot be undone.`)) return;
+            if (prompt('Type DELETE to confirm permanent deletion:') !== 'DELETE') return;
+            try {
+                await deleteUserCompletely({ uid });
+                showToast('User account and linked records deleted.', 'success');
+            } catch (error) {
+                console.error('User deletion failed', error);
+                showToast(error.message || 'Deletion failed; check backend logs before retrying.', 'error');
+            }
+        };
 
         window.loadAllUsers = async function() {
             onSnapshot(collection(db, "users"), (snapshot) => {
@@ -2510,6 +2548,10 @@ window.webPackages = {
                 snapshot.forEach((docSnap) => {
                     const user = docSnap.data(); 
                     const userId = docSnap.id; 
+                    delete user.locationLat;
+                    delete user.locationLng;
+                    const live = window.liveLocationDataMap[userId];
+                    if (live) { user.locationLat = live.lat; user.locationLng = live.lng; }
                     window.allUsersDataMap[userId] = user;
                     currentUserIds.add(userId);
                     renderLiveUserMarker(userId, user);
@@ -2518,6 +2560,26 @@ window.webPackages = {
                     if (!currentUserIds.has(userId)) {
                         markersMap[userId].remove();
                         delete markersMap[userId];
+                    }
+                });
+                updateMapConnections();
+            });
+
+            onSnapshot(collection(db, "live_locations"), (snapshot) => {
+                window.liveLocationDataMap = {};
+                Object.entries(window.allUsersDataMap).forEach(([userId, user]) => {
+                    delete user.locationLat;
+                    delete user.locationLng;
+                    renderLiveUserMarker(userId, user);
+                });
+                snapshot.forEach((locationDoc) => {
+                    const location = locationDoc.data();
+                    window.liveLocationDataMap[locationDoc.id] = location;
+                    const user = window.allUsersDataMap[locationDoc.id];
+                    if (user) {
+                        user.locationLat = location.lat;
+                        user.locationLng = location.lng;
+                        renderLiveUserMarker(locationDoc.id, user);
                     }
                 });
                 updateMapConnections();
