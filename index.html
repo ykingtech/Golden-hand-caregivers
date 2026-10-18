@@ -2487,6 +2487,7 @@ window.webPackages = {
                 attribution: '&copy; OpenStreetMap',
                 maxZoom: 19
             }).addTo(adminMap);
+            renderLiveMapMarkers();
             
             // Force map to refresh size
             setTimeout(() => { 
@@ -2504,92 +2505,81 @@ window.webPackages = {
             });
             
             onSnapshot(collection(db, "users"), (snapshot) => {
+                window.allUsersDataMap = {};
+                const currentUserIds = new Set();
                 snapshot.forEach((docSnap) => {
                     const user = docSnap.data(); 
                     const userId = docSnap.id; 
                     window.allUsersDataMap[userId] = user;
-                    
-                    if (user.locationLat && user.locationLng && user.locationLat !== 0) {
-                        const isNurse = user.role === 'NURSE' || (user.role === 'CAREGIVER' && user.categories && (user.categories.includes('Nurse') || user.categories.includes('NURSE')));
-                        
-                        let markerColor = '#0D3B66'; 
-                        let roleClass = 'role-client'; 
-                        let roleDisplay = 'CLIENT';
-                        let markerEmoji = '👤';
-                        
-                        if (isNurse) {
-                            markerColor = '#3b82f6'; 
-                            roleClass = 'role-nurse'; 
-                            roleDisplay = 'NURSE';
-                            markerEmoji = '👩‍⚕️';
-                        } else if (user.role === 'CAREGIVER') {
-                            if (user.isBusy) { 
-                                markerColor = '#ef4444'; 
-                                roleClass = 'role-caregiver-busy'; 
-                                roleDisplay = 'BUSY'; 
-                                markerEmoji = '🔴';
-                            }
-                            else { 
-                                markerColor = '#53A548'; 
-                                roleClass = 'role-caregiver'; 
-                                roleDisplay = 'FREE'; 
-                                markerEmoji = '🟢';
-                            }
-                        } else if (user.role === 'CLIENT') {
-                            markerColor = '#0D3B66'; 
-                            roleClass = 'role-client'; 
-                            roleDisplay = 'CLIENT';
-                            markerEmoji = '👤';
-                        } else { 
-                            return; /* skip non-relevant roles */ 
-                        }
-
-                        // Create better visible custom icon
-                        const customIcon = L.divIcon({
-                            className: 'custom-div-icon',
-                            html: `<div style="
-                                background-color:${markerColor}; 
-                                width:32px; 
-                                height:32px; 
-                                border-radius:50%; 
-                                border:3px solid white; 
-                                box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                font-size: 16px;
-                                font-weight: bold;
-                                color: white;
-                            ">${markerEmoji}</div>`,
-                            iconSize: [32, 32],
-                            iconAnchor: [16, 16],
-                            popupAnchor: [0, -16]
-                        });
-                        
-                        const popupContent = `
-                            <div class="map-popup-title" style="font-weight: bold; font-size: 13px; margin-bottom: 4px;">${user.name || 'Unknown'}</div>
-                            <span class="map-popup-role" style="background-color:${markerColor}; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; display: inline-block;">${roleDisplay}</span>
-                            <div style="margin-top:6px; font-size:11px; color:gray;">${user.phone || 'N/A'}</div>
-                            ${user.district ? `<div style="font-size:11px; color:#555; margin-top:3px;">📍 ${user.district}</div>` : ''}
-                        `;
-
-                        if (markersMap[userId]) {
-                            markersMap[userId].setLatLng([user.locationLat, user.locationLng]);
-                            markersMap[userId].setIcon(customIcon);
-                            markersMap[userId].getPopup().setContent(popupContent);
-                        } else {
-                            if (adminMap) {
-                                const marker = L.marker([user.locationLat, user.locationLng], { icon: customIcon })
-                                    .addTo(adminMap)
-                                    .bindPopup(popupContent);
-                                markersMap[userId] = marker;
-                                console.log(`✅ Marker added: ${user.name} at [${user.locationLat}, ${user.locationLng}]`);
-                            }
-                        }
+                    currentUserIds.add(userId);
+                    renderLiveUserMarker(userId, user);
+                });
+                Object.keys(markersMap).forEach((userId) => {
+                    if (!currentUserIds.has(userId)) {
+                        markersMap[userId].remove();
+                        delete markersMap[userId];
                     }
                 });
                 updateMapConnections();
             });
+        }
+
+        function renderLiveMapMarkers() {
+            Object.entries(window.allUsersDataMap).forEach(([userId, user]) => renderLiveUserMarker(userId, user));
+        }
+
+        function renderLiveUserMarker(userId, user) {
+            if (!adminMap) return;
+
+            const lat = Number(user.locationLat);
+            const lng = Number(user.locationLng);
+            const hasLocation = Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180 && (lat !== 0 || lng !== 0);
+            const isNurse = user.role === 'NURSE' || (user.role === 'CAREGIVER' && user.categories && (user.categories.includes('Nurse') || user.categories.includes('NURSE')));
+            const isSupportedRole = isNurse || user.role === 'CAREGIVER' || user.role === 'CLIENT';
+
+            if (!hasLocation || !isSupportedRole) {
+                if (markersMap[userId]) {
+                    markersMap[userId].remove();
+                    delete markersMap[userId];
+                }
+                return;
+            }
+
+            let markerColor = '#0D3B66';
+            let roleDisplay = 'CLIENT';
+            let markerEmoji = '👤';
+
+            if (isNurse) {
+                markerColor = '#3b82f6';
+                roleDisplay = 'NURSE';
+                markerEmoji = '👩‍⚕️';
+            } else if (user.role === 'CAREGIVER') {
+                markerColor = user.isBusy ? '#ef4444' : '#53A548';
+                roleDisplay = user.isBusy ? 'BUSY' : 'FREE';
+                markerEmoji = user.isBusy ? '🔴' : '🟢';
+            }
+
+            const customIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div style="background-color:${markerColor};width:32px;height:32px;border-radius:50%;border:3px solid white;box-shadow:0 4px 8px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:bold;color:white;">${markerEmoji}</div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16],
+                popupAnchor: [0, -16]
+            });
+            const popupContent = `<div class="map-popup-title" style="font-weight:bold;font-size:13px;margin-bottom:4px;">${user.name || 'Unknown'}</div><span class="map-popup-role" style="background-color:${markerColor};color:white;padding:3px 8px;border-radius:4px;font-size:11px;display:inline-block;">${roleDisplay}</span><div style="margin-top:6px;font-size:11px;color:gray;">${user.phone || 'N/A'}</div>${user.district ? `<div style="font-size:11px;color:#555;margin-top:3px;">📍 ${user.district}</div>` : ''}`;
+
+            if (markersMap[userId]) {
+                markersMap[userId].setLatLng([lat, lng]);
+                markersMap[userId].setIcon(customIcon);
+                markersMap[userId].getPopup().setContent(popupContent);
+            } else {
+                markersMap[userId] = L.marker([lat, lng], { icon: customIcon }).addTo(adminMap).bindPopup(popupContent);
+            }
+
+            const districtFilter = (window.currentMapDistrict || '').toLowerCase();
+            const matchesDistrict = !districtFilter || (user.district || '').toLowerCase() === districtFilter;
+            if (matchesDistrict && !adminMap.hasLayer(markersMap[userId])) markersMap[userId].addTo(adminMap);
+            if (!matchesDistrict && adminMap.hasLayer(markersMap[userId])) adminMap.removeLayer(markersMap[userId]);
         }
 
         window.currentMapDistrict = '';
@@ -2674,7 +2664,7 @@ window.webPackages = {
                 document.getElementById(`section-${t}`).classList.add('hidden'); document.getElementById(`tab-${t}`).className = "w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition font-medium";
             });
             document.getElementById(`section-${tabName}`).classList.remove('hidden'); document.getElementById(`tab-${tabName}`).className = "w-full flex items-center p-3.5 rounded-xl bg-primary text-white shadow-md font-bold transition";
-            if (tabName === 'map') { setTimeout(() => { initAdminMap(); if(adminMap) { adminMap.invalidateSize(true); } }, 150); }
+            if (tabName === 'map') { setTimeout(() => { initAdminMap(); if(adminMap) { adminMap.invalidateSize(true); renderLiveMapMarkers(); } }, 150); }
             if (tabName === 'promotions') { loadPromotionData(); }
             if (tabName === 'finance') { setTimeout(() => { initFinanceDatePicker(); }, 100); }
             if (tabName === 'investments') { loadInvestments(); }
