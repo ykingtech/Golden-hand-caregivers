@@ -1,0 +1,34 @@
+{
+  "name": "golden-hand-admin-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Spark-compatible local administrator dashboard for Golden Hand Caregivers",
+  "main": "electron/main.js",
+  "scripts": {
+    "admin:start": "electron .",
+    "admin:dist": "electron-builder --win nsis"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.5.0"
+  },
+  "devDependencies": {
+    "electron": "^38.2.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.goldenhand.admin",
+    "productName": "Golden Hand Admin",
+    "files": [
+      "index.html",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

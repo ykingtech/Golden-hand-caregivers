@@ -996,16 +996,19 @@
                     </div>
                 </div>
 
-                <!-- 13. CALL CENTER (MOBITEL) -->
+                <!-- 13. CALL CENTER (LAKAGENT) -->
                 <div id="section-callcenter" class="hidden h-full flex flex-col w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <div class="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center z-10 flex-shrink-0">
                         <div>
-                            <h3 class="font-extrabold text-gray-800 flex items-center"><i data-lucide="headset" class="w-5 h-5 mr-2 text-primary"></i> Mobitel Call Center Portal</h3>
-                            <p class="text-[11px] font-bold text-gray-500 mt-0.5">Isolated Electron Webview Container</p>
+                            <h3 class="font-extrabold text-gray-800 flex items-center"><i data-lucide="headset" class="w-5 h-5 mr-2 text-primary"></i> LakAgent Call Center Portal</h3>
+                            <p class="text-[11px] font-bold text-gray-500 mt-0.5">Secure LakAgent business login</p>
                         </div>
-                        <button onclick="document.getElementById('mobitel-webview').reload()" class="text-xs bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 px-3 py-2 rounded-lg font-bold transition flex items-center shadow-sm"><i data-lucide="refresh-cw" class="w-3.5 h-3.5 mr-1.5"></i> Refresh Frame</button>
+                        <div class="flex items-center gap-2">
+                            <a href="https://lakagent.com/login" target="_blank" rel="noopener noreferrer" class="text-xs bg-primary hover:bg-green-700 text-white px-3 py-2 rounded-lg font-bold transition flex items-center shadow-sm"><i data-lucide="external-link" class="w-3.5 h-3.5 mr-1.5"></i> Open LakAgent</a>
+                            <button onclick="reloadLakAgentFrame()" class="text-xs bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 px-3 py-2 rounded-lg font-bold transition flex items-center shadow-sm"><i data-lucide="refresh-cw" class="w-3.5 h-3.5 mr-1.5"></i> Refresh Frame</button>
+                        </div>
                     </div>
-                    <webview id="mobitel-webview" src="https://mcallcenter.mobitel.lk/index.php?page=call_agents" class="w-full flex-1 border-0 bg-white" style="display:flex;"></webview>
+                    <iframe id="lakagent-frame" src="https://lakagent.com/login" title="LakAgent Call Center Login" class="w-full flex-1 border-0 bg-white" allow="microphone; autoplay" referrerpolicy="strict-origin-when-cross-origin"></iframe>
                 </div>
 
                 <!-- 14. SEYLAN BANK PORTAL -->
@@ -1370,7 +1373,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { getFirestore, collection, query, where, getDoc, doc, updateDoc, setDoc, deleteDoc, onSnapshot, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDjLaQSVtIk8w3nWve7PF5PwbtxGzjIogI",
@@ -1384,10 +1386,6 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const functions = getFunctions(app, "asia-south1");
-        const ensureAdminAccess = httpsCallable(functions, "ensureAdminAccess");
-        const deleteUserCompletely = httpsCallable(functions, "deleteUserCompletely");
-        const backfillPublicProfiles = httpsCallable(functions, "backfillPublicProfiles");
 
         const loginScreen = document.getElementById('login-screen');
         const dashboardScreen = document.getElementById('dashboard-screen');
@@ -1424,13 +1422,10 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
-                    if ((user.email || '').toLowerCase() === 'goldenhandadmin@gmail.com' && user.emailVerified) {
-                        await ensureAdminAccess({});
-                        await user.getIdToken(true);
+                    const email = (user.email || '').toLowerCase();
+                    if (email !== 'goldenhandadmin@gmail.com' || !user.emailVerified) {
+                        throw new Error('Verified Golden Hand administrator account is required.');
                     }
-                    const token = await user.getIdTokenResult(true);
-                    if (token.claims.admin !== true) throw new Error('මෙම ගිණුමට පරිපාලක අවසර නැත.');
-                    await backfillPublicProfiles({});
                 } catch (error) {
                     await signOut(auth);
                     loginScreen.classList.remove('hidden');
@@ -2267,7 +2262,10 @@ window.webPackages = {
                         nameDisplay += ` <span class="text-[10px] uppercase font-bold bg-gray-100 px-1.5 py-0.5 rounded ml-2 ${gColor}">${user.gender}</span>`;
                     }
 
-                    rows += `<tr class="hover:bg-gray-50 transition border-b border-gray-100"><td class="p-5 font-bold text-gray-900">${nameDisplay}</td><td class="p-5 text-gray-500 font-medium">${user.email}</td><td class="p-5">${roleBadge}</td><td class="p-5">${statusBadge}</td><td class="p-5 text-center"><button onclick="openReviewModal('${user.id}')" class="text-primary hover:text-white hover:bg-primary px-3 py-1.5 rounded-lg text-xs font-bold transition inline-flex items-center border border-primary/30"><i data-lucide="eye" class="w-3.5 h-3.5 mr-1.5"></i> View Details</button> <button onclick="deleteManagedUser('${user.id}')" class="ml-2 text-red-700 hover:text-white hover:bg-red-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-red-300">Delete account</button></td></tr>`;
+                    const deleteButton = window.goldenHandAdmin
+                        ? `<button onclick="deleteManagedUser('${user.id}')" class="ml-2 text-red-700 hover:text-white hover:bg-red-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-red-300">Delete account</button>`
+                        : `<button onclick="showToast('Complete deletion is available in the Golden Hand desktop admin app.', 'error')" class="ml-2 text-gray-400 px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200">Desktop delete</button>`;
+                    rows += `<tr class="hover:bg-gray-50 transition border-b border-gray-100"><td class="p-5 font-bold text-gray-900">${nameDisplay}</td><td class="p-5 text-gray-500 font-medium">${user.email}</td><td class="p-5">${roleBadge}</td><td class="p-5">${statusBadge}</td><td class="p-5 text-center"><button onclick="openReviewModal('${user.id}')" class="text-primary hover:text-white hover:bg-primary px-3 py-1.5 rounded-lg text-xs font-bold transition inline-flex items-center border border-primary/30"><i data-lucide="eye" class="w-3.5 h-3.5 mr-1.5"></i> View Details</button>${deleteButton}</td></tr>`;
                 }
             });
             
@@ -2277,13 +2275,20 @@ window.webPackages = {
         }
 
         window.deleteManagedUser = async function(uid) {
+            if (!window.goldenHandAdmin) return showToast('Open this dashboard in the Golden Hand desktop admin app to delete Firebase Auth accounts.', 'error');
             const target = window.allUsersDataMap[uid];
             if (!target) return showToast('User record not found.', 'error');
             if (uid === auth.currentUser?.uid || (target.email || '').toLowerCase() === 'goldenhandadmin@gmail.com') return showToast('Admin account cannot be deleted here.', 'error');
             if (!confirm(`PERMANENTLY DELETE ${target.name || target.email || uid}? This removes the Firebase Auth account and user profile, linked bookings and their chats/care logs/alerts/reviews, elder profiles, SOS alerts, leave requests, transactions and nested user data. This cannot be undone.`)) return;
             if (prompt('Type DELETE to confirm permanent deletion:') !== 'DELETE') return;
             try {
-                await deleteUserCompletely({ uid });
+                let status = await window.goldenHandAdmin.getCredentialStatus();
+                if (!status.configured) {
+                    status = await window.goldenHandAdmin.configureCredentials();
+                    if (!status.configured) return showToast('Service-account setup was cancelled.', 'error');
+                }
+                const idToken = await auth.currentUser.getIdToken(true);
+                await window.goldenHandAdmin.deleteUserCompletely({ uid, idToken });
                 showToast('User account and linked records deleted.', 'success');
             } catch (error) {
                 console.error('User deletion failed', error);
@@ -2718,6 +2723,11 @@ window.webPackages = {
             document.getElementById('map-nurses-list').innerHTML = nurseListHtml.length ? nurseListHtml.join('') : '<p class="text-xs font-medium text-gray-400 italic bg-gray-50 p-3 rounded-lg border border-dashed text-center">No nurses found.</p>';
             document.getElementById('map-clients-list').innerHTML = clientListHtml.length ? clientListHtml.join('') : '<p class="text-xs font-medium text-gray-400 italic bg-gray-50 p-3 rounded-lg border border-dashed text-center">No clients found.</p>';
             lucide.createIcons();
+        }
+
+        window.reloadLakAgentFrame = function() {
+            const frame = document.getElementById('lakagent-frame');
+            if (frame) frame.src = 'https://lakagent.com/login';
         }
 
         window.switchTab = function(tabName) {

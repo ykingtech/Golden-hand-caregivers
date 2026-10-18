@@ -1,6 +1,9 @@
 functions/node_modules/
+node_modules/
+dist/
 .firebase/
 .firebase-cli/
 .npm-cache/
 firebase-debug.log
 firebase-debug.*.log
+service-account*.json

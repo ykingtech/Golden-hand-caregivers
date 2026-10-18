@@ -7,11 +7,17 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return signedIn() && request.auth.token.admin == true;
+      return signedIn()
+        && request.auth.token.email_verified == true
+        && request.auth.token.email == 'goldenhandadmin@gmail.com';
     }
 
-    // The admin dashboard uses a verified custom claim. Firebase Admin SDK
-    // operations in Cloud Functions bypass these client rules.
+    // Spark-plan administration is restricted to the designated verified
+    // account. The local Electron Admin SDK process bypasses client rules.
+    match /{adminDocument=**} {
+      allow read, write: if isAdmin();
+    }
+
     match /users/{uid} {
       allow read: if signedIn();
       allow create: if isAdmin() || (signedIn() && request.auth.uid == uid);
