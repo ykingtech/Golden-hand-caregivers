@@ -1618,56 +1618,21 @@
         function initAdminMap() {
             if (adminMap !== null) return; const mapContainer = document.getElementById('admin-map'); if(mapContainer.clientHeight === 0) { mapContainer.style.height = "600px"; }
             adminMap = L.map('admin-map').setView([6.9271, 79.8612], 12); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(adminMap);
-            syncLiveMapMarkers();
-        }
-
-        function syncLiveMapMarkers() {
-            if (!adminMap) return;
-            const currentUserIds = new Set(Object.keys(window.allUsersDataMap));
-
-            Object.entries(markersMap).forEach(([userId, marker]) => {
-                if (!currentUserIds.has(userId)) {
-                    marker.remove();
-                    delete markersMap[userId];
-                }
-            });
-
-            Object.entries(window.allUsersDataMap).forEach(([userId, user]) => {
-                const lat = Number(user.locationLat);
-                const lng = Number(user.locationLng);
-                const hasLocation = Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180 && (lat !== 0 || lng !== 0);
-
-                if (!hasLocation) {
-                    if (markersMap[userId]) {
-                        markersMap[userId].remove();
-                        delete markersMap[userId];
-                    }
-                    return;
-                }
-
-                let markerColor = '#0D3B66'; let roleClass = 'role-client'; let roleDisplay = user.role;
-                if (user.role === 'CAREGIVER') { if (user.isBusy) { markerColor = '#ef4444'; roleClass = 'role-caregiver-busy'; roleDisplay = 'BUSY CAREGIVER'; } else { markerColor = '#53A548'; roleClass = 'role-caregiver'; roleDisplay = 'FREE CAREGIVER'; } }
-                const customIcon = L.divIcon({ className: 'custom-div-icon', html: `<div style="background-color:${markerColor}; width:18px; height:18px; border-radius:50%; border:3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: all 0.3s ease;"></div>`, iconSize: [18, 18], iconAnchor: [9, 9] });
-                const popupContent = `<div class="map-popup-title">${user.name}</div><span class="map-popup-role ${roleClass}">${roleDisplay}</span><div style="margin-top:6px; font-size:11px; color:gray;"><i data-lucide="phone" style="width:10px; height:10px; display:inline;"></i> ${user.phone||'N/A'}</div>`;
-
-                if (markersMap[userId]) {
-                    markersMap[userId].setLatLng([lat, lng]);
-                    markersMap[userId].setIcon(customIcon);
-                    markersMap[userId].getPopup().setContent(popupContent);
-                } else {
-                    markersMap[userId] = L.marker([lat, lng], { icon: customIcon }).addTo(adminMap).bindPopup(popupContent);
-                }
-            });
         }
 
         function startLiveMapTracking() {
             onSnapshot(query(collection(db, "bookings"), where("status", "in", ["ACCEPTED", "IN_PROGRESS"])), (snapshot) => { activeBookingsData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})); updateMapConnections(); });
             onSnapshot(collection(db, "users"), (snapshot) => {
-                window.allUsersDataMap = {};
                 snapshot.forEach((docSnap) => {
                     const user = docSnap.data(); const userId = docSnap.id; window.allUsersDataMap[userId] = user;
+                    if (user.locationLat && user.locationLng && user.locationLat !== 0) {
+                        let markerColor = '#0D3B66'; let roleClass = 'role-client'; let roleDisplay = user.role;
+                        if (user.role === 'CAREGIVER') { if (user.isBusy) { markerColor = '#ef4444'; roleClass = 'role-caregiver-busy'; roleDisplay = 'BUSY CAREGIVER'; } else { markerColor = '#53A548'; roleClass = 'role-caregiver'; roleDisplay = 'FREE CAREGIVER'; } }
+                        const customIcon = L.divIcon({ className: 'custom-div-icon', html: `<div style="background-color:${markerColor}; width:18px; height:18px; border-radius:50%; border:3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: all 0.3s ease;"></div>`, iconSize: [18, 18], iconAnchor: [9, 9] });
+                        const popupContent = `<div class="map-popup-title">${user.name}</div><span class="map-popup-role ${roleClass}">${roleDisplay}</span><div style="margin-top:6px; font-size:11px; color:gray;"><i data-lucide="phone" style="width:10px; height:10px; display:inline;"></i> ${user.phone||'N/A'}</div>`;
+                        if (markersMap[userId]) { markersMap[userId].setLatLng([user.locationLat, user.locationLng]); markersMap[userId].setIcon(customIcon); markersMap[userId].getPopup().setContent(popupContent); } else { if (adminMap) { markersMap[userId] = L.marker([user.locationLat, user.locationLng], { icon: customIcon }).addTo(adminMap).bindPopup(popupContent); } }
+                    }
                 });
-                syncLiveMapMarkers();
                 updateMapConnections();
             });
         }
@@ -1695,7 +1660,7 @@
                 document.getElementById(`section-${t}`).classList.add('hidden'); document.getElementById(`tab-${t}`).className = "w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition font-medium";
             });
             document.getElementById(`section-${tabName}`).classList.remove('hidden'); document.getElementById(`tab-${tabName}`).className = "w-full flex items-center p-3.5 rounded-xl bg-primary text-white shadow-md font-bold transition";
-            if (tabName === 'map') { setTimeout(() => { initAdminMap(); if(adminMap) { adminMap.invalidateSize(true); syncLiveMapMarkers(); } }, 150); }
+            if (tabName === 'map') { setTimeout(() => { initAdminMap(); if(adminMap) { adminMap.invalidateSize(true); } }, 150); }
             if (tabName === 'promotions') { loadPromotionData(); }
             if (tabName === 'finance') { loadFinanceData(); }
             if (tabName === 'investments') { loadInvestments(); }
