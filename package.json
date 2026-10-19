@@ -1,6 +1,6 @@
 {
   "name": "golden-hand-admin-desktop",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "description": "Spark-compatible local administrator dashboard for Golden Hand Caregivers",
   "main": "electron/main.js",
@@ -21,10 +21,12 @@
     "files": [
       "index.html",
       "electron/**/*",
+      "assets/**/*",
       "package.json"
     ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "assets/icon.png"
     },
     "nsis": {
       "oneClick": false,

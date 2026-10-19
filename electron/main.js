@@ -10,9 +10,63 @@ const { ADMIN_EMAIL, deleteUserCompletely } = require('./delete-service');
 
 const PROJECT_ID = 'care-2a20d';
 const DATABASE_URL = 'https://care-2a20d-default-rtdb.asia-southeast1.firebasedatabase.app';
+const SEYLAN_CORPORATE_URL = 'https://www.seylanbank.lk/corporate/login';
+const SEYLAN_ALLOWED_HOSTS = new Set(['seylanbank.lk', 'www.seylanbank.lk', 'seylan.lk', 'www.seylan.lk']);
 let mainWindow = null;
+let seylanWindow = null;
 let adminApp = null;
 let inMemoryCredential = null;
+
+function appIconPath() {
+  return path.join(__dirname, '..', 'assets', 'icon.png');
+}
+
+function isAllowedSeylanUrl(rawUrl) {
+  try {
+    const url = new URL(rawUrl);
+    return url.protocol === 'https:' && SEYLAN_ALLOWED_HOSTS.has(url.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+function openSeylanWindow() {
+  if (seylanWindow && !seylanWindow.isDestroyed()) {
+    seylanWindow.show();
+    seylanWindow.focus();
+    return;
+  }
+
+  seylanWindow = new BrowserWindow({
+    width: 1280,
+    height: 860,
+    minWidth: 980,
+    minHeight: 680,
+    parent: mainWindow,
+    modal: false,
+    autoHideMenuBar: true,
+    title: 'Seylan Corporate Banking — Golden Hand Admin',
+    icon: appIconPath(),
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      partition: 'persist:seylan-corporate-banking',
+    },
+  });
+
+  seylanWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (isAllowedSeylanUrl(url)) seylanWindow.loadURL(url);
+    return { action: 'deny' };
+  });
+  seylanWindow.webContents.on('will-navigate', (event, url) => {
+    if (!isAllowedSeylanUrl(url)) event.preventDefault();
+  });
+  seylanWindow.on('closed', () => {
+    seylanWindow = null;
+  });
+  seylanWindow.loadURL(SEYLAN_CORPORATE_URL);
+}
 
 function credentialStorePath() {
   return path.join(app.getPath('userData'), 'firebase-service-account.bin');
@@ -103,6 +157,12 @@ function registerIpc() {
     return configureCredential();
   });
 
+  ipcMain.handle('portal:open-seylan', async (event) => {
+    assertLocalRenderer(event);
+    openSeylanWindow();
+    return { opened: true };
+  });
+
   ipcMain.handle('admin:delete-user-completely', async (event, request) => {
     assertLocalRenderer(event);
     const uid = typeof request?.uid === 'string' ? request.uid.trim() : '';
@@ -140,6 +200,7 @@ function createWindow() {
     minWidth: 1100,
     minHeight: 700,
     show: false,
+    icon: appIconPath(),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
