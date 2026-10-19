@@ -2274,7 +2274,7 @@ window.webPackages = {
                     }
 
                     const deleteButton = window.goldenHandAdmin
-                        ? `<button onclick="deleteManagedUser('${user.id}')" class="ml-2 text-red-700 hover:text-white hover:bg-red-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-red-300">Delete account</button>`
+                        ? `<button onclick="deleteManagedUser('${user.id}', this)" class="ml-2 text-red-700 hover:text-white hover:bg-red-600 disabled:opacity-50 disabled:cursor-wait px-3 py-1.5 rounded-lg text-xs font-bold border border-red-300">Delete account</button>`
                         : `<button onclick="showToast('Complete deletion is available in the Golden Hand desktop admin app.', 'error')" class="ml-2 text-gray-400 px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200">Desktop delete</button>`;
                     rows += `<tr class="hover:bg-gray-50 transition border-b border-gray-100"><td class="p-5 font-bold text-gray-900">${nameDisplay}</td><td class="p-5 text-gray-500 font-medium">${user.email}</td><td class="p-5">${roleBadge}</td><td class="p-5">${statusBadge}</td><td class="p-5 text-center"><button onclick="openReviewModal('${user.id}')" class="text-primary hover:text-white hover:bg-primary px-3 py-1.5 rounded-lg text-xs font-bold transition inline-flex items-center border border-primary/30"><i data-lucide="eye" class="w-3.5 h-3.5 mr-1.5"></i> View Details</button>${deleteButton}</td></tr>`;
                 }
@@ -2285,16 +2285,20 @@ window.webPackages = {
             lucide.createIcons();
         }
 
-        window.deleteManagedUser = async function(uid) {
+        window.deleteManagedUser = async function(uid, button) {
             if (!window.goldenHandAdmin) return showToast('Open this dashboard in the Golden Hand desktop admin app to delete Firebase Auth accounts.', 'error');
             const target = window.allUsersDataMap[uid];
             if (!target) return showToast('User record not found.', 'error');
             if (uid === auth.currentUser?.uid || (target.email || '').toLowerCase() === 'goldenhandcaregivers@gmail.com') return showToast('Admin account cannot be deleted here.', 'error');
-            if (!confirm(`PERMANENTLY DELETE ${target.name || target.email || uid}? This removes the Firebase Auth account and user profile, linked bookings and their chats/care logs/alerts/reviews, elder profiles, SOS alerts, leave requests, transactions and nested user data. This cannot be undone.`)) return;
-            if (prompt('Type DELETE to confirm permanent deletion:') !== 'DELETE') return;
+            const originalLabel = button?.textContent;
+            if (button) {
+                button.disabled = true;
+                button.textContent = 'Preparing...';
+            }
             try {
                 let status = await window.goldenHandAdmin.getCredentialStatus();
                 if (!status.configured) {
+                    showToast('Select the care-2a20d service-account JSON file.', 'success');
                     status = await window.goldenHandAdmin.configureCredentials();
                     if (!status.configured) return showToast('Service-account setup was cancelled.', 'error');
                 }
@@ -2303,7 +2307,13 @@ window.webPackages = {
                 showToast('User account and linked records deleted.', 'success');
             } catch (error) {
                 console.error('User deletion failed', error);
+                if ((error.message || '').includes('Deletion cancelled')) return;
                 showToast(error.message || 'Deletion failed; check backend logs before retrying.', 'error');
+            } finally {
+                if (button && button.isConnected) {
+                    button.disabled = false;
+                    button.textContent = originalLabel || 'Delete account';
+                }
             }
         };
 
