@@ -1,6 +1,6 @@
 const { FieldValue } = require('firebase-admin/firestore');
 
-const ADMIN_EMAIL = 'goldenhandadmin@gmail.com';
+const ADMIN_EMAIL = 'goldenhandcaregivers@gmail.com';
 
 async function deleteMatching(db, collectionName, field, value) {
   const snapshot = await db.collection(collectionName).where(field, '==', value).get();

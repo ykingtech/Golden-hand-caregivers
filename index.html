@@ -1423,7 +1423,7 @@
             if (user) {
                 try {
                     const email = (user.email || '').toLowerCase();
-                    if (email !== 'goldenhandadmin@gmail.com' || !user.emailVerified) {
+                    if (email !== 'goldenhandcaregivers@gmail.com' || !user.emailVerified) {
                         throw new Error('Verified Golden Hand administrator account is required.');
                     }
                 } catch (error) {
@@ -2278,7 +2278,7 @@ window.webPackages = {
             if (!window.goldenHandAdmin) return showToast('Open this dashboard in the Golden Hand desktop admin app to delete Firebase Auth accounts.', 'error');
             const target = window.allUsersDataMap[uid];
             if (!target) return showToast('User record not found.', 'error');
-            if (uid === auth.currentUser?.uid || (target.email || '').toLowerCase() === 'goldenhandadmin@gmail.com') return showToast('Admin account cannot be deleted here.', 'error');
+            if (uid === auth.currentUser?.uid || (target.email || '').toLowerCase() === 'goldenhandcaregivers@gmail.com') return showToast('Admin account cannot be deleted here.', 'error');
             if (!confirm(`PERMANENTLY DELETE ${target.name || target.email || uid}? This removes the Firebase Auth account and user profile, linked bookings and their chats/care logs/alerts/reviews, elder profiles, SOS alerts, leave requests, transactions and nested user data. This cannot be undone.`)) return;
             if (prompt('Type DELETE to confirm permanent deletion:') !== 'DELETE') return;
             try {

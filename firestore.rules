@@ -9,7 +9,7 @@ service cloud.firestore {
     function isAdmin() {
       return signedIn()
         && request.auth.token.email_verified == true
-        && request.auth.token.email == 'goldenhandadmin@gmail.com';
+        && request.auth.token.email == 'goldenhandcaregivers@gmail.com';
     }
 
     // Spark-plan administration is restricted to the designated verified
