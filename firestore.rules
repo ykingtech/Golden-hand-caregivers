@@ -12,6 +12,18 @@ service cloud.firestore {
         && request.auth.token.email == 'goldenhandcaregivers@gmail.com';
     }
 
+    function createsWithoutAdminPricing() {
+      return !request.resource.data.keys().hasAny([
+        'dailyRate', 'pricingUnit', 'pricingUpdatedAt', 'pricingUpdatedBy'
+      ]);
+    }
+
+    function preservesAdminPricing() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'dailyRate', 'pricingUnit', 'pricingUpdatedAt', 'pricingUpdatedBy'
+      ]);
+    }
+
     // Spark-plan administration is restricted to the designated verified
     // account. The local Electron Admin SDK process bypasses client rules.
     match /{adminDocument=**} {
@@ -20,8 +32,8 @@ service cloud.firestore {
 
     match /users/{uid} {
       allow read: if signedIn();
-      allow create: if isAdmin() || (signedIn() && request.auth.uid == uid);
-      allow update: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow create: if isAdmin() || (signedIn() && request.auth.uid == uid && createsWithoutAdminPricing());
+      allow update: if isAdmin() || (signedIn() && request.auth.uid == uid && preservesAdminPricing());
       allow delete: if isAdmin();
 
       match /{nestedDocument=**} {
@@ -34,7 +46,8 @@ service cloud.firestore {
     // profile while the migration to server-only writes is completed.
     match /public_profiles/{uid} {
       allow read: if signedIn();
-      allow create, update: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow create: if isAdmin() || (signedIn() && request.auth.uid == uid && createsWithoutAdminPricing());
+      allow update: if isAdmin() || (signedIn() && request.auth.uid == uid && preservesAdminPricing());
       allow delete: if isAdmin();
     }
 

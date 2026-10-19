@@ -1081,6 +1081,15 @@
                                     <div class="flex justify-between items-center py-1 border-b border-dashed border-gray-100"><span class="text-gray-500">Address:</span><span class="font-bold text-gray-900 text-right max-w-[200px]" id="modal-address">-</span></div>
                                     <div class="flex justify-between items-center py-1 border-b border-dashed border-gray-100"><span class="text-gray-500">Experience:</span><span class="font-bold text-gray-900 bg-blue-50 px-2 py-0.5 rounded text-blue-800" id="modal-experience">-</span></div>
                                     <div class="flex justify-between items-center py-1 border-b border-dashed border-gray-100"><span class="text-gray-500">Expected Salary (Hr):</span><span class="font-black text-green-600 bg-green-50 px-2 py-0.5 rounded" id="modal-expected-salary">-</span></div>
+                                    <div class="mt-5 rounded-2xl border border-green-200 bg-green-50 p-4">
+                                        <label for="modal-daily-rate" class="block text-xs font-black uppercase tracking-wider text-green-800">Admin Daily Price (LKR)</label>
+                                        <p class="mt-1 text-[11px] font-medium text-green-700">This is the customer-facing price for one service day. Only the verified administrator can change it.</p>
+                                        <div class="mt-3 flex gap-2">
+                                            <input id="modal-daily-rate" type="number" min="1" max="1000000" step="100" inputmode="decimal" class="min-w-0 flex-1 rounded-xl border border-green-300 bg-white px-4 py-2.5 font-black text-green-900 outline-none focus:ring-2 focus:ring-green-500" placeholder="e.g. 7500">
+                                            <button id="modal-save-daily-rate" type="button" class="inline-flex items-center justify-center rounded-xl bg-green-600 px-4 py-2.5 text-xs font-extrabold text-white shadow-md transition hover:bg-green-700 disabled:cursor-wait disabled:opacity-50"><i data-lucide="save" class="mr-1.5 h-4 w-4"></i>Save Price</button>
+                                        </div>
+                                        <p id="modal-daily-rate-status" class="mt-2 text-[11px] font-bold text-green-800"></p>
+                                    </div>
                                     <div class="flex flex-col mt-4"><span class="text-gray-500 mb-2 text-xs font-bold uppercase">Service Types:</span><span class="font-bold text-gray-800 bg-gray-50 p-3 rounded-xl border border-gray-100" id="modal-service-types">-</span></div>
                                     <div class="flex flex-col mt-4"><span class="text-gray-500 mb-2 text-xs font-bold uppercase">Categories:</span><span class="font-bold text-gray-800 bg-gray-50 p-3 rounded-xl border border-gray-100" id="modal-categories">-</span></div>
                                 </div>
@@ -1382,7 +1391,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDoc, doc, updateDoc, setDoc, deleteDoc, onSnapshot, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDoc, doc, updateDoc, setDoc, deleteDoc, onSnapshot, arrayUnion, arrayRemove, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
         import { getDatabase, ref as databaseRef, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
         const firebaseConfig = {
@@ -2209,7 +2218,8 @@ window.webPackages = {
                 for (const r of docs) {
                     if(r.status === 'PENDING') pendingCount++;
                     let statusBadge = r.status === 'APPROVED' ? `<span class="bg-green-50 text-green-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-green-200">APPROVED</span>` : (r.status === 'REJECTED' ? `<span class="bg-red-50 text-red-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-red-200">REJECTED</span>` : `<span class="bg-yellow-50 text-yellow-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-yellow-200">PENDING</span>`);
-                    let actions = r.status === 'PENDING' ? `<button onclick="approveLeave('${r.id}', '${r.caregiverId}', '${r.dateString}')" class="text-green-600 hover:text-white hover:bg-green-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-green-200 transition mr-2 shadow-sm"><i data-lucide="check" class="w-3.5 h-3.5 inline"></i> Approve</button><button onclick="rejectLeave('${r.id}')" class="text-red-500 hover:text-white hover:bg-red-500 px-3 py-1.5 rounded-lg text-xs font-bold border border-red-200 transition shadow-sm"><i data-lucide="x" class="w-3.5 h-3.5 inline"></i> Reject</button>` : `<span class="text-xs text-gray-400 font-bold uppercase tracking-widest">Resolved</span>`;
+                    const deleteAction = `<button onclick="deleteLeaveRequest('${r.id}', '${r.caregiverId || ''}', '${r.dateString || ''}', '${r.status || 'PENDING'}')" class="text-slate-600 hover:text-white hover:bg-slate-800 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-300 transition shadow-sm"><i data-lucide="trash-2" class="w-3.5 h-3.5 inline"></i> Delete</button>`;
+                    let actions = r.status === 'PENDING' ? `<button onclick="approveLeave('${r.id}', '${r.caregiverId}', '${r.dateString}')" class="text-green-600 hover:text-white hover:bg-green-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-green-200 transition mr-2 shadow-sm"><i data-lucide="check" class="w-3.5 h-3.5 inline"></i> Approve</button><button onclick="rejectLeave('${r.id}')" class="text-red-500 hover:text-white hover:bg-red-500 px-3 py-1.5 rounded-lg text-xs font-bold border border-red-200 transition mr-2 shadow-sm"><i data-lucide="x" class="w-3.5 h-3.5 inline"></i> Reject</button>${deleteAction}` : `<span class="text-xs text-gray-400 font-bold uppercase tracking-widest mr-2">Resolved</span>${deleteAction}`;
                     rows += `<tr class="hover:bg-pink-50 border-b border-gray-100 transition"><td class="p-5 font-bold text-gray-800">${r.caregiverName}</td><td class="p-5 font-black text-pink-700">${r.dateString}</td><td class="p-5 text-gray-600 font-medium text-sm italic">"${r.reason}"</td><td class="p-5 text-center">${statusBadge}</td><td class="p-5 text-center">${actions}</td></tr>`;
                 }
                 tbody.innerHTML = rows;
@@ -2218,8 +2228,48 @@ window.webPackages = {
                 lucide.createIcons();
             });
         }
-        window.approveLeave = async function(id, caregiverId, dateStr) { if(!confirm(`Are you sure you want to APPROVE leave for ${dateStr}?`)) return; try { await updateDoc(doc(db, "leave_requests", id), { status: "APPROVED" }); await updateDoc(doc(db, "users", caregiverId), { onLeaveDates: arrayUnion(dateStr) }); showToast("Leave request APPROVED.", "success"); } catch(e) { showToast("Error approving leave.", "error"); } }
+        window.approveLeave = async function(id, caregiverId, dateStr) {
+            if(!confirm(`Are you sure you want to APPROVE leave for ${dateStr}?`)) return;
+            try {
+                const batch = writeBatch(db);
+                const userRef = doc(db, 'users', caregiverId);
+                const publicRef = doc(db, 'public_profiles', caregiverId);
+                const publicSnap = await getDoc(publicRef);
+                batch.update(doc(db, 'leave_requests', id), { status: 'APPROVED' });
+                batch.update(userRef, { onLeaveDates: arrayUnion(dateStr) });
+                if (publicSnap.exists()) batch.update(publicRef, { onLeaveDates: arrayUnion(dateStr) });
+                await batch.commit();
+                showToast('Leave request APPROVED.', 'success');
+            } catch(error) {
+                console.error('Leave approval failed', error);
+                showToast(error.message || 'Error approving leave.', 'error');
+            }
+        }
         window.rejectLeave = async function(id) { if(!confirm("Are you sure you want to REJECT this leave request?")) return; try { await updateDoc(doc(db, "leave_requests", id), { status: "REJECTED" }); showToast("Leave request REJECTED.", "success"); } catch(e) { showToast("Error rejecting leave.", "error"); } }
+        window.deleteLeaveRequest = function(id, caregiverId, dateStr, status) {
+            window.appConfirm(
+                `Delete this ${status.toLowerCase()} leave request${dateStr ? ` for ${dateStr}` : ''}? Approved leave dates will also be removed from the caregiver profile.`,
+                async () => {
+                    try {
+                        const batch = writeBatch(db);
+                        batch.delete(doc(db, 'leave_requests', id));
+                        if (status === 'APPROVED' && caregiverId && dateStr) {
+                            const userRef = doc(db, 'users', caregiverId);
+                            const publicRef = doc(db, 'public_profiles', caregiverId);
+                            const [userSnap, publicSnap] = await Promise.all([getDoc(userRef), getDoc(publicRef)]);
+                            if (userSnap.exists()) batch.update(userRef, { onLeaveDates: arrayRemove(dateStr) });
+                            if (publicSnap.exists()) batch.update(publicRef, { onLeaveDates: arrayRemove(dateStr) });
+                        }
+                        await batch.commit();
+                        showToast('Leave request deleted.', 'success');
+                    } catch (error) {
+                        console.error('Leave request deletion failed', error);
+                        showToast(error.message || 'Failed to delete leave request.', 'error');
+                    }
+                },
+                { title: 'Delete Leave Request', icon: 'trash-2', iconColor: 'danger' }
+            );
+        }
         window.adminCancelBooking = async function(bookingId) { if(!confirm("Are you absolutely sure you want to CANCEL this job request?")) return; try { const docSnap = await getDoc(doc(db, "bookings", bookingId)); if(docSnap.exists() && docSnap.data().caregiverId) { await updateDoc(doc(db, "users", docSnap.data().caregiverId), { isBusy: false }); } await updateDoc(doc(db, "bookings", bookingId), { status: "CANCELLED" }); showToast("Job Request Cancelled Successfully.", "success"); } catch(e) { showToast("Failed to cancel job.", "error"); } }
 
         /* --- USERS & MODALS --- */
@@ -2407,6 +2457,12 @@ window.webPackages = {
                 if(bal <= 0) { settleBtn.disabled = true; settleBtn.classList.add('opacity-50', 'cursor-not-allowed'); } else { settleBtn.disabled = false; settleBtn.classList.remove('opacity-50', 'cursor-not-allowed'); }
                 
                 document.getElementById('modal-nic').innerText = user.nicNumber || '-'; document.getElementById('modal-dob').innerText = user.dob || '-'; document.getElementById('modal-gender').innerText = user.gender || '-'; document.getElementById('modal-address').innerText = user.address || '-'; document.getElementById('modal-experience').innerText = user.experienceYears ? user.experienceYears + ' Years' : 'Fresher'; document.getElementById('modal-categories').innerText = (user.categories && user.categories.length > 0) ? user.categories.join(', ') : 'Any Category'; document.getElementById('modal-service-types').innerText = (user.preferredServiceTypes && user.preferredServiceTypes.length > 0) ? user.preferredServiceTypes.join(', ') : 'Live-in / Live-out'; document.getElementById('modal-expected-salary').innerText = user.expectedSalary ? 'Rs. ' + user.expectedSalary : 'Not specified';
+                const dailyRateInput = document.getElementById('modal-daily-rate');
+                const dailyRateStatus = document.getElementById('modal-daily-rate-status');
+                const saveDailyRateButton = document.getElementById('modal-save-daily-rate');
+                dailyRateInput.value = Number(user.dailyRate || 0) > 0 ? Number(user.dailyRate).toFixed(0) : '';
+                dailyRateStatus.innerText = Number(user.dailyRate || 0) > 0 ? `Current price: LKR ${Number(user.dailyRate).toLocaleString()} per day` : 'No daily price has been assigned yet.';
+                saveDailyRateButton.onclick = () => window.saveCaregiverDailyRate(userId, saveDailyRateButton);
                 document.getElementById('modal-vaccination').innerText = user.vaccinationStatus || 'Not specified'; document.getElementById('modal-illnesses').innerText = user.chronicIllnesses || 'None reported'; document.getElementById('modal-bank-name').innerText = user.bankName || '-'; document.getElementById('modal-bank-acc').innerText = user.bankAccountNumber || '-'; document.getElementById('modal-bank-branch').innerText = user.bankBranch || '-'; document.getElementById('modal-skills').innerText = user.specialSkills || user.qualifications || 'No special skills listed.';
                 
                 setImage('modal-id-front', 'modal-id-front-err', user.nicFrontUrl || user.idFrontUrl); setImage('modal-id-back', 'modal-id-back-err', user.nicBackUrl || user.idBackUrl); setImage('modal-selfie', 'modal-selfie-err', user.selfieUrl); setImage('modal-police', 'modal-police-err', user.policeClearanceUrl); setImage('modal-bankbook', 'modal-bankbook-err', user.bankBookUrl); setImage('modal-cert', 'modal-cert-err', user.certificateUrl);
@@ -2443,6 +2499,47 @@ window.webPackages = {
         }
 
         window.closeModal = function() { document.getElementById('review-modal').classList.add('hidden'); }
+
+        window.saveCaregiverDailyRate = async function(userId, button) {
+            const user = window.allUsersDataMap[userId];
+            if (!user || !['CAREGIVER', 'NURSE'].includes(user.role)) return showToast('Daily pricing is only available for caregivers and nurses.', 'error');
+            if (!auth.currentUser || !auth.currentUser.emailVerified || auth.currentUser.email.toLowerCase() !== 'goldenhandcaregivers@gmail.com') return showToast('Verified administrator access is required.', 'error');
+            const input = document.getElementById('modal-daily-rate');
+            const status = document.getElementById('modal-daily-rate-status');
+            const dailyRate = Number(input.value);
+            if (!Number.isFinite(dailyRate) || dailyRate <= 0 || dailyRate > 1000000) return showToast('Enter a valid daily price between LKR 1 and LKR 1,000,000.', 'error');
+
+            const originalHtml = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<span class="animate-pulse">Saving...</span>';
+            try {
+                const now = Date.now();
+                const batch = writeBatch(db);
+                batch.set(doc(db, 'users', userId), {
+                    dailyRate,
+                    pricingUnit: 'DAY',
+                    pricingUpdatedAt: now,
+                    pricingUpdatedBy: auth.currentUser.uid
+                }, { merge: true });
+                batch.set(doc(db, 'public_profiles', userId), {
+                    dailyRate,
+                    pricingUnit: 'DAY',
+                    pricingUpdatedAt: now
+                }, { merge: true });
+                await batch.commit();
+                user.dailyRate = dailyRate;
+                user.pricingUnit = 'DAY';
+                status.innerText = `Current price: LKR ${dailyRate.toLocaleString()} per day`;
+                showToast('Caregiver daily price updated.', 'success');
+            } catch (error) {
+                console.error('Daily price update failed', error);
+                showToast(error.message || 'Failed to update daily price.', 'error');
+            } finally {
+                button.disabled = false;
+                button.innerHTML = originalHtml;
+                lucide.createIcons();
+            }
+        }
 
         window.startVideoCall = function() {
             const phoneStr = document.getElementById('modal-phone').innerText;
