@@ -28,6 +28,17 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .custom-div-icon { background: none !important; border: none !important; }
+        #section-callcenter:fullscreen, #section-callcenter:-webkit-full-screen { display:flex !important; width:100vw !important; height:100vh !important; border-radius:0; background:white; }
+        .nav-dragging { opacity:.35; transform:scale(.97); }
+        .nav-drag-over { outline:2px dashed #70cb68; outline-offset:2px; border-radius:12px; }
+        .nav-grip { cursor:grab; touch-action:none; }
+        .nav-grip:active { cursor:grabbing; }
+        @keyframes gh-rise {from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes gh-pulse {0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.28)}50%{box-shadow:0 0 0 8px rgba(16,185,129,0)}}
+        .gh-job-card { animation:gh-rise .42s ease both; }
+        .gh-live-dot { animation:gh-pulse 2s infinite; }
+        @media (prefers-reduced-motion:reduce){.gh-job-card,.gh-live-dot{animation:none!important}}
+
     </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased text-gray-900 h-screen flex overflow-hidden">
@@ -70,6 +81,7 @@
                 <h2 class="text-xs font-bold tracking-widest text-gray-300 mt-1">ADMIN PORTAL</h2>
             </div>
             <nav class="flex-1 py-6 overflow-y-auto custom-scrollbar">
+                <p class="px-6 pb-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">Drag tabs to reorder</p>
                 <ul class="space-y-2 px-4 font-medium text-sm">
                     <li><button onclick="switchTab('overview')" id="tab-overview" class="w-full flex items-center p-3.5 rounded-xl bg-primary text-white transition"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>Dashboard</button></li>
                     <li><button onclick="switchTab('users')" id="tab-users" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="users" class="w-5 h-5 mr-3"></i>All Users</button></li>
@@ -147,20 +159,23 @@
                         </div>
                     </div>
 
-                    <!-- 🌟 NEW: APPROVED BOOKINGS CALENDAR VIEW -->
-                    <div class="mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-6 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-                            <div>
-                                <h3 class="text-lg font-extrabold text-gray-800 flex items-center"><i data-lucide="calendar-days" class="mr-2 w-5 h-5 text-indigo-600"></i> Website Bookings Calendar</h3>
-                                <p class="text-xs font-bold text-gray-500 mt-1 uppercase tracking-widest">Upcoming Approved Care Packages</p>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            <div id="dashboard-calendar-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                                <p class="text-gray-400 text-sm italic col-span-full text-center py-6">Loading schedule...</p>
-                            </div>
-                        </div>
-                    </div>
+                                         <!-- Read-only, real-time job activity overview -->
+                     <div class="mt-8 overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-[#113d55] to-emerald-900 text-white shadow-xl">
+                         <div class="p-7 flex flex-wrap justify-between items-center gap-4">
+                             <div><p class="text-xs font-black uppercase tracking-[.23em] text-emerald-300">Operations • Live</p><h3 class="text-2xl font-black mt-2">Care Operations Right Now</h3><p class="text-sm text-slate-300 mt-2">Real-time snapshot from your existing bookings</p></div>
+                             <span class="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-4 py-2 text-xs font-bold"><span class="gh-live-dot w-2.5 h-2.5 rounded-full bg-emerald-400"></span> LIVE UPDATING</span>
+                         </div>
+                         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 px-7 pb-7">
+                             <div class="bg-white/10 rounded-2xl p-4 border border-white/10"><p class="text-xs text-slate-300">In progress</p><p id="ops-inprogress" class="text-3xl font-black mt-2">—</p></div>
+                             <div class="bg-white/10 rounded-2xl p-4 border border-white/10"><p class="text-xs text-slate-300">Accepted</p><p id="ops-accepted" class="text-3xl font-black mt-2">—</p></div>
+                             <div class="bg-white/10 rounded-2xl p-4 border border-white/10"><p class="text-xs text-slate-300">Awaiting assignment</p><p id="ops-pending" class="text-3xl font-black mt-2">—</p></div>
+                             <div class="bg-white/10 rounded-2xl p-4 border border-white/10"><p class="text-xs text-slate-300">Completed</p><p id="ops-completed" class="text-3xl font-black mt-2">—</p></div>
+                         </div>
+                     </div>
+                     <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+                         <div class="flex items-center justify-between gap-3 mb-5"><div><h3 class="text-lg font-black text-slate-800">Ongoing Care Jobs</h3><p class="text-xs text-slate-500 mt-1">Active assignments and their caregivers</p></div><button onclick="switchTab('bookings')" class="text-xs font-bold text-emerald-700 hover:underline">Manage bookings →</button></div>
+                         <div id="ops-job-list" class="grid grid-cols-1 xl:grid-cols-2 gap-4" aria-live="polite"><p class="text-sm text-slate-400 py-8 text-center col-span-full">Waiting for live bookings...</p></div>
+                     </div>
                 </div>
 
                 <!-- 2. ALL USERS -->
@@ -1009,6 +1024,7 @@
                         </div>
                         <div class="flex items-center gap-2">
                             <a href="https://lakagent.com/login" target="_blank" rel="noopener noreferrer" class="text-xs bg-primary hover:bg-green-700 text-white px-3 py-2 rounded-lg font-bold transition flex items-center shadow-sm"><i data-lucide="external-link" class="w-3.5 h-3.5 mr-1.5"></i> Open LakAgent</a>
+                            <button id="callcenter-fullscreen-button" onclick="toggleCallCenterFullscreen()" class="text-xs bg-slate-800 hover:bg-slate-900 text-white px-3 py-2 rounded-lg font-bold transition inline-flex items-center shadow-sm"><i id="callcenter-fullscreen-icon" data-lucide="maximize-2" class="w-3.5 h-3.5 mr-1.5"></i><span id="callcenter-fullscreen-label">Full Screen</span></button>
                             <button onclick="reloadLakAgentFrame()" class="text-xs bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 px-3 py-2 rounded-lg font-bold transition flex items-center shadow-sm"><i data-lucide="refresh-cw" class="w-3.5 h-3.5 mr-1.5"></i> Refresh Frame</button>
                         </div>
                     </div>
@@ -1072,7 +1088,7 @@
                         </div>
 
                         <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                            <div id="modal-caregiver-section" class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hidden">
+                            <div id="modal-caregiver-section" class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hidden"><p id="modal-account-created" class="mb-4 text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3">Account created: Not available</p>
                                 <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest mb-5 flex items-center"><i data-lucide="briefcase" class="w-4 h-4 mr-2 text-primary"></i> Professional Profile</h3>
                                 <div class="space-y-4 text-sm font-medium">
                                     <div class="flex justify-between items-center py-1 border-b border-dashed border-gray-100"><span class="text-gray-500">NIC Number:</span><span class="font-bold text-gray-900" id="modal-nic">-</span></div>
@@ -1514,6 +1530,41 @@
             setTimeout(() => toast.classList.add('opacity-0', 'translate-y-32'), 4000);
         }
 
+        // UI-only formatter: never invent an account creation date when none is stored.
+        window.authCreationTimeMap = {};
+        const authMetadataLoadedUids = new Set();
+        let authMetadataLoading = false;
+
+        function formatAccountCreated(user, userId = user?.id) {
+            const raw = user?.createdAt ?? user?.created_at ?? user?.accountCreatedAt ?? user?.registrationDate ?? user?.registeredAt ?? user?.joinedAt ?? window.authCreationTimeMap[userId];
+            if(raw == null || raw === '') return 'Not available';
+            let d;
+            if (typeof raw?.toDate === 'function') d = raw.toDate();
+            else if (typeof raw?.seconds === 'number') d = new Date(raw.seconds * 1000);
+            else if (typeof raw === 'number') d = new Date(raw < 1e11 ? raw * 1000 : raw);
+            else d = new Date(raw);
+            return Number.isNaN(d.getTime()) ? 'Not available' : d.toLocaleDateString('en-GB',{year:'numeric',month:'short',day:'numeric'});
+        }
+        function escapeOps(value) {
+            return String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+        function renderOperations(jobs) {
+            const count = status => jobs.filter(b=>b.status === status).length;
+            const set = (id,n) => { const el=document.getElementById(id); if(el) el.textContent=n; };
+            set('ops-inprogress',count('IN_PROGRESS'));
+            set('ops-accepted',count('ACCEPTED'));
+            set('ops-pending',jobs.filter(b=>b.status==='PENDING'||b.status==='BROADCASTED').length);
+            set('ops-completed',count('COMPLETED'));
+            const list = document.getElementById('ops-job-list'); if(!list) return;
+            const active=jobs.filter(b=>b.status==='IN_PROGRESS').sort((a,b)=>(b.requestedTime?.seconds||b.requestedTime||0)-(a.requestedTime?.seconds||a.requestedTime||0));
+            if(!active.length) {list.innerHTML='<div class="col-span-full p-10 text-center bg-emerald-50 rounded-2xl text-emerald-800"><p class="font-black">No jobs currently in progress</p><p class="text-sm mt-1">New active jobs will appear here automatically.</p></div>';return;}
+            list.innerHTML=active.slice(0,12).map((b,i)=>{
+                const caregiver=window.allUsersDataMap?.[b.caregiverId];
+                const client=window.allUsersDataMap?.[b.clientId];
+                const service=escapeOps(b.serviceType||b.service||b.category||b.planName||'Care service');
+                return `<div class="gh-job-card border border-slate-100 rounded-2xl p-5 bg-gradient-to-br from-white to-slate-50 hover:shadow-md transition" style="animation-delay:${Math.min(i,8)*55}ms"><div class="flex justify-between gap-3 items-start"><span class="font-extrabold text-slate-800">${service}</span><span class="whitespace-nowrap text-[10px] font-black bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full">● IN PROGRESS</span></div><div class="mt-4 grid grid-cols-2 gap-3 text-xs"><div><p class="text-slate-400 font-semibold mb-1">Caregiver / Nurse</p><p class="font-bold text-slate-800">${escapeOps(caregiver?.name||'Not available')}</p></div><div><p class="text-slate-400 font-semibold mb-1">Client</p><p class="font-bold text-slate-800">${escapeOps(client?.name||'Not available')}</p></div></div></div>`;
+            }).join('');
+        }
         async function loadDashboardStats() {
             onSnapshot(collection(db, "users"), (snapshot) => { document.getElementById('stat-users').innerText = snapshot.size; });
             onSnapshot(query(collection(db, "users"), where("kycStatus", "==", "PENDING")), (snapshot) => { 
@@ -2133,9 +2184,11 @@ window.webPackages = {
         window.loadAllBookings = async function() {
             bookingsTableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 italic">Loading bookings data...</td></tr>`;
             onSnapshot(collection(db, "bookings"), async (snapshot) => {
-                if (snapshot.empty) { bookingsTableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500 font-medium">No job requests found.</td></tr>`; return; }
+                window.allBookingsMap = {};
+                if (snapshot.empty) { bookingsTableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500 font-medium">No job requests found.</td></tr>`; renderOperations([]); return; }
                 let rows = '';
                 const docs = snapshot.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.requestedTime - a.requestedTime);
+                renderOperations(docs);
 
                 for (const b of docs) {
                     window.allBookingsMap[b.id] = b; 
@@ -2327,6 +2380,7 @@ window.webPackages = {
                         nameDisplay += ` <span class="text-[10px] uppercase font-bold bg-gray-100 px-1.5 py-0.5 rounded ml-2 ${gColor}">${user.gender}</span>`;
                     }
 
+                    if(user.role==='CAREGIVER'||user.role==='NURSE') nameDisplay += `<div class="text-[11px] text-slate-400 mt-1 font-medium">Joined: ${formatAccountCreated(user, user.id)}</div>`;
                     const deleteButton = window.goldenHandAdmin
                         ? `<button onclick="deleteManagedUser('${user.id}', this)" class="ml-2 text-red-700 hover:text-white hover:bg-red-600 disabled:opacity-50 disabled:cursor-wait px-3 py-1.5 rounded-lg text-xs font-bold border border-red-300">Delete account</button>`
                         : `<button onclick="showToast('Complete deletion is available in the Golden Hand desktop admin app.', 'error')" class="ml-2 text-gray-400 px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200">Desktop delete</button>`;
@@ -2377,12 +2431,46 @@ window.webPackages = {
                 if (snapshot.empty) return;
                 snapshot.forEach((doc) => { const user = doc.data(); user.id = doc.id; window.allUsersDataMap[doc.id] = user; });
                 window.renderUsersTable();
+                renderOperations(Object.values(window.allBookingsMap));
+                window.loadAuthCreationTimesForProfiles();
                 
                 const container = document.getElementById('caregiver-checkboxes'); let html = ''; let count = 0;
                 Object.values(window.allUsersDataMap).forEach(u => { if ((u.role === 'CAREGIVER' || u.role === 'NURSE') && u.isVerified) { count++; html += `<label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-100 cursor-pointer hover:border-orange-300 transition"><input type="checkbox" value="${u.id}" class="cg-checkbox rounded text-orange-500 focus:ring-orange-500"><span class="text-xs font-bold text-gray-700">${u.name} <span class="text-[9px] text-gray-400 font-normal">(${u.rating || 0}⭐)</span></span></label>`; } });
                 container.innerHTML = count > 0 ? html : '<p class="text-xs text-gray-400">No active caregivers found.</p>';
             });
         }
+
+        window.loadAuthCreationTimesForProfiles = async function() {
+            if (authMetadataLoading || !window.goldenHandAdmin?.getUserCreationTimes || !auth.currentUser) return;
+            const users = Object.values(window.allUsersDataMap).filter((user) =>
+                (user.role === 'CAREGIVER' || user.role === 'NURSE') &&
+                formatAccountCreated(user, user.id) === 'Not available' &&
+                !authMetadataLoadedUids.has(user.id)
+            );
+            if (!users.length) return;
+            authMetadataLoading = true;
+            try {
+                const status = await window.goldenHandAdmin.getCredentialStatus();
+                if (!status.configured) return;
+                const idToken = await auth.currentUser.getIdToken();
+                for (let offset = 0; offset < users.length; offset += 100) {
+                    const uids = users.slice(offset, offset + 100).map((user) => user.id);
+                    const result = await window.goldenHandAdmin.getUserCreationTimes({ uids, idToken });
+                    Object.assign(window.authCreationTimeMap, result.creationTimes || {});
+                    uids.forEach((uid) => authMetadataLoadedUids.add(uid));
+                }
+                window.renderUsersTable();
+                if (window.currentReviewUserId) {
+                    const selected = window.allUsersDataMap[window.currentReviewUserId];
+                    const accountDateEl = document.getElementById('modal-account-created');
+                    if (selected && accountDateEl) accountDateEl.textContent = 'Account created: ' + formatAccountCreated(selected, window.currentReviewUserId);
+                }
+            } catch (error) {
+                console.warn('Firebase Auth creation dates are unavailable:', error.message || error);
+            } finally {
+                authMetadataLoading = false;
+            }
+        };
 
         window.loadPendingCaregivers = async function() {
             pendingTableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400 italic">Fetching applications...</td></tr>`;
@@ -2412,12 +2500,18 @@ window.webPackages = {
         window.openReviewModal = function(userId) {
             const user = window.allUsersDataMap[userId];
             if(!user) return;
+            window.currentReviewUserId = userId;
 
             document.getElementById('modal-footer-info').innerText = "ID: " + userId;
             document.getElementById('modal-name').innerText = user.name || 'N/A';
             document.getElementById('modal-email').innerText = user.email || 'N/A';
             document.getElementById('modal-phone').innerText = user.phone || user.mobile || 'Not Provided';
             document.getElementById('modal-role').innerText = `${user.role} | Wallet: Rs.${user.walletBalance || 0}`;
+            const accountDateEl=document.getElementById('modal-account-created');
+            if(accountDateEl){
+                accountDateEl.classList.toggle('hidden',user.role!=='CAREGIVER'&&user.role!=='NURSE');
+                accountDateEl.textContent='Account created: '+formatAccountCreated(user, userId);
+            }
             
             const dpImg = document.getElementById('modal-dp-img'); const dpPh = document.getElementById('modal-dp-placeholder');
             if(user.profileImageUrl) { dpImg.src = user.profileImageUrl; dpImg.classList.remove('hidden'); dpPh.classList.add('hidden'); }
@@ -2498,7 +2592,10 @@ window.webPackages = {
             lucide.createIcons();
         }
 
-        window.closeModal = function() { document.getElementById('review-modal').classList.add('hidden'); }
+        window.closeModal = function() {
+            window.currentReviewUserId = null;
+            document.getElementById('review-modal').classList.add('hidden');
+        }
 
         window.saveCaregiverDailyRate = async function(userId, button) {
             const user = window.allUsersDataMap[userId];
@@ -2675,6 +2772,7 @@ window.webPackages = {
                 snapshot.forEach((docSnap) => {
                     const user = docSnap.data(); 
                     const userId = docSnap.id; 
+                    user.id = userId;
                     const fallbackLat = user.locationLat;
                     const fallbackLng = user.locationLng;
                     user._fallbackLocationLat = fallbackLat;
@@ -2875,6 +2973,23 @@ window.webPackages = {
             if (frame) frame.src = 'https://lakagent.com/login';
         }
 
+        window.toggleCallCenterFullscreen = async function() {
+            const section = document.getElementById('section-callcenter');
+            if (!section) return;
+            try {
+                if (document.fullscreenElement === section) await document.exitFullscreen();
+                else await section.requestFullscreen();
+            } catch(error) { showToast(`Full screen is unavailable: ${error.message}`, 'error'); }
+        };
+        document.addEventListener('fullscreenchange', () => {
+            const active = document.fullscreenElement === document.getElementById('section-callcenter');
+            const label = document.getElementById('callcenter-fullscreen-label');
+            const icon = document.getElementById('callcenter-fullscreen-icon');
+            if(label) label.textContent = active ? 'Exit Full Screen' : 'Full Screen';
+            if(icon) icon.setAttribute('data-lucide',active?'minimize-2':'maximize-2');
+            lucide.createIcons();
+        });
+
         window.toggleMapFullscreen = async function() {
             const mapSection = document.getElementById('section-map');
             if (!mapSection) return;
@@ -2909,6 +3024,29 @@ window.webPackages = {
                 showToast(`Could not open Seylan Banking: ${error.message}`, 'error');
             }
         }
+
+        // Navigation order is device-local only; never writes to Firestore or app data.
+        (function setupSidebarReordering(){
+            const nav=document.querySelector('aside nav ul'); if(!nav) return;
+            const key='goldenhand-admin-sidebar-order-v1';
+            const items=()=>Array.from(nav.children).filter(el=>el.querySelector('button[id^="tab-"]'));
+            const getId=el=>el.querySelector('button[id^="tab-"]')?.id;
+            try {
+                const saved=JSON.parse(localStorage.getItem(key)||'[]');
+                if(Array.isArray(saved)) saved.forEach(id=>{const item=items().find(li=>getId(li)===id);if(item) nav.appendChild(item);});
+            }catch(err){console.warn('Sidebar preference unavailable',err);}
+            let dragged=null;
+            items().forEach(li=>{
+                li.draggable=true;
+                li.classList.add('nav-grip');
+                li.title='Drag to reorder menu tabs';
+                li.addEventListener('dragstart',e=>{dragged=li;li.classList.add('nav-dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',getId(li));});
+                li.addEventListener('dragover',e=>{e.preventDefault();if(li!==dragged)li.classList.add('nav-drag-over');});
+                li.addEventListener('dragleave',()=>li.classList.remove('nav-drag-over'));
+                li.addEventListener('drop',e=>{e.preventDefault();li.classList.remove('nav-drag-over');if(!dragged||dragged===li)return;const box=li.getBoundingClientRect();nav.insertBefore(dragged,e.clientY<box.top+box.height/2?li:li.nextSibling);try{localStorage.setItem(key,JSON.stringify(items().map(getId)));}catch(err){console.warn('Could not save menu order',err);}});
+                li.addEventListener('dragend',()=>{items().forEach(x=>x.classList.remove('nav-dragging','nav-drag-over'));dragged=null;});
+            });
+        })();
 
         window.switchTab = function(tabName) {
             document.getElementById('header-title').innerText = titles[tabName].title; document.getElementById('header-subtitle').innerText = titles[tabName].sub;

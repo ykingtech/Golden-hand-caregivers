@@ -163,6 +163,23 @@ function registerIpc() {
     return { opened: true };
   });
 
+  ipcMain.handle('admin:get-user-creation-times', async (event, request) => {
+    assertLocalRenderer(event);
+    const uids = [...new Set((Array.isArray(request?.uids) ? request.uids : [])
+      .filter((uid) => typeof uid === 'string' && uid.trim())
+      .map((uid) => uid.trim()))].slice(0, 100);
+    if (!uids.length) return { creationTimes: {} };
+
+    const { auth } = await servicesFor();
+    await verifyDesktopAdmin(auth, request?.idToken);
+    const result = await auth.getUsers(uids.map((uid) => ({ uid })));
+    const creationTimes = {};
+    result.users.forEach((user) => {
+      if (user.metadata.creationTime) creationTimes[user.uid] = user.metadata.creationTime;
+    });
+    return { creationTimes };
+  });
+
   ipcMain.handle('admin:delete-user-completely', async (event, request) => {
     assertLocalRenderer(event);
     const uid = typeof request?.uid === 'string' ? request.uid.trim() : '';
