@@ -5,8 +5,10 @@ const { initializeApp, cert, deleteApp } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
 const { getFirestore } = require('firebase-admin/firestore');
 const { getDatabase } = require('firebase-admin/database');
+const { autoUpdater } = require('electron-updater');
 
 const { ADMIN_EMAIL, deleteUserCompletely } = require('./delete-service');
+const { createUpdateManager } = require('./update-service');
 
 const PROJECT_ID = 'care-2a20d';
 const DATABASE_URL = 'https://care-2a20d-default-rtdb.asia-southeast1.firebasedatabase.app';
@@ -16,6 +18,12 @@ let mainWindow = null;
 let seylanWindow = null;
 let adminApp = null;
 let inMemoryCredential = null;
+const updateManager = createUpdateManager({
+  autoUpdater,
+  app,
+  dialog,
+  getWindow: () => mainWindow,
+});
 
 function appIconPath() {
   return path.join(__dirname, '..', 'assets', 'icon.png');
@@ -147,6 +155,21 @@ async function verifyDesktopAdmin(auth, idToken) {
 }
 
 function registerIpc() {
+  ipcMain.handle('updater:get-status', (event) => {
+    assertLocalRenderer(event);
+    return updateManager.getState();
+  });
+
+  ipcMain.handle('updater:check', async (event) => {
+    assertLocalRenderer(event);
+    return updateManager.checkForUpdates(true);
+  });
+
+  ipcMain.handle('updater:install', (event) => {
+    assertLocalRenderer(event);
+    return { started: updateManager.installUpdate() };
+  });
+
   ipcMain.handle('admin:get-credential-status', async (event) => {
     assertLocalRenderer(event);
     return { configured: Boolean(inMemoryCredential || fs.existsSync(credentialStorePath())), projectId: PROJECT_ID };
@@ -239,6 +262,7 @@ function createWindow() {
 app.whenReady().then(() => {
   registerIpc();
   createWindow();
+  updateManager.start();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });

@@ -1013,6 +1013,28 @@
                             </div>
                         </div>
                     </div>
+                    <div class="mt-6 bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 text-white rounded-2xl shadow-lg overflow-hidden max-w-2xl mx-auto border border-slate-700">
+                        <div class="p-6 flex flex-wrap items-center justify-between gap-4">
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-[.22em] text-emerald-300">Desktop Application</p>
+                                <h3 class="text-lg font-extrabold mt-1">Automatic Updates</h3>
+                                <p id="desktop-update-status" class="text-sm text-slate-300 mt-2">Preparing the update service…</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Installed version</p>
+                                <p id="desktop-current-version" class="text-2xl font-black text-white">—</p>
+                            </div>
+                        </div>
+                        <div id="desktop-update-progress-wrap" class="hidden px-6 pb-2">
+                            <div class="h-2 overflow-hidden rounded-full bg-white/10">
+                                <div id="desktop-update-progress" class="h-full w-0 rounded-full bg-emerald-400 transition-all duration-300"></div>
+                            </div>
+                        </div>
+                        <div class="px-6 py-5 border-t border-white/10 flex flex-wrap justify-end gap-3 bg-black/10">
+                            <button id="desktop-install-update" onclick="installDesktopUpdate()" class="hidden bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-5 py-2.5 rounded-xl text-xs font-black transition"><i data-lucide="rotate-cw" class="w-4 h-4 inline mr-1.5"></i> Restart & Install</button>
+                            <button id="desktop-check-update" onclick="checkDesktopUpdate()" class="bg-white/10 hover:bg-white/20 border border-white/15 text-white px-5 py-2.5 rounded-xl text-xs font-black transition"><i data-lucide="refresh-cw" class="w-4 h-4 inline mr-1.5"></i> Check for Updates</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 13. CALL CENTER (LAKAGENT) -->
@@ -1399,6 +1421,68 @@
             if(finDateEl) finDateEl.value = today;
         }
         updateDate();
+
+        function renderDesktopUpdateStatus(state) {
+            if (!state) return;
+            const version = document.getElementById('desktop-current-version');
+            const status = document.getElementById('desktop-update-status');
+            const progressWrap = document.getElementById('desktop-update-progress-wrap');
+            const progress = document.getElementById('desktop-update-progress');
+            const checkButton = document.getElementById('desktop-check-update');
+            const installButton = document.getElementById('desktop-install-update');
+            if (version) version.textContent = state.currentVersion ? `v${state.currentVersion}` : '—';
+            if (status) status.textContent = state.message || 'Automatic updates are ready.';
+            const downloading = state.status === 'downloading';
+            if (progressWrap) progressWrap.classList.toggle('hidden', !downloading);
+            if (progress) progress.style.width = `${Math.max(0, Math.min(100, state.percent || 0))}%`;
+            if (checkButton) {
+                checkButton.disabled = state.status === 'checking' || downloading;
+                checkButton.classList.toggle('opacity-50', checkButton.disabled);
+                checkButton.classList.toggle('cursor-wait', checkButton.disabled);
+            }
+            if (installButton) installButton.classList.toggle('hidden', state.status !== 'downloaded');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        window.checkDesktopUpdate = async function() {
+            if (!window.goldenHandAdmin?.checkForUpdates) return renderDesktopUpdateStatus({ status: 'error', message: 'Update checks are available in the installed desktop app.' });
+            renderDesktopUpdateStatus(await window.goldenHandAdmin.checkForUpdates());
+        };
+
+        window.installDesktopUpdate = async function() {
+            await window.goldenHandAdmin?.installUpdate?.();
+        };
+
+        if (window.goldenHandAdmin?.getUpdateStatus) {
+            window.goldenHandAdmin.onUpdateStatus(renderDesktopUpdateStatus);
+            window.goldenHandAdmin.getUpdateStatus().then(renderDesktopUpdateStatus).catch((error) => {
+                renderDesktopUpdateStatus({ status: 'error', message: error.message || 'Update service is unavailable.' });
+            });
+        }
+
+        // Navigation order is device-local only; never writes to Firestore or app data.
+        (function setupSidebarReordering(){
+            const nav=document.querySelector('aside nav ul'); if(!nav) return;
+            const key='goldenhand-admin-sidebar-order-v1';
+            const items=()=>Array.from(nav.children).filter(el=>el.querySelector('button[id^="tab-"]'));
+            const getId=el=>el.querySelector('button[id^="tab-"]')?.id;
+            try {
+                const saved=JSON.parse(localStorage.getItem(key)||'[]');
+                if(Array.isArray(saved)) saved.forEach(id=>{const item=items().find(li=>getId(li)===id);if(item) nav.appendChild(item);});
+            }catch(err){console.warn('Sidebar preference unavailable',err);}
+            let dragged=null;
+            items().forEach(li=>{
+                li.draggable=true;
+                li.setAttribute('draggable','true');
+                li.classList.add('nav-grip');
+                li.title='Drag to reorder menu tabs';
+                li.addEventListener('dragstart',e=>{dragged=li;li.classList.add('nav-dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',getId(li));});
+                li.addEventListener('dragover',e=>{e.preventDefault();if(li!==dragged)li.classList.add('nav-drag-over');});
+                li.addEventListener('dragleave',()=>li.classList.remove('nav-drag-over'));
+                li.addEventListener('drop',e=>{e.preventDefault();li.classList.remove('nav-drag-over');if(!dragged||dragged===li)return;const box=li.getBoundingClientRect();nav.insertBefore(dragged,e.clientY<box.top+box.height/2?li:li.nextSibling);try{localStorage.setItem(key,JSON.stringify(items().map(getId)));}catch(err){console.warn('Could not save menu order',err);}});
+                li.addEventListener('dragend',()=>{items().forEach(x=>x.classList.remove('nav-dragging','nav-drag-over'));dragged=null;});
+            });
+        })();
 
 
     </script>
@@ -3024,29 +3108,6 @@ window.webPackages = {
                 showToast(`Could not open Seylan Banking: ${error.message}`, 'error');
             }
         }
-
-        // Navigation order is device-local only; never writes to Firestore or app data.
-        (function setupSidebarReordering(){
-            const nav=document.querySelector('aside nav ul'); if(!nav) return;
-            const key='goldenhand-admin-sidebar-order-v1';
-            const items=()=>Array.from(nav.children).filter(el=>el.querySelector('button[id^="tab-"]'));
-            const getId=el=>el.querySelector('button[id^="tab-"]')?.id;
-            try {
-                const saved=JSON.parse(localStorage.getItem(key)||'[]');
-                if(Array.isArray(saved)) saved.forEach(id=>{const item=items().find(li=>getId(li)===id);if(item) nav.appendChild(item);});
-            }catch(err){console.warn('Sidebar preference unavailable',err);}
-            let dragged=null;
-            items().forEach(li=>{
-                li.draggable=true;
-                li.classList.add('nav-grip');
-                li.title='Drag to reorder menu tabs';
-                li.addEventListener('dragstart',e=>{dragged=li;li.classList.add('nav-dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',getId(li));});
-                li.addEventListener('dragover',e=>{e.preventDefault();if(li!==dragged)li.classList.add('nav-drag-over');});
-                li.addEventListener('dragleave',()=>li.classList.remove('nav-drag-over'));
-                li.addEventListener('drop',e=>{e.preventDefault();li.classList.remove('nav-drag-over');if(!dragged||dragged===li)return;const box=li.getBoundingClientRect();nav.insertBefore(dragged,e.clientY<box.top+box.height/2?li:li.nextSibling);try{localStorage.setItem(key,JSON.stringify(items().map(getId)));}catch(err){console.warn('Could not save menu order',err);}});
-                li.addEventListener('dragend',()=>{items().forEach(x=>x.classList.remove('nav-dragging','nav-drag-over'));dragged=null;});
-            });
-        })();
 
         window.switchTab = function(tabName) {
             document.getElementById('header-title').innerText = titles[tabName].title; document.getElementById('header-subtitle').innerText = titles[tabName].sub;
