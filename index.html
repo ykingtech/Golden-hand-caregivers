@@ -176,6 +176,16 @@
                          <div class="flex items-center justify-between gap-3 mb-5"><div><h3 class="text-lg font-black text-slate-800">Ongoing Care Jobs</h3><p class="text-xs text-slate-500 mt-1">Active assignments and their caregivers</p></div><button onclick="switchTab('bookings')" class="text-xs font-bold text-emerald-700 hover:underline">Manage bookings →</button></div>
                          <div id="ops-job-list" class="grid grid-cols-1 xl:grid-cols-2 gap-4" aria-live="polite"><p class="text-sm text-slate-400 py-8 text-center col-span-full">Waiting for live bookings...</p></div>
                      </div>
+                     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                         <div class="bg-white rounded-3xl p-6 border border-red-100 shadow-sm">
+                             <div class="flex items-center justify-between gap-3 mb-5"><div><h3 class="text-lg font-black text-slate-800">Busy Caregivers</h3><p class="text-xs text-slate-500 mt-1">Caregivers currently assigned to a job</p></div><button onclick="switchTab('map')" class="text-xs font-bold text-red-600 hover:underline">View map →</button></div>
+                             <div id="ops-busy-caregivers" class="space-y-3" aria-live="polite"><p class="text-sm text-slate-400 py-6 text-center">Waiting for live user status...</p></div>
+                         </div>
+                         <div class="bg-white rounded-3xl p-6 border border-emerald-100 shadow-sm">
+                             <div class="flex items-center justify-between gap-3 mb-5"><div><h3 class="text-lg font-black text-slate-800">Recently Completed Jobs</h3><p class="text-xs text-slate-500 mt-1">Latest successful care assignments</p></div><button onclick="switchTab('bookings')" class="text-xs font-bold text-emerald-700 hover:underline">All bookings →</button></div>
+                             <div id="ops-completed-jobs" class="space-y-3" aria-live="polite"><p class="text-sm text-slate-400 py-6 text-center">Waiting for booking data...</p></div>
+                         </div>
+                     </div>
                 </div>
 
                 <!-- 2. ALL USERS -->
@@ -781,6 +791,9 @@
                             <button id="map-fullscreen-button" onclick="toggleMapFullscreen()" class="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-extrabold text-sm transition inline-flex items-center shadow-sm">
                                 <i id="map-fullscreen-icon" data-lucide="maximize-2" class="w-4 h-4 mr-2"></i><span id="map-fullscreen-label">Full Screen</span>
                             </button>
+                            <button id="map-panel-toggle" onclick="toggleMapLivePanel()" class="px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-extrabold text-sm transition inline-flex items-center shadow-sm">
+                                <i id="map-panel-toggle-icon" data-lucide="panel-right-close" class="w-4 h-4 mr-2"></i><span id="map-panel-toggle-label">Hide List</span>
+                            </button>
                             <!-- District Filter -->
                             <select id="map-district-filter" onchange="applyMapDistrictFilter()" class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-primary outline-none font-bold text-gray-700 text-sm">
                                 <option value="">සියලු දිස්ත්‍රික්ක (All Districts)</option>
@@ -810,42 +823,46 @@
                                 <option value="Ratnapura">Ratnapura</option>
                                 <option value="Kegalle">Kegalle</option>
                             </select>
-                            <div class="flex space-x-4 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                                <div class="flex items-center"><span class="w-3.5 h-3.5 rounded-full bg-[#53A548] mr-2 shadow-sm border border-white"></span><span class="text-xs font-extrabold text-gray-600">FREE CG</span></div>
-                                <div class="flex items-center"><span class="w-3.5 h-3.5 rounded-full bg-[#ef4444] mr-2 shadow-sm border border-white"></span><span class="text-xs font-extrabold text-gray-600">BUSY CG</span></div>
-                                <div class="flex items-center"><span class="w-3.5 h-3.5 rounded-full bg-[#3b82f6] mr-2 shadow-sm border border-white"></span><span class="text-xs font-extrabold text-gray-600">NURSE</span></div>
-                                <div class="flex items-center"><span class="w-3.5 h-3.5 rounded-full bg-[#0D3B66] mr-2 shadow-sm border border-white"></span><span class="text-xs font-extrabold text-gray-600">CLIENT</span></div>
+                            <div class="relative">
+                                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                                <input id="map-user-search" type="search" oninput="applyMapUserSearch()" class="w-48 pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-primary outline-none font-bold text-gray-700 text-sm" placeholder="Search user name">
+                            </div>
+                            <div class="flex flex-wrap gap-2 bg-gray-50 px-3 py-2 rounded-xl border border-gray-200">
+                                <button onclick="focusMapList('free')" class="flex items-center hover:text-green-700"><span class="w-3.5 h-3.5 rounded-full bg-[#53A548] mr-2 shadow-sm border border-white"></span><span class="text-xs font-extrabold text-gray-600">FREE CG</span></button>
+                                <button onclick="focusMapList('busy')" class="flex items-center hover:text-red-700"><span class="w-3.5 h-3.5 rounded-full bg-[#ef4444] mr-2 shadow-sm border border-white"></span><span class="text-xs font-extrabold text-gray-600">BUSY CG</span></button>
+                                <button onclick="focusMapList('nurses')" class="flex items-center hover:text-blue-700"><span class="w-3.5 h-3.5 rounded-full bg-[#3b82f6] mr-2 shadow-sm border border-white"></span><span class="text-xs font-extrabold text-gray-600">NURSE</span></button>
+                                <button onclick="focusMapList('clients')" class="flex items-center hover:text-blue-900"><span class="w-3.5 h-3.5 rounded-full bg-[#0D3B66] mr-2 shadow-sm border border-white"></span><span class="text-xs font-extrabold text-gray-600">CLIENT</span></button>
                             </div>
                         </div>
                     </div>
                     
                     <div class="flex flex-1 overflow-hidden relative border border-t-0 border-gray-200 rounded-b-2xl shadow-inner bg-gray-200">
                         <div id="admin-map" class="flex-1 w-full h-full z-10"></div>
-                        <div class="w-80 bg-white shadow-[-10px_0_15px_-3px_rgba(0,0,0,0.1)] z-[15] border-l border-gray-200 flex flex-col h-full absolute right-0 top-0 bottom-0">
+                        <div id="map-live-panel" class="w-80 bg-white shadow-[-10px_0_15px_-3px_rgba(0,0,0,0.1)] z-[15] border-l border-gray-200 flex flex-col h-full absolute right-0 top-0 bottom-0">
                             <div class="p-5 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200 flex justify-between items-center flex-shrink-0">
                                 <h3 class="font-extrabold text-gray-800 text-sm tracking-wider uppercase"><i data-lucide="activity" class="inline w-5 h-5 mr-2 text-primary"></i> Live Operations</h3>
                                 <span id="map-district-label" class="text-[10px] font-black text-primary bg-green-50 border border-green-200 px-2 py-1 rounded-lg hidden">All</span>
                             </div>
                             <div class="flex-1 overflow-y-auto custom-scrollbar">
-                                <div class="p-5 border-b border-gray-100 bg-red-50/30">
+                                <div id="map-list-busy" class="p-5 border-b border-gray-100 bg-red-50/30">
                                     <h4 class="text-xs font-black text-red-600 mb-4 tracking-wider uppercase flex items-center"><i data-lucide="link" class="w-4 h-4 mr-2"></i> Active Connections</h4>
                                     <div id="map-active-connections" class="space-y-3">
                                         <p class="text-xs text-gray-400 font-medium italic">Loading active jobs...</p>
                                     </div>
                                 </div>
-                                <div class="p-5 border-b border-gray-100 bg-green-50/30">
+                                <div id="map-list-free" class="p-5 border-b border-gray-100 bg-green-50/30">
                                     <h4 class="text-xs font-black text-green-600 mb-4 tracking-wider uppercase flex items-center"><i data-lucide="user-check" class="w-4 h-4 mr-2"></i> Free Caregivers</h4>
                                     <div id="map-free-caregivers" class="space-y-3">
                                         <p class="text-xs text-gray-400 font-medium italic">Loading...</p>
                                     </div>
                                 </div>
-                                <div class="p-5 border-b border-gray-100 bg-blue-50/30">
+                                <div id="map-list-nurses" class="p-5 border-b border-gray-100 bg-blue-50/30">
                                     <h4 class="text-xs font-black text-blue-600 mb-4 tracking-wider uppercase flex items-center"><i data-lucide="stethoscope" class="w-4 h-4 mr-2"></i> Nurses</h4>
                                     <div id="map-nurses-list" class="space-y-3">
                                         <p class="text-xs text-gray-400 font-medium italic">Loading...</p>
                                     </div>
                                 </div>
-                                <div class="p-5 bg-indigo-50/30 min-h-[150px]">
+                                <div id="map-list-clients" class="p-5 bg-indigo-50/30 min-h-[150px]">
                                     <h4 class="text-xs font-black text-indigo-600 mb-4 tracking-wider uppercase flex items-center"><i data-lucide="users" class="w-4 h-4 mr-2"></i> Clients</h4>
                                     <div id="map-clients-list" class="space-y-3">
                                         <p class="text-xs text-gray-400 font-medium italic">Loading...</p>
@@ -1657,14 +1674,30 @@
             set('ops-pending',jobs.filter(b=>b.status==='PENDING'||b.status==='BROADCASTED').length);
             set('ops-completed',count('COMPLETED'));
             const list = document.getElementById('ops-job-list'); if(!list) return;
+            const getTime = (value) => value?.toDate?.().getTime?.() || (typeof value?.seconds === 'number' ? value.seconds * 1000 : Number(value) || 0);
             const active=jobs.filter(b=>b.status==='IN_PROGRESS').sort((a,b)=>(b.requestedTime?.seconds||b.requestedTime||0)-(a.requestedTime?.seconds||a.requestedTime||0));
-            if(!active.length) {list.innerHTML='<div class="col-span-full p-10 text-center bg-emerald-50 rounded-2xl text-emerald-800"><p class="font-black">No jobs currently in progress</p><p class="text-sm mt-1">New active jobs will appear here automatically.</p></div>';return;}
-            list.innerHTML=active.slice(0,12).map((b,i)=>{
+            if(!active.length) list.innerHTML='<div class="col-span-full p-10 text-center bg-emerald-50 rounded-2xl text-emerald-800"><p class="font-black">No jobs currently in progress</p><p class="text-sm mt-1">New active jobs will appear here automatically.</p></div>';
+            else list.innerHTML=active.slice(0,12).map((b,i)=>{
                 const caregiver=window.allUsersDataMap?.[b.caregiverId];
                 const client=window.allUsersDataMap?.[b.clientId];
                 const service=escapeOps(b.serviceType||b.service||b.category||b.planName||'Care service');
                 return `<div class="gh-job-card border border-slate-100 rounded-2xl p-5 bg-gradient-to-br from-white to-slate-50 hover:shadow-md transition" style="animation-delay:${Math.min(i,8)*55}ms"><div class="flex justify-between gap-3 items-start"><span class="font-extrabold text-slate-800">${service}</span><span class="whitespace-nowrap text-[10px] font-black bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full">● IN PROGRESS</span></div><div class="mt-4 grid grid-cols-2 gap-3 text-xs"><div><p class="text-slate-400 font-semibold mb-1">Caregiver / Nurse</p><p class="font-bold text-slate-800">${escapeOps(caregiver?.name||'Not available')}</p></div><div><p class="text-slate-400 font-semibold mb-1">Client</p><p class="font-bold text-slate-800">${escapeOps(client?.name||'Not available')}</p></div></div></div>`;
             }).join('');
+            const busyList = document.getElementById('ops-busy-caregivers');
+            if (busyList) {
+                const assignedIds = new Set(jobs.filter(b => ['ACCEPTED', 'IN_PROGRESS'].includes(b.status) && b.caregiverId).map(b => b.caregiverId));
+                const busy = Object.entries(window.allUsersDataMap || {}).filter(([uid, user]) => user.role === 'CAREGIVER' && (user.isBusy || assignedIds.has(uid))).map(([uid, user]) => ({uid, user}));
+                busyList.innerHTML = busy.length ? busy.slice(0, 8).map(({uid, user}) => `<button onclick="focusUserOnMap(${Number(user.locationLat) || 0}, ${Number(user.locationLng) || 0}, '${uid}')" class="w-full text-left rounded-2xl border border-red-100 bg-red-50/40 px-4 py-3 hover:border-red-300 transition"><span class="block font-black text-red-800">${escapeOps(user.name || 'Caregiver')}</span><span class="mt-1 block text-[10px] font-bold uppercase tracking-wider text-red-500">● Busy on assignment</span></button>`).join('') : '<p class="rounded-2xl bg-slate-50 p-5 text-center text-sm text-slate-400">No busy caregivers right now.</p>';
+            }
+            const completedList = document.getElementById('ops-completed-jobs');
+            if (completedList) {
+                const completed = jobs.filter(b => b.status === 'COMPLETED').sort((a,b) => getTime(b.completedAt || b.updatedAt || b.requestedTime) - getTime(a.completedAt || a.updatedAt || a.requestedTime));
+                completedList.innerHTML = completed.length ? completed.slice(0, 8).map(b => {
+                    const caregiver = window.allUsersDataMap?.[b.caregiverId]; const client = window.allUsersDataMap?.[b.clientId];
+                    const service = escapeOps(b.serviceType || b.service || b.category || b.planName || 'Care service');
+                    return `<div class="rounded-2xl border border-emerald-100 bg-emerald-50/40 px-4 py-3"><div class="flex items-start justify-between gap-3"><span class="font-black text-emerald-900">${service}</span><span class="shrink-0 text-[10px] font-black text-emerald-700">COMPLETED</span></div><p class="mt-1 text-xs text-slate-600">${escapeOps(caregiver?.name || 'Caregiver')} → ${escapeOps(client?.name || 'Client')}</p></div>`;
+                }).join('') : '<p class="rounded-2xl bg-slate-50 p-5 text-center text-sm text-slate-400">No completed jobs yet.</p>';
+            }
         }
         async function loadDashboardStats() {
             onSnapshot(collection(db, "users"), (snapshot) => { document.getElementById('stat-users').innerText = snapshot.size; });
@@ -2986,6 +3019,7 @@ window.webPackages = {
                     }
                 });
                 updateMapConnections();
+                renderOperations(Object.values(window.allBookingsMap || {}));
             });
 
             onSnapshot(collection(db, "live_locations"), (snapshot) => {
@@ -3026,6 +3060,23 @@ window.webPackages = {
             Object.entries(window.allUsersDataMap).forEach(([userId, user]) => renderLiveUserMarker(userId, user));
         }
 
+        function getUserDistrict(user) {
+            return String(user?.district || user?.locationDistrict || user?.serviceDistrict || user?.addressDistrict || user?.city || '').trim();
+        }
+
+        function userMatchesMapFilters(user) {
+            const district = (window.currentMapDistrict || '').trim().toLowerCase();
+            const userDistrict = getUserDistrict(user).toLowerCase();
+            const query = (window.currentMapSearch || '').trim().toLowerCase();
+            const name = String(user?.name || user?.fullName || '').toLowerCase();
+            return (!district || userDistrict === district || userDistrict.includes(district)) && (!query || name.includes(query));
+        }
+
+        function getSafeProfileImage(user) {
+            const candidate = user?.profileImageUrl || user?.profilePhotoUrl || user?.photoUrl || user?.photoURL || user?.imageUrl || '';
+            return typeof candidate === 'string' && /^https:\/\//i.test(candidate) ? candidate : '';
+        }
+
         function renderLiveUserMarker(userId, user) {
             if (!adminMap) return;
 
@@ -3064,7 +3115,12 @@ window.webPackages = {
                 iconAnchor: [16, 16],
                 popupAnchor: [0, -16]
             });
-            const popupContent = `<div class="map-popup-title" style="font-weight:bold;font-size:13px;margin-bottom:4px;">${user.name || 'Unknown'}</div><span class="map-popup-role" style="background-color:${markerColor};color:white;padding:3px 8px;border-radius:4px;font-size:11px;display:inline-block;">${roleDisplay}</span><div style="margin-top:6px;font-size:11px;color:gray;">${user.phone || 'N/A'}</div>${user.district ? `<div style="font-size:11px;color:#555;margin-top:3px;">📍 ${user.district}</div>` : ''}`;
+            const profileImage = getSafeProfileImage(user);
+            const userDistrict = getUserDistrict(user);
+            const avatar = profileImage
+                ? `<img src="${profileImage}" alt="" style="width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid #e2e8f0;">`
+                : `<div style="width:46px;height:46px;border-radius:50%;background:#f1f5f9;color:#64748b;display:flex;align-items:center;justify-content:center;font-size:22px;border:2px solid #e2e8f0;">👤</div>`;
+            const popupContent = `<div style="display:flex;gap:10px;align-items:center;min-width:190px;">${avatar}<div><div class="map-popup-title" style="font-weight:bold;font-size:13px;margin-bottom:4px;">${escapeOps(user.name || 'Unknown')}</div><span class="map-popup-role" style="background-color:${markerColor};color:white;padding:3px 8px;border-radius:4px;font-size:11px;display:inline-block;">${roleDisplay}</span><div style="margin-top:6px;font-size:11px;color:gray;">${escapeOps(user.phone || 'N/A')}</div>${userDistrict ? `<div style="font-size:11px;color:#555;margin-top:3px;">📍 ${escapeOps(userDistrict)}</div>` : ''}</div></div>`;
 
             if (markersMap[userId]) {
                 markersMap[userId].setLatLng([lat, lng]);
@@ -3074,13 +3130,13 @@ window.webPackages = {
                 markersMap[userId] = L.marker([lat, lng], { icon: customIcon }).addTo(adminMap).bindPopup(popupContent);
             }
 
-            const districtFilter = (window.currentMapDistrict || '').toLowerCase();
-            const matchesDistrict = !districtFilter || (user.district || '').toLowerCase() === districtFilter;
-            if (matchesDistrict && !adminMap.hasLayer(markersMap[userId])) markersMap[userId].addTo(adminMap);
-            if (!matchesDistrict && adminMap.hasLayer(markersMap[userId])) adminMap.removeLayer(markersMap[userId]);
+            const matchesFilters = userMatchesMapFilters(user);
+            if (matchesFilters && !adminMap.hasLayer(markersMap[userId])) markersMap[userId].addTo(adminMap);
+            if (!matchesFilters && adminMap.hasLayer(markersMap[userId])) adminMap.removeLayer(markersMap[userId]);
         }
 
         window.currentMapDistrict = '';
+        window.currentMapSearch = '';
 
         window.applyMapDistrictFilter = function() {
             window.currentMapDistrict = document.getElementById('map-district-filter').value;
@@ -3091,42 +3147,54 @@ window.webPackages = {
             } else {
                 label.classList.add('hidden');
             }
-            // Show/hide map markers based on district
+            // Update every marker and the related name lists with the active filter.
             Object.keys(markersMap).forEach(uid => {
                 const user = window.allUsersDataMap[uid];
                 if (!user) return;
                 const marker = markersMap[uid];
-                if (!window.currentMapDistrict) {
-                    if (adminMap && !adminMap.hasLayer(marker)) marker.addTo(adminMap);
-                } else {
-                    const userDistrict = (user.district || '').toLowerCase();
-                    const filterDistrict = window.currentMapDistrict.toLowerCase();
-                    if (userDistrict === filterDistrict) {
-                        if (adminMap && !adminMap.hasLayer(marker)) marker.addTo(adminMap);
-                    } else {
-                        if (adminMap && adminMap.hasLayer(marker)) adminMap.removeLayer(marker);
-                    }
-                }
+                if (userMatchesMapFilters(user) && adminMap && !adminMap.hasLayer(marker)) marker.addTo(adminMap);
+                if (!userMatchesMapFilters(user) && adminMap && adminMap.hasLayer(marker)) adminMap.removeLayer(marker);
             });
             updateMapConnections();
+        }
+
+        window.applyMapUserSearch = function() {
+            window.currentMapSearch = document.getElementById('map-user-search')?.value || '';
+            Object.entries(window.allUsersDataMap || {}).forEach(([uid, user]) => renderLiveUserMarker(uid, user));
+            updateMapConnections();
+        }
+
+        window.toggleMapLivePanel = function(forceVisible = null) {
+            const panel = document.getElementById('map-live-panel');
+            const label = document.getElementById('map-panel-toggle-label');
+            const icon = document.getElementById('map-panel-toggle-icon');
+            if (!panel) return;
+            const shouldShow = forceVisible === null ? panel.classList.contains('hidden') : forceVisible;
+            panel.classList.toggle('hidden', !shouldShow);
+            if (label) label.textContent = shouldShow ? 'Hide List' : 'Show List';
+            if (icon) icon.setAttribute('data-lucide', shouldShow ? 'panel-right-close' : 'panel-right-open');
+            lucide.createIcons();
+            setTimeout(() => adminMap?.invalidateSize(true), 150);
+        }
+
+        window.focusMapList = function(section) {
+            window.toggleMapLivePanel(true);
+            const target = document.getElementById(`map-list-${section}`);
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         function updateMapConnections() {
             activePolylines.forEach(p => p.remove()); activePolylines = [];
             const activeListHtml = []; const freeListHtml = []; const nurseListHtml = []; const clientListHtml = [];
-            const districtFilter = (window.currentMapDistrict || '').toLowerCase();
-
-            const matchesDistrict = (user) => {
-                if (!districtFilter) return true;
-                return (user.district || '').toLowerCase() === districtFilter;
-            };
+            const matchesFilters = (user) => userMatchesMapFilters(user);
 
             Object.keys(window.allUsersDataMap).forEach(uid => {
                 const u = window.allUsersDataMap[uid];
-                if (!matchesDistrict(u)) return;
+                if (!matchesFilters(u)) return;
                 const isNurse = u.role === 'NURSE' || (u.role === 'CAREGIVER' && u.categories && (u.categories.includes('Nurse') || u.categories.includes('NURSE')));
                 const clickAction = u.locationLat ? `focusUserOnMap(${u.locationLat}, ${u.locationLng}, '${uid}')` : `showToast('Location not shared', 'error')`;
-                const distBadge = u.district ? `<span class="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded ml-1 font-bold">${u.district}</span>` : '';
+                const userDistrict = getUserDistrict(u);
+                const distBadge = userDistrict ? `<span class="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded ml-1 font-bold">${escapeOps(userDistrict)}</span>` : '';
                 const locIcon = u.locationLat ? `<i data-lucide="map-pin" class="inline w-3 h-3 text-green-500"></i>` : `<i data-lucide="map-pin-off" class="inline w-3 h-3 text-gray-300"></i>`;
 
                 if (isNurse) {
@@ -3141,7 +3209,7 @@ window.webPackages = {
             activeBookingsData.forEach(b => {
                 const cg = window.allUsersDataMap[b.caregiverId]; const cl = window.allUsersDataMap[b.clientId];
                 if (cg && cl) {
-                    if (districtFilter && !(matchesDistrict(cg) || matchesDistrict(cl))) return;
+                    if (!matchesFilters(cg) && !matchesFilters(cl)) return;
                     const clickAction = cg.locationLat ? `focusUserOnMap(${cg.locationLat}, ${cg.locationLng}, '${b.caregiverId}')` : `showToast('Offline', 'error')`;
                     activeListHtml.push(`<div class="bg-white p-4 rounded-xl border border-red-100 shadow-sm mb-3 cursor-pointer hover:border-red-300 transition" onclick="${clickAction}"><div class="font-black text-red-700 text-sm flex items-center"><div class="w-2 h-2 rounded-full bg-red-500 mr-2 animate-pulse"></div> ${cg.name}</div><div class="text-[10px] text-gray-400 my-2 font-black uppercase tracking-widest text-center border-y border-dashed py-1">Assigned to</div><div class="font-black text-blue-900 text-sm flex items-center justify-end">${cl.name} <div class="w-2 h-2 rounded-full bg-blue-500 ml-2"></div></div></div>`);
                     const tLat = cl.locationLat || b.locationLat; const tLng = cl.locationLng || b.locationLng;
