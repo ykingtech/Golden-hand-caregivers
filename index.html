@@ -3087,7 +3087,12 @@ window.webPackages = {
 
         function getSafeProfileImage(user) {
             const candidate = user?.profileImageUrl || user?.profilePhotoUrl || user?.photoUrl || user?.photoURL || user?.imageUrl || '';
-            return typeof candidate === 'string' && /^https:\/\//i.test(candidate) ? candidate : '';
+            if (typeof candidate !== 'string') return '';
+            if (/^https:\/\//i.test(candidate)) return candidate;
+            // Existing accounts may have a Firestore data-image URL. Permit only raster image types,
+            // never SVG or HTML-capable data URLs, so the Leaflet popup cannot execute stored content.
+            if (/^data:image\/(?:jpeg|jpg|png|webp);base64,[a-z0-9+/=]+$/i.test(candidate) && candidate.length <= 7_000_000) return candidate;
+            return '';
         }
 
         function renderLiveUserMarker(userId, user) {
