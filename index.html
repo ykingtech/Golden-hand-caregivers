@@ -3060,8 +3060,21 @@ window.webPackages = {
             Object.entries(window.allUsersDataMap).forEach(([userId, user]) => renderLiveUserMarker(userId, user));
         }
 
+        const SRI_LANKA_DISTRICTS = ['Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya', 'Galle', 'Matara', 'Hambantota', 'Jaffna', 'Kilinochchi', 'Mannar', 'Vavuniya', 'Mullaitivu', 'Batticaloa', 'Ampara', 'Trincomalee', 'Kurunegala', 'Puttalam', 'Anuradhapura', 'Polonnaruwa', 'Badulla', 'Monaragala', 'Ratnapura', 'Kegalle'];
+
         function getUserDistrict(user) {
-            return String(user?.district || user?.locationDistrict || user?.serviceDistrict || user?.addressDistrict || user?.city || '').trim();
+            const location = user?.location && typeof user.location === 'object' ? user.location : {};
+            const candidates = [
+                user?.district, user?.districtName, user?.selectedDistrict, user?.locationDistrict, user?.serviceDistrict,
+                user?.addressDistrict, user?.homeDistrict, user?.city, user?.town, user?.address, user?.serviceAddress,
+                user?.billingAddress, user?.locationAddress, location?.district, location?.city, location?.address
+            ].filter(value => typeof value === 'string' && value.trim());
+            for (const candidate of candidates) {
+                const normalized = candidate.trim().replace(/\s+district$/i, '').toLowerCase();
+                const match = SRI_LANKA_DISTRICTS.find(district => normalized === district.toLowerCase() || normalized.includes(district.toLowerCase()));
+                if (match) return match;
+            }
+            return '';
         }
 
         function userMatchesMapFilters(user) {
@@ -3117,10 +3130,11 @@ window.webPackages = {
             });
             const profileImage = getSafeProfileImage(user);
             const userDistrict = getUserDistrict(user);
+            const encodedUserId = encodeURIComponent(userId);
             const avatar = profileImage
                 ? `<img src="${profileImage}" alt="" style="width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid #e2e8f0;">`
                 : `<div style="width:46px;height:46px;border-radius:50%;background:#f1f5f9;color:#64748b;display:flex;align-items:center;justify-content:center;font-size:22px;border:2px solid #e2e8f0;">👤</div>`;
-            const popupContent = `<div style="display:flex;gap:10px;align-items:center;min-width:190px;">${avatar}<div><div class="map-popup-title" style="font-weight:bold;font-size:13px;margin-bottom:4px;">${escapeOps(user.name || 'Unknown')}</div><span class="map-popup-role" style="background-color:${markerColor};color:white;padding:3px 8px;border-radius:4px;font-size:11px;display:inline-block;">${roleDisplay}</span><div style="margin-top:6px;font-size:11px;color:gray;">${escapeOps(user.phone || 'N/A')}</div>${userDistrict ? `<div style="font-size:11px;color:#555;margin-top:3px;">📍 ${escapeOps(userDistrict)}</div>` : ''}</div></div>`;
+            const popupContent = `<div style="min-width:205px;"><div style="display:flex;gap:10px;align-items:center;">${avatar}<div><div class="map-popup-title" style="font-weight:bold;font-size:13px;margin-bottom:4px;">${escapeOps(user.name || 'Unknown')}</div><span class="map-popup-role" style="background-color:${markerColor};color:white;padding:3px 8px;border-radius:4px;font-size:11px;display:inline-block;">${roleDisplay}</span><div style="margin-top:6px;font-size:11px;color:gray;">${escapeOps(user.phone || 'N/A')}</div>${userDistrict ? `<div style="font-size:11px;color:#555;margin-top:3px;">📍 ${escapeOps(userDistrict)}</div>` : ''}</div></div><button type="button" onclick="openMapProfile('${encodedUserId}')" style="width:100%;margin-top:10px;padding:7px 10px;border:0;border-radius:7px;background:#0D3B66;color:white;font-size:11px;font-weight:700;cursor:pointer;">Open Profile</button></div>`;
 
             if (markersMap[userId]) {
                 markersMap[userId].setLatLng([lat, lng]);
@@ -3181,6 +3195,12 @@ window.webPackages = {
             window.toggleMapLivePanel(true);
             const target = document.getElementById(`map-list-${section}`);
             if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        window.openMapProfile = function(encodedUserId) {
+            const userId = decodeURIComponent(encodedUserId);
+            if (!window.allUsersDataMap?.[userId]) return showToast('User profile is no longer available.', 'error');
+            window.openReviewModal(userId);
         }
 
         function updateMapConnections() {
