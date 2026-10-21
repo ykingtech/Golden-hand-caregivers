@@ -3088,10 +3088,14 @@ window.webPackages = {
         function getSafeProfileImage(user) {
             const candidate = user?.profileImageUrl || user?.profilePhotoUrl || user?.photoUrl || user?.photoURL || user?.imageUrl || '';
             if (typeof candidate !== 'string') return '';
-            if (/^https:\/\//i.test(candidate)) return candidate;
-            // Existing accounts may have a Firestore data-image URL. Permit only raster image types,
-            // never SVG or HTML-capable data URLs, so the Leaflet popup cannot execute stored content.
-            if (/^data:image\/(?:jpeg|jpg|png|webp);base64,[a-z0-9+/=]+$/i.test(candidate) && candidate.length <= 7_000_000) return candidate;
+            const source = candidate.trim();
+            if (/^https:\/\//i.test(source)) return source;
+            // Existing profiles use more than one valid raster data-URL spelling (for example,
+            // image/jpeg;charset=utf-8;base64 or data copied with line breaks).  Keep SVG and
+            // non-image URLs out, but allow the common browser-safe photo formats the profile
+            // dialog already displays.
+            const rasterDataImage = /^data:image\/(?:avif|gif|heic|heif|jpe?g|png|webp)(?:;[^,]*)?,/i;
+            if (source.length <= 7_000_000 && rasterDataImage.test(source)) return source;
             return '';
         }
 
