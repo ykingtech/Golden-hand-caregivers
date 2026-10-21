@@ -1121,7 +1121,7 @@
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center mb-8 relative overflow-hidden">
                             <div class="absolute top-0 left-0 w-2 h-full bg-primary"></div>
                             <div class="relative ml-4">
-                                <img id="modal-dp-img" src="" class="w-24 h-24 rounded-full object-cover border-4 border-gray-50 shadow-md hidden">
+                                <img id="modal-dp-img" src="" class="w-24 h-24 rounded-full object-cover border-4 border-gray-50 shadow-md hidden cursor-pointer" title="Open image" onclick="if (this.src) openImagePopup(this.src)">
                                 <div id="modal-dp-placeholder" class="w-24 h-24 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-4xl font-black shadow-inner">U</div>
                                 <span id="modal-status-badge" class="absolute -bottom-2 -right-2 px-3 py-1 rounded-full text-[10px] font-black border shadow-sm tracking-wider">STATUS</span>
                             </div>
@@ -1278,8 +1278,13 @@
 
             <!-- POPUP FOR IMAGES -->
             <div id="image-viewer-modal" class="absolute inset-0 bg-slate-900/95 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-md" onclick="closeImagePopup()">
-                <div class="relative max-w-6xl max-h-full p-4">
-                    <img id="viewer-img" src="" class="max-h-[85vh] object-contain mx-auto rounded-xl shadow-2xl ring-1 ring-white/20">
+                <div class="relative max-w-6xl max-h-full p-4" onclick="event.stopPropagation()">
+                    <img id="viewer-img" src="" class="max-h-[85vh] max-w-[90vw] object-contain mx-auto rounded-xl shadow-2xl ring-1 ring-white/20 transition-transform duration-200">
+                    <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 rounded-full border border-white/20 bg-slate-900/90 p-1.5 shadow-xl">
+                        <button type="button" class="rounded-full bg-white/10 p-2 text-white hover:bg-primary transition" title="Rotate left" onclick="rotateViewerImage(-90)"><i data-lucide="rotate-ccw" class="w-5 h-5"></i></button>
+                        <button type="button" class="rounded-full bg-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-wide text-white hover:bg-white/20 transition" onclick="resetViewerImageRotation()">Reset</button>
+                        <button type="button" class="rounded-full bg-white/10 p-2 text-white hover:bg-primary transition" title="Rotate right" onclick="rotateViewerImage(90)"><i data-lucide="rotate-cw" class="w-5 h-5"></i></button>
+                    </div>
                     <button class="absolute top-0 right-0 bg-white text-gray-900 rounded-full p-2 hover:bg-red-500 hover:text-white transition shadow-xl transform translate-x-1/2 -translate-y-1/2" onclick="closeImagePopup()"><i data-lucide="x" class="w-6 h-6"></i></button>
                 </div>
             </div>
@@ -1615,13 +1620,30 @@
             }
         });
 
+        let viewerImageRotation = 0;
+        function applyViewerImageRotation() {
+            document.getElementById('viewer-img').style.transform = `rotate(${viewerImageRotation}deg)`;
+        }
+        window.rotateViewerImage = function(degrees) {
+            viewerImageRotation = (viewerImageRotation + degrees + 360) % 360;
+            applyViewerImageRotation();
+        }
+        window.resetViewerImageRotation = function() {
+            viewerImageRotation = 0;
+            applyViewerImageRotation();
+        }
         window.openImagePopup = function(src) { 
             if(src) { 
+                resetViewerImageRotation();
                 document.getElementById('viewer-img').src = src; 
                 document.getElementById('image-viewer-modal').classList.remove('hidden'); 
+                lucide.createIcons();
             } 
         }
-        window.closeImagePopup = function() { document.getElementById('image-viewer-modal').classList.add('hidden'); }
+        window.closeImagePopup = function() { 
+            document.getElementById('image-viewer-modal').classList.add('hidden');
+            resetViewerImageRotation();
+        }
 
         window.viewSlip = function(bookingId) {
             const b = window.allBookingsMap[bookingId];
