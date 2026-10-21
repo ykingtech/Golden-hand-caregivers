@@ -35,8 +35,22 @@ jobs:
       - name: Run updater tests
         run: npm test
 
+      - name: Create draft release before uploading update files
+        shell: pwsh
+        run: |
+          gh release create "${{ github.ref_name }}" --draft --title "${{ github.ref_name }}" --notes "Golden Hand Admin automatic update release."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build and publish Windows release
         run: npm run admin:dist -- --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      - name: Publish release after all installer files are attached
+        shell: pwsh
+        run: |
+          gh release edit "${{ github.ref_name }}" --draft=false
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
