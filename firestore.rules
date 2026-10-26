@@ -24,10 +24,104 @@ service cloud.firestore {
       ]);
     }
 
+    function validWebsiteLeadBase() {
+      return request.resource.data.keys().hasOnly([
+          'type', 'name', 'phone', 'whatsapp', 'service', 'durationDays',
+          'startDate', 'startTime', 'address', 'status', 'timestamp',
+          'position', 'experience', 'nvq', 'slmc', 'message'
+        ])
+        && request.resource.data.keys().hasAll(['type', 'name', 'status', 'timestamp'])
+        && request.resource.data.type in ['LOCAL_CLIENT', 'TOURIST', 'STAFF_APPLICATION']
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1
+        && request.resource.data.name.size() <= 100
+        && request.resource.data.status == 'NEW'
+        && request.resource.data.timestamp is int
+        && request.resource.data.timestamp > 0;
+    }
+
+    function validLocalWebsiteLead() {
+      return request.resource.data.type == 'LOCAL_CLIENT'
+        && request.resource.data.keys().hasAll([
+          'phone', 'service', 'durationDays', 'startDate', 'startTime', 'address'
+        ])
+        && request.resource.data.phone is string
+        && request.resource.data.phone.size() >= 7
+        && request.resource.data.phone.size() <= 30
+        && request.resource.data['service'] is string
+        && request.resource.data['service'].size() >= 1
+        && request.resource.data['service'].size() <= 120
+        && request.resource.data.durationDays is string
+        && request.resource.data.durationDays.size() >= 1
+        && request.resource.data.durationDays.size() <= 4
+        && request.resource.data.startDate is string
+        && request.resource.data.startDate.size() >= 1
+        && request.resource.data.startDate.size() <= 20
+        && request.resource.data.startTime is string
+        && request.resource.data.startTime.size() >= 1
+        && request.resource.data.startTime.size() <= 20
+        && request.resource.data.address is string
+        && request.resource.data.address.size() >= 1
+        && request.resource.data.address.size() <= 500;
+    }
+
+    function validTouristWebsiteLead() {
+      return request.resource.data.type == 'TOURIST'
+        && request.resource.data.keys().hasAll([
+          'whatsapp', 'service', 'durationDays', 'address'
+        ])
+        && request.resource.data.whatsapp is string
+        && request.resource.data.whatsapp.size() >= 7
+        && request.resource.data.whatsapp.size() <= 30
+        && request.resource.data['service'] is string
+        && request.resource.data['service'].size() >= 1
+        && request.resource.data['service'].size() <= 120
+        && request.resource.data.durationDays is string
+        && request.resource.data.durationDays.size() >= 1
+        && request.resource.data.durationDays.size() <= 4
+        && request.resource.data.address is string
+        && request.resource.data.address.size() >= 1
+        && request.resource.data.address.size() <= 500;
+    }
+
+    function validStaffWebsiteLead() {
+      return request.resource.data.type == 'STAFF_APPLICATION'
+        && request.resource.data.keys().hasAll([
+          'phone', 'position', 'experience', 'nvq', 'slmc', 'message'
+        ])
+        && request.resource.data.phone is string
+        && request.resource.data.phone.size() >= 7
+        && request.resource.data.phone.size() <= 30
+        && request.resource.data.position is string
+        && request.resource.data.position.size() >= 1
+        && request.resource.data.position.size() <= 100
+        && request.resource.data.experience is string
+        && request.resource.data.experience.size() <= 100
+        && request.resource.data.nvq is string
+        && request.resource.data.nvq.size() <= 100
+        && request.resource.data.slmc is string
+        && request.resource.data.slmc.size() <= 100
+        && request.resource.data.message is string
+        && request.resource.data.message.size() <= 1000;
+    }
+
     // Spark-plan administration is restricted to the designated verified
     // account. The local Electron Admin SDK process bypasses client rules.
     match /{adminDocument=**} {
       allow read, write: if isAdmin();
+    }
+
+    match /settings/website_content {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /website_leads/{leadId} {
+      allow create: if validWebsiteLeadBase()
+        && (validLocalWebsiteLead()
+          || validTouristWebsiteLead()
+          || validStaffWebsiteLead());
+      allow read, update, delete: if isAdmin();
     }
 
     match /users/{uid} {
