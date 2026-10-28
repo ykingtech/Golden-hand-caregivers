@@ -1046,16 +1046,6 @@
                                 </div>
                                 <p class="text-xs text-gray-500 mt-2 font-medium">This percentage is automatically deducted from a caregiver's earnings when a client completes a payment.</p>
                             </div>
-                            <div>
-                                <label class="block text-sm font-bold text-gray-800 mb-2 uppercase tracking-wide">Caregiver Registration Fee (Rs.)</label>
-                                <div class="relative">
-                                    <input type="number" id="setting-reg-fee" class="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:bg-white text-lg font-black text-gray-800 transition" value="1000" min="0">
-                                    <div class="absolute inset-y-0 right-0 flex items-center pr-5 pointer-events-none">
-                                        <span class="text-gray-500 font-bold">LKR</span>
-                                    </div>
-                                </div>
-                                <p class="text-xs text-gray-500 mt-2 font-medium">This is the one-time fee caregivers must pay to activate their account after KYC approval.</p>
-                            </div>
                             <div class="pt-5 border-t border-gray-100">
                                 <h4 class="text-sm font-black text-emerald-800 uppercase tracking-wide mb-4">Company Bank Details Shown to Clients</h4>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1529,6 +1519,11 @@
         }
 
         const desktopReleaseNotes = {
+            '1.0.15': [
+                'KYC approval now activates caregiver and nurse accounts immediately; no registration fee is required.',
+                'The old Pending Fee status and registration-fee setting have been removed.',
+                'Manual assignment selection now explains whether a staff member is busy or still awaiting KYC approval.'
+            ],
             '1.0.14': [
                 'Manual website bookings now select one verified caregiver or nurse directly from All Users.',
                 'Clients are hidden during staff selection, with a clear single-selection confirmation step.',
@@ -2266,7 +2261,6 @@
             const docSnap = await getDoc(doc(db, "settings", "general"));
             if(docSnap.exists()) {
                 if(docSnap.data().commissionRate !== undefined) document.getElementById('setting-commission').value = docSnap.data().commissionRate;
-                if(docSnap.data().registrationFee !== undefined) document.getElementById('setting-reg-fee').value = docSnap.data().registrationFee;
                 if(docSnap.data().cloudflareUploadUrl) document.getElementById('setting-cloudflare-upload-url').value = docSnap.data().cloudflareUploadUrl;
                 if(docSnap.data().patientAgreementPdfUrl) document.getElementById('setting-patient-agreement-url').value = docSnap.data().patientAgreementPdfUrl;
                 document.getElementById('setting-company-bank-name').value = docSnap.data().companyBankName || '';
@@ -2279,7 +2273,6 @@
 
         window.saveSettings = async function() {
             const comm = parseFloat(document.getElementById('setting-commission').value);
-            const regFee = parseFloat(document.getElementById('setting-reg-fee').value);
             const cloudflareUploadUrl = document.getElementById('setting-cloudflare-upload-url').value.trim();
             const patientAgreementPdfUrl = document.getElementById('setting-patient-agreement-url').value.trim();
             const companyBankName = document.getElementById('setting-company-bank-name').value.trim();
@@ -2292,7 +2285,7 @@
             if(cloudflareUploadUrl && !/^https:\/\//i.test(cloudflareUploadUrl)) { showToast("Cloudflare Worker URL must use HTTPS", "error"); return; }
             if(patientAgreementPdfUrl && !/^https:\/\//i.test(patientAgreementPdfUrl)) { showToast("Patient Agreement URL must use HTTPS", "error"); return; }
             try {
-                await setDoc(doc(db, "settings", "general"), { commissionRate: comm, registrationFee: regFee, cloudflareUploadUrl, patientAgreementPdfUrl, companyBankName, companyBankAccountName, companyBankAccountNumber, companyBankBranch, jobPaymentInstructions, updatedAt: Date.now() }, { merge: true });
+                await setDoc(doc(db, "settings", "general"), { commissionRate: comm, registrationFee: 0, cloudflareUploadUrl, patientAgreementPdfUrl, companyBankName, companyBankAccountName, companyBankAccountNumber, companyBankBranch, jobPaymentInstructions, updatedAt: Date.now() }, { merge: true });
                 showToast("System Settings Saved Successfully!");
             } catch(e) { showToast("Failed to save settings", "error"); }
         }
@@ -2622,6 +2615,9 @@ window.webPackages = {
         window.manualStaffSelectionMode = false;
         window.manualSelectedStaffId = null;
         window.manualSelectionLeadId = null;
+        window.isApprovedStaff = function(user) {
+            return Boolean(user && (user.kycStatus === 'APPROVED' || user.isVerified === true));
+        };
 
         window.filterUsers = function(role) {
             if (window.manualStaffSelectionMode && role === 'CLIENT') return showToast('Clients are hidden while selecting staff for this assignment.', 'error');
@@ -2666,7 +2662,7 @@ window.webPackages = {
 
                 if (isMatch) {
                     count++;
-                    let statusBadge = user.kycStatus === 'APPROVED' && user.isVerified ? `<span class="bg-green-50 text-green-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-green-200">ACTIVE</span>` : (user.kycStatus === 'APPROVED' && !user.isVerified ? `<span class="bg-blue-50 text-blue-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-blue-200">PENDING FEE</span>` : (user.kycStatus === 'REJECTED' ? `<span class="bg-red-50 text-red-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-red-200">REJECTED</span>` : `<span class="bg-yellow-50 text-yellow-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-yellow-200">PENDING KYC</span>`));
+                    let statusBadge = isApprovedStaff(user) ? `<span class="bg-green-50 text-green-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-green-200">APPROVED</span>` : (user.kycStatus === 'REJECTED' ? `<span class="bg-red-50 text-red-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-red-200">REJECTED</span>` : `<span class="bg-yellow-50 text-yellow-700 text-[10px] px-2.5 py-1 uppercase tracking-widest rounded-md font-bold border border-yellow-200">PENDING KYC</span>`);
                     let roleBadge = user.role === 'CLIENT' ? `<span class="bg-dark/10 text-dark text-xs px-2.5 py-1 rounded-md font-black">CLIENT</span>` : (isNurse ? `<span class="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-md font-black">NURSE</span>` : `<span class="bg-primary/10 text-primary text-xs px-2.5 py-1 rounded-md font-black">CAREGIVER</span>`);
                     
                     // Display Gender if available (for Staff)
@@ -2680,9 +2676,11 @@ window.webPackages = {
                     const deleteButton = window.goldenHandAdmin
                         ? `<button onclick="deleteManagedUser('${user.id}', this)" class="ml-2 text-red-700 hover:text-white hover:bg-red-600 disabled:opacity-50 disabled:cursor-wait px-3 py-1.5 rounded-lg text-xs font-bold border border-red-300">Delete account</button>`
                         : `<button onclick="showToast('Complete deletion is available in the Golden Hand desktop admin app.', 'error')" class="ml-2 text-gray-400 px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200">Desktop delete</button>`;
-                    const selectable = window.manualStaffSelectionMode && ['CAREGIVER', 'NURSE'].includes(user.role) && user.isVerified && !user.isBusy;
+                    const approved = isApprovedStaff(user);
+                    const selectable = window.manualStaffSelectionMode && ['CAREGIVER', 'NURSE'].includes(user.role) && approved && !user.isBusy;
+                    const unavailableReason = user.isBusy ? 'Busy on another job' : (!approved ? 'KYC not approved' : '');
                     const selectionCell = window.manualStaffSelectionMode ? `<td class="p-5 text-center"><input type="checkbox" aria-label="Select ${escapeOps(user.name || 'staff member')}" ${window.manualSelectedStaffId === user.id ? 'checked' : ''} ${selectable ? '' : 'disabled'} onchange="selectManualStaff('${user.id}', this.checked)" class="h-5 w-5 rounded border-gray-300 text-emerald-600 disabled:opacity-30"></td>` : '';
-                    rows += `<tr class="hover:bg-gray-50 transition border-b border-gray-100 ${window.manualSelectedStaffId === user.id ? 'bg-emerald-50' : ''}">${selectionCell}<td class="p-5 font-bold text-gray-900">${nameDisplay}${window.manualStaffSelectionMode && !selectable ? '<div class="text-[10px] text-red-500 mt-1">Unavailable for assignment</div>' : ''}</td><td class="p-5 text-gray-500 font-medium">${user.email}</td><td class="p-5">${roleBadge}</td><td class="p-5">${statusBadge}</td><td class="p-5 text-center"><button onclick="openReviewModal('${user.id}')" class="text-primary hover:text-white hover:bg-primary px-3 py-1.5 rounded-lg text-xs font-bold transition inline-flex items-center border border-primary/30"><i data-lucide="eye" class="w-3.5 h-3.5 mr-1.5"></i> View Details</button>${deleteButton}</td></tr>`;
+                    rows += `<tr class="hover:bg-gray-50 transition border-b border-gray-100 ${window.manualSelectedStaffId === user.id ? 'bg-emerald-50' : ''}">${selectionCell}<td class="p-5 font-bold text-gray-900">${nameDisplay}${window.manualStaffSelectionMode && !selectable ? `<div class="text-[10px] text-red-500 mt-1">${unavailableReason}</div>` : ''}</td><td class="p-5 text-gray-500 font-medium">${user.email}</td><td class="p-5">${roleBadge}</td><td class="p-5">${statusBadge}</td><td class="p-5 text-center"><button onclick="openReviewModal('${user.id}')" class="text-primary hover:text-white hover:bg-primary px-3 py-1.5 rounded-lg text-xs font-bold transition inline-flex items-center border border-primary/30"><i data-lucide="eye" class="w-3.5 h-3.5 mr-1.5"></i> View Details</button>${deleteButton}</td></tr>`;
                 }
             });
             
@@ -2734,7 +2732,7 @@ window.webPackages = {
                 window.loadAuthCreationTimesForProfiles();
                 
                 const container = document.getElementById('caregiver-checkboxes'); let html = ''; let count = 0;
-                Object.values(window.allUsersDataMap).forEach(u => { if ((u.role === 'CAREGIVER' || u.role === 'NURSE') && u.isVerified) { count++; html += `<label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-100 cursor-pointer hover:border-orange-300 transition"><input type="checkbox" value="${u.id}" class="cg-checkbox rounded text-orange-500 focus:ring-orange-500"><span class="text-xs font-bold text-gray-700">${u.name} <span class="text-[9px] text-gray-400 font-normal">(${u.rating || 0}⭐)</span></span></label>`; } });
+                Object.values(window.allUsersDataMap).forEach(u => { if ((u.role === 'CAREGIVER' || u.role === 'NURSE') && isApprovedStaff(u)) { count++; html += `<label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-100 cursor-pointer hover:border-orange-300 transition"><input type="checkbox" value="${u.id}" class="cg-checkbox rounded text-orange-500 focus:ring-orange-500"><span class="text-xs font-bold text-gray-700">${u.name} <span class="text-[9px] text-gray-400 font-normal">(${u.rating || 0}⭐)</span></span></label>`; } });
                 container.innerHTML = count > 0 ? html : '<p class="text-xs text-gray-400">No active caregivers found.</p>';
             });
         }
@@ -2825,8 +2823,7 @@ window.webPackages = {
             else { document.getElementById('modal-location').innerHTML = '<span class="text-xs text-gray-400 font-bold bg-gray-50 px-2 py-1 rounded border">Location Not Shared</span>'; }
 
             const badge = document.getElementById('modal-status-badge');
-            if (user.kycStatus === 'APPROVED' && user.isVerified) { badge.innerText = "ACTIVE"; badge.className = "absolute -bottom-2 -right-2 px-3 py-1 rounded-lg text-[10px] font-black border border-green-300 text-green-800 bg-green-400 shadow-sm tracking-widest"; }
-            else if (user.kycStatus === 'APPROVED' && !user.isVerified) { badge.innerText = "PENDING FEE"; badge.className = "absolute -bottom-2 -right-2 px-3 py-1 rounded-lg text-[10px] font-black border border-blue-300 text-blue-800 bg-blue-400 shadow-sm tracking-widest"; }
+            if (isApprovedStaff(user)) { badge.innerText = "APPROVED"; badge.className = "absolute -bottom-2 -right-2 px-3 py-1 rounded-lg text-[10px] font-black border border-green-300 text-green-800 bg-green-400 shadow-sm tracking-widest"; }
             else if (user.kycStatus === 'REJECTED') { badge.innerText = "REJECTED"; badge.className = "absolute -bottom-2 -right-2 px-3 py-1 rounded-lg text-[10px] font-black border border-red-300 text-red-800 bg-red-400 shadow-sm tracking-widest"; }
             else { badge.innerText = "PENDING"; badge.className = "absolute -bottom-2 -right-2 px-3 py-1 rounded-lg text-[10px] font-black border border-yellow-300 text-yellow-900 bg-yellow-400 shadow-sm tracking-widest animate-pulse"; }
 
@@ -3040,7 +3037,7 @@ window.webPackages = {
 
         window.handleApprove = async function(userId) { 
             appConfirm("Are you sure you want to <strong>APPROVE</strong> this user's KYC documents?", async () => {
-                try { await updateDoc(doc(db, "users", userId), { kycStatus: "APPROVED" }); showToast("Approved Successfully!", "success"); closeModal(); } 
+                try { await updateDoc(doc(db, "users", userId), { kycStatus: "APPROVED", isVerified: true, registrationFeeRequired: false, registrationFeePaid: true }); showToast("KYC approved. The account is active.", "success"); closeModal(); } 
                 catch (error) { showToast("Failed.", "error"); }
             }, { title: 'Approve KYC', icon: 'check-circle', iconColor: 'primary' });
         }
@@ -3358,7 +3355,7 @@ window.webPackages = {
 
                 if (isNurse) {
                     nurseListHtml.push(`<div class="bg-white p-3 rounded-xl border border-blue-100 shadow-sm mb-2 cursor-pointer hover:border-blue-300 transition" onclick="${clickAction}"><span class="font-black text-blue-800 block text-sm">${u.name}${distBadge}</span><span class="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest">${locIcon} ${u.locationLat ? 'Tap to locate' : 'No location'}</span></div>`);
-                } else if (u.role === 'CAREGIVER' && !u.isBusy && u.isVerified) {
+                } else if ((u.role === 'CAREGIVER' || u.role === 'NURSE') && !u.isBusy && isApprovedStaff(u)) {
                     freeListHtml.push(`<div class="bg-white p-3.5 rounded-xl border border-green-100 shadow-sm mb-2 cursor-pointer hover:border-green-300 transition" onclick="${clickAction}"><span class="font-black text-green-800 block text-sm">${u.name}${distBadge}</span><span class="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest">${locIcon} ${u.locationLat ? 'Tap to locate' : 'No location'}</span></div>`);
                 } else if (u.role === 'CLIENT') {
                     clientListHtml.push(`<div class="bg-white p-3 rounded-xl border border-indigo-100 shadow-sm mb-2 cursor-pointer hover:border-indigo-300 transition" onclick="${clickAction}"><span class="font-black text-indigo-900 block text-sm">${u.name}${distBadge}</span><span class="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest">${locIcon} ${u.locationLat ? 'Tap to locate' : 'No location'}</span></div>`);
@@ -3691,7 +3688,7 @@ window.webPackages = {
         window.openManualAssignmentModal = function(leadId) {
             const lead = window.allLeadsMap[leadId];
             if (!lead) return showToast('Website booking is unavailable.', 'error');
-            const available = Object.values(window.allUsersDataMap || {}).filter(user => ['CAREGIVER', 'NURSE'].includes(user.role) && user.isVerified && !user.isBusy);
+            const available = Object.values(window.allUsersDataMap || {}).filter(user => ['CAREGIVER', 'NURSE'].includes(user.role) && isApprovedStaff(user) && !user.isBusy);
             if (!available.length) return showToast('No verified free caregiver is available.', 'error');
             window.manualSelectionLeadId = leadId;
             window.manualSelectedStaffId = null;
@@ -3729,7 +3726,7 @@ window.webPackages = {
             const leadId = window.manualSelectionLeadId;
             const caregiver = window.allUsersDataMap[window.manualSelectedStaffId];
             const lead = window.allLeadsMap[leadId];
-            if (!lead || !caregiver || caregiver.isBusy || !caregiver.isVerified) return showToast('Select an available verified caregiver or nurse.', 'error');
+            if (!lead || !caregiver || caregiver.isBusy || !isApprovedStaff(caregiver)) return showToast('Select an available KYC-approved caregiver or nurse.', 'error');
             window.manualStaffSelectionMode = false;
             document.getElementById('manual-staff-picker-banner').classList.add('hidden');
             document.getElementById('manual-staff-select-heading').classList.add('hidden');

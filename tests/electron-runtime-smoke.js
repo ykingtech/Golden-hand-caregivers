@@ -50,6 +50,8 @@ app.whenReady().then(async () => {
         manualAssignmentLoader: typeof loadManualAssignments,
         manualAssignmentSaver: typeof saveManualAssignment,
         releaseNotesPopup: typeof showPendingDesktopReleaseNotes,
+        approvedStaffHelper: typeof isApprovedStaff,
+        registrationFeeRemoved: !document.getElementById('setting-reg-fee') && !document.body.textContent.includes('PENDING FEE'),
         companyBankSettings: Boolean(document.getElementById('setting-company-account-number'))
       };
     })()`);
@@ -71,6 +73,8 @@ app.whenReady().then(async () => {
       manualAssignmentLoader: 'function',
       manualAssignmentSaver: 'function',
       releaseNotesPopup: 'function',
+      approvedStaffHelper: 'function',
+      registrationFeeRemoved: true,
       companyBankSettings: true,
     };
     for (const [key, value] of Object.entries(expected)) {
