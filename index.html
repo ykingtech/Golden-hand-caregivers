@@ -201,6 +201,12 @@
                                         <button onclick="filterUsers('NURSE')" id="btn-filter-nurse" class="px-5 py-2 rounded-xl text-sm font-bold bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all">Nurses</button>
                                         <button onclick="filterUsers('CLIENT')" id="btn-filter-client" class="px-5 py-2 rounded-xl text-sm font-bold bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all">Clients</button>
                                     </div>
+                                    <div id="manual-staff-picker-banner" class="hidden mb-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                            <div><p class="font-black text-emerald-900">Select one caregiver or nurse</p><p class="text-xs font-medium text-emerald-700 mt-1">Clients are hidden while assigning this website booking.</p></div>
+                                            <div class="flex gap-2"><button onclick="cancelManualStaffSelection()" class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-bold text-gray-600">Cancel</button><button onclick="continueManualStaffSelection()" id="manual-staff-continue" disabled class="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-black text-white disabled:cursor-not-allowed disabled:opacity-40">Continue with selected</button></div>
+                                        </div>
+                                    </div>
                                     <!-- Gender Filters for Staff -->
                                     <div id="gender-filters" class="flex flex-wrap gap-2 items-center bg-gray-100 p-1.5 rounded-lg border border-gray-200 w-max">
                                         <span class="text-[10px] font-black uppercase text-gray-500 ml-2 mr-1">Filter by Gender:</span>
@@ -216,6 +222,7 @@
                             <table class="w-full text-left border-collapse">
                                 <thead>
                                     <tr class="bg-white text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
+                                        <th id="manual-staff-select-heading" class="hidden p-5 font-bold text-center">Select</th>
                                         <th class="p-5 font-bold">User Name</th>
                                         <th class="p-5 font-bold">Email</th>
                                         <th class="p-5 font-bold">Role</th>
@@ -630,7 +637,7 @@
                         <div class="p-6 space-y-4">
                             <input type="hidden" id="manual-lead-id">
                             <div><label class="block text-xs font-black text-gray-500 uppercase mb-2">Client name</label><input id="manual-client-name" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" required></div>
-                            <div><label class="block text-xs font-black text-gray-500 uppercase mb-2">Caregiver / Nurse</label><select id="manual-caregiver-id" class="w-full border border-gray-200 rounded-xl px-4 py-3 bg-white outline-none focus:ring-2 focus:ring-emerald-500"></select></div>
+                            <div><label class="block text-xs font-black text-gray-500 uppercase mb-2">Selected caregiver / nurse</label><input type="hidden" id="manual-caregiver-id"><div id="manual-selected-caregiver" class="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-bold text-emerald-900"></div></div>
                             <div><label class="block text-xs font-black text-gray-500 uppercase mb-2">Job start date & time</label><input type="datetime-local" id="manual-start-at" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"></div>
                             <div id="manual-assignment-summary" class="rounded-xl bg-slate-50 border border-slate-100 p-4 text-sm text-slate-600"></div>
                             <button onclick="saveManualAssignment()" id="manual-save-button" class="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 shadow-lg transition">Assign & Open WhatsApp</button>
@@ -1521,6 +1528,37 @@
             if (window.lucide) lucide.createIcons();
         }
 
+        const desktopReleaseNotes = {
+            '1.0.14': [
+                'Manual website bookings now select one verified caregiver or nurse directly from All Users.',
+                'Clients are hidden during staff selection, with a clear single-selection confirmation step.',
+                'Each installed update now shows its changes once, after the administrator signs in.'
+            ]
+        };
+
+        window.queueDesktopReleaseNotes = function(version) {
+            if (!version || !desktopReleaseNotes[version]) return;
+            const key = `goldenhand-admin-release-notes-${version}`;
+            if (localStorage.getItem(key)) return;
+            window.pendingDesktopReleaseVersion = version;
+        };
+
+        window.showPendingDesktopReleaseNotes = function() {
+            const version = window.pendingDesktopReleaseVersion;
+            const notes = desktopReleaseNotes[version];
+            if (!version || !notes) return;
+            const key = `goldenhand-admin-release-notes-${version}`;
+            if (localStorage.getItem(key)) return;
+            localStorage.setItem(key, new Date().toISOString());
+            window.pendingDesktopReleaseVersion = null;
+            showAppModal({
+                title: `What’s new in v${version}`,
+                icon: 'sparkles', iconColor: 'info',
+                message: `<ul class="space-y-3">${notes.map(note => `<li class="flex gap-3"><span class="mt-0.5 text-emerald-600">✓</span><span>${note}</span></li>`).join('')}</ul>`,
+                buttons: [{ text: 'Got it', style: 'primary', onClick: closeAppModal }]
+            });
+        };
+
         window.checkDesktopUpdate = async function() {
             if (!window.goldenHandAdmin?.checkForUpdates) return renderDesktopUpdateStatus({ status: 'error', message: 'Update checks are available in the installed desktop app.' });
             renderDesktopUpdateStatus(await window.goldenHandAdmin.checkForUpdates());
@@ -1532,7 +1570,10 @@
 
         if (window.goldenHandAdmin?.getUpdateStatus) {
             window.goldenHandAdmin.onUpdateStatus(renderDesktopUpdateStatus);
-            window.goldenHandAdmin.getUpdateStatus().then(renderDesktopUpdateStatus).catch((error) => {
+            window.goldenHandAdmin.getUpdateStatus().then((state) => {
+                renderDesktopUpdateStatus(state);
+                queueDesktopReleaseNotes(state?.currentVersion);
+            }).catch((error) => {
                 renderDesktopUpdateStatus({ status: 'error', message: error.message || 'Update service is unavailable.' });
             });
         }
@@ -1655,6 +1696,7 @@
                 loadManualAssignments();
                 startLiveMapTracking(); 
                 listenForAlerts(); 
+                setTimeout(() => window.showPendingDesktopReleaseNotes?.(), 350);
             } else {
                 loginScreen.classList.remove('hidden');
                 dashboardScreen.classList.add('hidden');
@@ -2577,8 +2619,12 @@ window.webPackages = {
         /* --- USERS & MODALS --- */
         window.currentUserFilter = 'CAREGIVER';
         window.currentGenderFilter = 'ALL';
+        window.manualStaffSelectionMode = false;
+        window.manualSelectedStaffId = null;
+        window.manualSelectionLeadId = null;
 
         window.filterUsers = function(role) {
+            if (window.manualStaffSelectionMode && role === 'CLIENT') return showToast('Clients are hidden while selecting staff for this assignment.', 'error');
             window.currentUserFilter = role;
             document.getElementById('btn-filter-caregiver').className = role === 'CAREGIVER' ? "px-5 py-2 rounded-xl text-sm font-bold bg-primary text-white shadow-md transition-all" : "px-5 py-2 rounded-xl text-sm font-bold bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all";
             document.getElementById('btn-filter-nurse').className = role === 'NURSE' ? "px-5 py-2 rounded-xl text-sm font-bold bg-blue-600 text-white shadow-md transition-all" : "px-5 py-2 rounded-xl text-sm font-bold bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all";
@@ -2605,7 +2651,8 @@ window.webPackages = {
                 let isMatch = false;
                 const isNurse = user.role === 'NURSE' || (user.role === 'CAREGIVER' && user.categories && (user.categories.includes('Nurse') || user.categories.includes('NURSE')));
                 
-                if (window.currentUserFilter === 'CLIENT') isMatch = user.role === 'CLIENT';
+                if (window.currentUserFilter === 'STAFF') isMatch = user.role === 'CAREGIVER' || user.role === 'NURSE';
+                else if (window.currentUserFilter === 'CLIENT') isMatch = user.role === 'CLIENT';
                 else if (window.currentUserFilter === 'NURSE') isMatch = isNurse;
                 else if (window.currentUserFilter === 'CAREGIVER') isMatch = user.role === 'CAREGIVER' && !isNurse;
 
@@ -2633,12 +2680,15 @@ window.webPackages = {
                     const deleteButton = window.goldenHandAdmin
                         ? `<button onclick="deleteManagedUser('${user.id}', this)" class="ml-2 text-red-700 hover:text-white hover:bg-red-600 disabled:opacity-50 disabled:cursor-wait px-3 py-1.5 rounded-lg text-xs font-bold border border-red-300">Delete account</button>`
                         : `<button onclick="showToast('Complete deletion is available in the Golden Hand desktop admin app.', 'error')" class="ml-2 text-gray-400 px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200">Desktop delete</button>`;
-                    rows += `<tr class="hover:bg-gray-50 transition border-b border-gray-100"><td class="p-5 font-bold text-gray-900">${nameDisplay}</td><td class="p-5 text-gray-500 font-medium">${user.email}</td><td class="p-5">${roleBadge}</td><td class="p-5">${statusBadge}</td><td class="p-5 text-center"><button onclick="openReviewModal('${user.id}')" class="text-primary hover:text-white hover:bg-primary px-3 py-1.5 rounded-lg text-xs font-bold transition inline-flex items-center border border-primary/30"><i data-lucide="eye" class="w-3.5 h-3.5 mr-1.5"></i> View Details</button>${deleteButton}</td></tr>`;
+                    const selectable = window.manualStaffSelectionMode && ['CAREGIVER', 'NURSE'].includes(user.role) && user.isVerified && !user.isBusy;
+                    const selectionCell = window.manualStaffSelectionMode ? `<td class="p-5 text-center"><input type="checkbox" aria-label="Select ${escapeOps(user.name || 'staff member')}" ${window.manualSelectedStaffId === user.id ? 'checked' : ''} ${selectable ? '' : 'disabled'} onchange="selectManualStaff('${user.id}', this.checked)" class="h-5 w-5 rounded border-gray-300 text-emerald-600 disabled:opacity-30"></td>` : '';
+                    rows += `<tr class="hover:bg-gray-50 transition border-b border-gray-100 ${window.manualSelectedStaffId === user.id ? 'bg-emerald-50' : ''}">${selectionCell}<td class="p-5 font-bold text-gray-900">${nameDisplay}${window.manualStaffSelectionMode && !selectable ? '<div class="text-[10px] text-red-500 mt-1">Unavailable for assignment</div>' : ''}</td><td class="p-5 text-gray-500 font-medium">${user.email}</td><td class="p-5">${roleBadge}</td><td class="p-5">${statusBadge}</td><td class="p-5 text-center"><button onclick="openReviewModal('${user.id}')" class="text-primary hover:text-white hover:bg-primary px-3 py-1.5 rounded-lg text-xs font-bold transition inline-flex items-center border border-primary/30"><i data-lucide="eye" class="w-3.5 h-3.5 mr-1.5"></i> View Details</button>${deleteButton}</td></tr>`;
                 }
             });
             
             let filterText = window.currentGenderFilter === 'ALL' ? '' : ` (${window.currentGenderFilter})`;
-            tbody.innerHTML = count === 0 ? `<tr><td colspan="5" class="p-8 text-center text-gray-500 font-medium">No ${window.currentUserFilter.toLowerCase()}s${filterText} found.</td></tr>` : rows;
+            const columnCount = window.manualStaffSelectionMode ? 6 : 5;
+            tbody.innerHTML = count === 0 ? `<tr><td colspan="${columnCount}" class="p-8 text-center text-gray-500 font-medium">No available staff${filterText} found.</td></tr>` : rows;
             lucide.createIcons();
         }
 
@@ -3643,9 +3693,51 @@ window.webPackages = {
             if (!lead) return showToast('Website booking is unavailable.', 'error');
             const available = Object.values(window.allUsersDataMap || {}).filter(user => ['CAREGIVER', 'NURSE'].includes(user.role) && user.isVerified && !user.isBusy);
             if (!available.length) return showToast('No verified free caregiver is available.', 'error');
+            window.manualSelectionLeadId = leadId;
+            window.manualSelectedStaffId = null;
+            window.manualStaffSelectionMode = true;
+            document.getElementById('manual-staff-picker-banner').classList.remove('hidden');
+            document.getElementById('manual-staff-select-heading').classList.remove('hidden');
+            document.getElementById('btn-filter-client').classList.add('hidden');
+            document.getElementById('gender-filters').style.display = 'flex';
+            document.getElementById('manual-staff-continue').disabled = true;
+            window.currentUserFilter = 'STAFF';
+            switchTab('users');
+            renderUsersTable();
+            showToast('Select one available caregiver or nurse, then press Continue.', 'success');
+        };
+
+        window.selectManualStaff = function(userId, checked) {
+            if (!window.manualStaffSelectionMode) return;
+            window.manualSelectedStaffId = checked ? userId : null;
+            document.getElementById('manual-staff-continue').disabled = !window.manualSelectedStaffId;
+            renderUsersTable();
+        };
+
+        window.cancelManualStaffSelection = function() {
+            window.manualStaffSelectionMode = false;
+            window.manualSelectedStaffId = null;
+            window.manualSelectionLeadId = null;
+            document.getElementById('manual-staff-picker-banner').classList.add('hidden');
+            document.getElementById('manual-staff-select-heading').classList.add('hidden');
+            document.getElementById('btn-filter-client').classList.remove('hidden');
+            filterUsers('CAREGIVER');
+            switchTab('webleads');
+        };
+
+        window.continueManualStaffSelection = function() {
+            const leadId = window.manualSelectionLeadId;
+            const caregiver = window.allUsersDataMap[window.manualSelectedStaffId];
+            const lead = window.allLeadsMap[leadId];
+            if (!lead || !caregiver || caregiver.isBusy || !caregiver.isVerified) return showToast('Select an available verified caregiver or nurse.', 'error');
+            window.manualStaffSelectionMode = false;
+            document.getElementById('manual-staff-picker-banner').classList.add('hidden');
+            document.getElementById('manual-staff-select-heading').classList.add('hidden');
+            document.getElementById('btn-filter-client').classList.remove('hidden');
             document.getElementById('manual-lead-id').value = leadId;
             document.getElementById('manual-client-name').value = lead.name || '';
-            document.getElementById('manual-caregiver-id').innerHTML = available.map(user => `<option value="${user.id}">${escapeOps(user.name || 'Caregiver')} — ${user.role === 'NURSE' ? 'Nurse' : 'Caregiver'}</option>`).join('');
+            document.getElementById('manual-caregiver-id').value = caregiver.id;
+            document.getElementById('manual-selected-caregiver').innerHTML = `${escapeOps(caregiver.name || 'Caregiver')} <span class="ml-2 rounded-full bg-white px-2 py-1 text-[10px] uppercase text-emerald-700">${caregiver.role === 'NURSE' ? 'Nurse' : 'Caregiver'}</span>`;
             const start = lead.startDate ? `${lead.startDate}T${lead.startTime || '09:00'}` : new Date(Date.now() + 5 * 60 * 1000).toISOString().slice(0,16);
             document.getElementById('manual-start-at').value = start;
             document.getElementById('manual-assignment-summary').innerHTML = `<strong>${escapeOps(lead.service || 'Care service')}</strong><br>${escapeOps(lead.address || 'Address not provided')}<br><span class="text-xs">Only the caregiver name, role, service, and start time will be included in WhatsApp. Contact details will not be shared.</span>`;

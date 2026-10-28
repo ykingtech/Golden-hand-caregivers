@@ -45,8 +45,11 @@ app.whenReady().then(async () => {
         updateBridge: Boolean(window.goldenHandAdmin?.checkForUpdates),
         manualAssignmentsSection: Boolean(document.getElementById('section-manualjobs')),
         manualAssignmentModal: Boolean(document.getElementById('manual-assignment-modal')),
+        manualStaffPicker: Boolean(document.getElementById('manual-staff-picker-banner')),
+        manualStaffSelector: typeof selectManualStaff,
         manualAssignmentLoader: typeof loadManualAssignments,
         manualAssignmentSaver: typeof saveManualAssignment,
+        releaseNotesPopup: typeof showPendingDesktopReleaseNotes,
         companyBankSettings: Boolean(document.getElementById('setting-company-account-number'))
       };
     })()`);
@@ -63,8 +66,11 @@ app.whenReady().then(async () => {
       updateBridge: true,
       manualAssignmentsSection: true,
       manualAssignmentModal: true,
+      manualStaffPicker: true,
+      manualStaffSelector: 'function',
       manualAssignmentLoader: 'function',
       manualAssignmentSaver: 'function',
+      releaseNotesPopup: 'function',
       companyBankSettings: true,
     };
     for (const [key, value] of Object.entries(expected)) {
