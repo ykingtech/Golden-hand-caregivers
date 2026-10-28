@@ -96,6 +96,7 @@
                     
                     <!-- WEB LEADS TAB -->
                     <li><button onclick="switchTab('webleads')" id="tab-webleads" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition relative"><i data-lucide="globe" class="w-5 h-5 mr-3"></i>Website Leads <span id="badge-webleads" class="absolute right-3 bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span></button></li>
+                    <li><button onclick="switchTab('manualjobs')" id="tab-manualjobs" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition relative"><i data-lucide="user-round-cog" class="w-5 h-5 mr-3"></i>Manually Added Caregivers <span id="badge-manualjobs" class="absolute right-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span></button></li>
 
                     <!-- NEW: WEBSITE CONTENT TAB -->
                     <li><button onclick="switchTab('webcontent')" id="tab-webcontent" class="w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition"><i data-lucide="layout" class="w-5 h-5 mr-3"></i>Website Content</button></li>
@@ -612,6 +613,31 @@
                     </div>
                 </div>
 
+                <!-- MANUAL CAREGIVER ASSIGNMENTS -->
+                <div id="section-manualjobs" class="hidden space-y-6">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-6 border-b border-emerald-100 bg-emerald-50 flex flex-col sm:flex-row justify-between gap-4 sm:items-center">
+                            <div><h3 class="text-lg font-extrabold text-emerald-900 flex items-center"><i data-lucide="user-round-cog" class="mr-2 w-5 h-5"></i>Manually Added Caregivers</h3><p class="text-sm text-emerald-700 mt-1 font-medium">Website bookings assigned by the administrator. Scheduled assignments become busy automatically.</p></div>
+                            <button onclick="loadManualAssignments()" class="text-sm bg-white hover:bg-emerald-100 px-4 py-2.5 rounded-lg text-emerald-700 font-bold border border-emerald-200 shadow-sm flex items-center"><i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>Sync Assignments</button>
+                        </div>
+                        <div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-white text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100"><th class="p-5">Start time</th><th class="p-5">Client / Requirement</th><th class="p-5">Caregiver</th><th class="p-5 text-center">Status</th><th class="p-5 text-center">Action</th></tr></thead><tbody id="manual-jobs-table-body" class="divide-y divide-gray-50 bg-white text-sm"><tr><td colspan="5" class="p-8 text-center text-gray-500">Loading assignments...</td></tr></tbody></table></div>
+                    </div>
+                </div>
+
+                <div id="manual-assignment-modal" class="fixed inset-0 z-[210] hidden items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
+                    <div class="w-full max-w-xl rounded-3xl bg-white shadow-2xl overflow-hidden">
+                        <div class="bg-emerald-700 p-6 text-white flex justify-between items-center"><div><h3 class="font-black text-xl">Assign caregiver manually</h3><p class="text-emerald-100 text-xs mt-1">The caregiver becomes busy at the selected start time.</p></div><button onclick="closeManualAssignmentModal()" class="p-2 rounded-full hover:bg-white/10"><i data-lucide="x"></i></button></div>
+                        <div class="p-6 space-y-4">
+                            <input type="hidden" id="manual-lead-id">
+                            <div><label class="block text-xs font-black text-gray-500 uppercase mb-2">Client name</label><input id="manual-client-name" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" required></div>
+                            <div><label class="block text-xs font-black text-gray-500 uppercase mb-2">Caregiver / Nurse</label><select id="manual-caregiver-id" class="w-full border border-gray-200 rounded-xl px-4 py-3 bg-white outline-none focus:ring-2 focus:ring-emerald-500"></select></div>
+                            <div><label class="block text-xs font-black text-gray-500 uppercase mb-2">Job start date & time</label><input type="datetime-local" id="manual-start-at" class="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"></div>
+                            <div id="manual-assignment-summary" class="rounded-xl bg-slate-50 border border-slate-100 p-4 text-sm text-slate-600"></div>
+                            <button onclick="saveManualAssignment()" id="manual-save-button" class="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 shadow-lg transition">Assign & Open WhatsApp</button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 🌟 WEBSITE CONTENT & PRICING -->
                 <div id="section-webcontent" class="hidden space-y-6">
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden max-w-5xl mx-auto">
@@ -1022,6 +1048,17 @@
                                     </div>
                                 </div>
                                 <p class="text-xs text-gray-500 mt-2 font-medium">This is the one-time fee caregivers must pay to activate their account after KYC approval.</p>
+                            </div>
+                            <div class="pt-5 border-t border-gray-100">
+                                <h4 class="text-sm font-black text-emerald-800 uppercase tracking-wide mb-4">Company Bank Details Shown to Clients</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div><label class="block text-xs font-bold text-gray-600 mb-2">Bank name</label><input id="setting-company-bank-name" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Bank name"></div>
+                                    <div><label class="block text-xs font-bold text-gray-600 mb-2">Account name</label><input id="setting-company-account-name" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Account holder"></div>
+                                    <div><label class="block text-xs font-bold text-gray-600 mb-2">Account number</label><input id="setting-company-account-number" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Account number"></div>
+                                    <div><label class="block text-xs font-bold text-gray-600 mb-2">Branch</label><input id="setting-company-bank-branch" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Branch"></div>
+                                </div>
+                                <label class="block text-xs font-bold text-gray-600 mt-4 mb-2">Payment instructions</label><textarea id="setting-payment-instructions" rows="2" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Optional instructions shown before uploading the bank slip"></textarea>
+                                <p class="text-xs text-gray-500 mt-2 font-medium">The mobile app shows these details with copy buttons. A client cannot end a job until all four bank fields are saved.</p>
                             </div>
                             <div class="pt-5 border-t border-gray-100">
                                 <label class="block text-sm font-bold text-gray-800 mb-2 uppercase tracking-wide">Cloudflare Upload Worker URL</label>
@@ -1437,6 +1474,7 @@
             'finance': { title: 'Financial Summary', sub: 'Monthly revenue, expenses and net profit calculations.' },
             'investments': { title: 'Investor Management', sub: 'Review and approve investor portfolios and project funding.' },
             'webleads': { title: 'Website Inquiries', sub: 'Manage new leads and applications from the landing page.' },
+            'manualjobs': { title: 'Manually Added Caregivers', sub: 'Schedule, track, and end administrator-created caregiver assignments.' },
             'webcontent': { title: 'Website Content', sub: 'Manage website package prices and YouTube videos.' },
             'special': { title: 'Subscription Plans', sub: 'Create packages and assign premium caregivers.' }, 
             'leaves': { title: 'Staff Leave Requests', sub: 'Manage caregiver off-days and approvals.' }, 
@@ -1563,6 +1601,8 @@
         window.geofenceIncidents = {}; 
         window.allBookingsMap = {};
         window.allLeadsMap = {}; // 🌟 Store all web leads
+        window.allManualAssignments = {};
+        window.activeManualAssignmentsData = [];
 
         // 🌟 Global settings for web pricing calculation
         window.webPackages = {
@@ -1612,6 +1652,7 @@
                 loadSettings();
                 loadWebContent();
                 loadWebLeads(); 
+                loadManualAssignments();
                 startLiveMapTracking(); 
                 listenForAlerts(); 
             } else {
@@ -1645,12 +1686,19 @@
             resetViewerImageRotation();
         }
 
-        window.viewSlip = function(bookingId) {
+        window.viewSlip = async function(bookingId) {
             const b = window.allBookingsMap[bookingId];
             if(b && b.receiptImageBase64) {
                 let safeBase64 = b.receiptImageBase64;
                 if (!safeBase64.startsWith("data:image")) { safeBase64 = "data:image/jpeg;base64," + safeBase64; }
                 openImagePopup(safeBase64);
+            } else if (b && b.paymentSlipUrl) {
+                try {
+                    const token = await auth.currentUser?.getIdToken();
+                    const response = await fetch(b.paymentSlipUrl, { headers: { Authorization: `Bearer ${token}` } });
+                    if (!response.ok) throw new Error('Payment slip could not be downloaded.');
+                    openImagePopup(URL.createObjectURL(await response.blob()));
+                } catch (error) { showToast(error.message || 'Payment slip could not be opened.', 'error'); }
             } else { showToast("Slip not found", "error"); }
         }
 
@@ -2179,6 +2227,11 @@
                 if(docSnap.data().registrationFee !== undefined) document.getElementById('setting-reg-fee').value = docSnap.data().registrationFee;
                 if(docSnap.data().cloudflareUploadUrl) document.getElementById('setting-cloudflare-upload-url').value = docSnap.data().cloudflareUploadUrl;
                 if(docSnap.data().patientAgreementPdfUrl) document.getElementById('setting-patient-agreement-url').value = docSnap.data().patientAgreementPdfUrl;
+                document.getElementById('setting-company-bank-name').value = docSnap.data().companyBankName || '';
+                document.getElementById('setting-company-account-name').value = docSnap.data().companyBankAccountName || '';
+                document.getElementById('setting-company-account-number').value = docSnap.data().companyBankAccountNumber || '';
+                document.getElementById('setting-company-bank-branch').value = docSnap.data().companyBankBranch || '';
+                document.getElementById('setting-payment-instructions').value = docSnap.data().jobPaymentInstructions || '';
             }
         }
 
@@ -2187,12 +2240,17 @@
             const regFee = parseFloat(document.getElementById('setting-reg-fee').value);
             const cloudflareUploadUrl = document.getElementById('setting-cloudflare-upload-url').value.trim();
             const patientAgreementPdfUrl = document.getElementById('setting-patient-agreement-url').value.trim();
+            const companyBankName = document.getElementById('setting-company-bank-name').value.trim();
+            const companyBankAccountName = document.getElementById('setting-company-account-name').value.trim();
+            const companyBankAccountNumber = document.getElementById('setting-company-account-number').value.trim();
+            const companyBankBranch = document.getElementById('setting-company-bank-branch').value.trim();
+            const jobPaymentInstructions = document.getElementById('setting-payment-instructions').value.trim();
             if(comm < 0 || comm > 100) { showToast("Commission must be between 0 and 100", "error"); return; }
             if(regFee < 0) { showToast("Registration fee cannot be negative", "error"); return; }
             if(cloudflareUploadUrl && !/^https:\/\//i.test(cloudflareUploadUrl)) { showToast("Cloudflare Worker URL must use HTTPS", "error"); return; }
             if(patientAgreementPdfUrl && !/^https:\/\//i.test(patientAgreementPdfUrl)) { showToast("Patient Agreement URL must use HTTPS", "error"); return; }
             try {
-                await setDoc(doc(db, "settings", "general"), { commissionRate: comm, registrationFee: regFee, cloudflareUploadUrl, patientAgreementPdfUrl, updatedAt: Date.now() }, { merge: true });
+                await setDoc(doc(db, "settings", "general"), { commissionRate: comm, registrationFee: regFee, cloudflareUploadUrl, patientAgreementPdfUrl, companyBankName, companyBankAccountName, companyBankAccountNumber, companyBankBranch, jobPaymentInstructions, updatedAt: Date.now() }, { merge: true });
                 showToast("System Settings Saved Successfully!");
             } catch(e) { showToast("Failed to save settings", "error"); }
         }
@@ -2398,7 +2456,7 @@ window.webPackages = {
                     if (b.status === 'PENDING' || b.status === 'BROADCASTED' || b.status === 'ACCEPTED') {
                         actions = `<button onclick="adminCancelBooking('${b.id}')" class="text-red-500 hover:text-white hover:bg-red-500 p-1.5 rounded-md text-xs font-bold border border-red-200 transition shadow-sm" title="Cancel this job"><i data-lucide="x" class="w-4 h-4"></i></button>`;
                     }
-                    if (b.receiptImageBase64) { actions += `<button onclick="viewSlip('${b.id}')" class="text-blue-500 hover:text-white hover:bg-blue-500 p-1.5 rounded-md text-xs font-bold border border-blue-200 transition shadow-sm ml-2" title="View Payment Slip"><i data-lucide="receipt" class="w-4 h-4 inline"></i> Slip</button>`; }
+                    if (b.receiptImageBase64 || b.paymentSlipUrl) { actions += `<button onclick="viewSlip('${b.id}')" class="text-blue-500 hover:text-white hover:bg-blue-500 p-1.5 rounded-md text-xs font-bold border border-blue-200 transition shadow-sm ml-2" title="View Payment Slip"><i data-lucide="receipt" class="w-4 h-4 inline"></i> Slip</button>`; }
 
                     let replacementNote = "";
                     if (b.replacementRequested) { replacementNote = `<div class="mt-1 text-[10px] text-red-600 font-bold flex items-center"><i data-lucide="alert-circle" class="w-3 h-3 mr-1"></i> Client Requested Replacement</div><div class="text-[10px] text-gray-500 italic mt-0.5">"${b.replacementReason}"</div>`; }
@@ -3268,6 +3326,13 @@ window.webPackages = {
                 }
             });
 
+            (window.activeManualAssignmentsData || []).forEach(assignment => {
+                const cg = window.allUsersDataMap[assignment.caregiverId];
+                if (!cg || !matchesFilters(cg)) return;
+                const clickAction = cg.locationLat ? `focusUserOnMap(${cg.locationLat}, ${cg.locationLng}, '${assignment.caregiverId}')` : `showToast('Location not shared', 'error')`;
+                activeListHtml.push(`<div class="bg-white p-4 rounded-xl border border-orange-100 shadow-sm mb-3 cursor-pointer hover:border-orange-300 transition" onclick="${clickAction}"><div class="font-black text-orange-700 text-sm flex items-center"><div class="w-2 h-2 rounded-full bg-orange-500 mr-2 animate-pulse"></div>${escapeOps(cg.name || assignment.caregiverName || 'Caregiver')}</div><div class="text-[10px] text-gray-400 my-2 font-black uppercase tracking-widest text-center border-y border-dashed py-1">Manual assignment</div><div class="font-black text-blue-900 text-sm text-right">${escapeOps(assignment.clientName || 'Website client')}</div></div>`);
+            });
+
             document.getElementById('map-active-connections').innerHTML = activeListHtml.length ? activeListHtml.join('') : '<p class="text-xs font-medium text-gray-400 italic bg-gray-50 p-3 rounded-lg border border-dashed text-center">No active connections.</p>';
             document.getElementById('map-free-caregivers').innerHTML = freeListHtml.length ? freeListHtml.join('') : '<p class="text-xs font-medium text-gray-400 italic bg-gray-50 p-3 rounded-lg border border-dashed text-center">None available.</p>';
             document.getElementById('map-nurses-list').innerHTML = nurseListHtml.length ? nurseListHtml.join('') : '<p class="text-xs font-medium text-gray-400 italic bg-gray-50 p-3 rounded-lg border border-dashed text-center">No nurses found.</p>';
@@ -3334,7 +3399,7 @@ window.webPackages = {
 
         window.switchTab = function(tabName) {
             document.getElementById('header-title').innerText = titles[tabName].title; document.getElementById('header-subtitle').innerText = titles[tabName].sub;
-            ['overview', 'users', 'verification', 'bookings', 'finance', 'investments', 'webleads', 'webcontent', 'callcenter', 'seylanbank', 'special', 'leaves', 'geofence', 'reports', 'map', 'promotions', 'settings'].forEach(t => {
+            ['overview', 'users', 'verification', 'bookings', 'finance', 'investments', 'webleads', 'manualjobs', 'webcontent', 'callcenter', 'seylanbank', 'special', 'leaves', 'geofence', 'reports', 'map', 'promotions', 'settings'].forEach(t => {
                 document.getElementById(`section-${t}`).classList.add('hidden'); document.getElementById(`tab-${t}`).className = "w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition font-medium";
             });
             document.getElementById(`section-${tabName}`).classList.remove('hidden'); document.getElementById(`tab-${tabName}`).className = "w-full flex items-center p-3.5 rounded-xl bg-primary text-white shadow-md font-bold transition";
@@ -3343,6 +3408,7 @@ window.webPackages = {
             if (tabName === 'finance') { setTimeout(() => { initFinanceDatePicker(); }, 100); }
             if (tabName === 'investments') { loadInvestments(); }
             if (tabName === 'webleads') { loadWebLeads(); }
+            if (tabName === 'manualjobs') { loadManualAssignments(); }
             if (tabName === 'webcontent') { loadWebContent(); }
         }
 
@@ -3569,17 +3635,110 @@ window.webPackages = {
         window.approveLeadBooking = async function(leadId) {
             const lead = window.allLeadsMap[leadId];
             if(!lead) return;
+            openManualAssignmentModal(leadId);
+        };
 
+        window.openManualAssignmentModal = function(leadId) {
+            const lead = window.allLeadsMap[leadId];
+            if (!lead) return showToast('Website booking is unavailable.', 'error');
+            const available = Object.values(window.allUsersDataMap || {}).filter(user => ['CAREGIVER', 'NURSE'].includes(user.role) && user.isVerified && !user.isBusy);
+            if (!available.length) return showToast('No verified free caregiver is available.', 'error');
+            document.getElementById('manual-lead-id').value = leadId;
+            document.getElementById('manual-client-name').value = lead.name || '';
+            document.getElementById('manual-caregiver-id').innerHTML = available.map(user => `<option value="${user.id}">${escapeOps(user.name || 'Caregiver')} — ${user.role === 'NURSE' ? 'Nurse' : 'Caregiver'}</option>`).join('');
+            const start = lead.startDate ? `${lead.startDate}T${lead.startTime || '09:00'}` : new Date(Date.now() + 5 * 60 * 1000).toISOString().slice(0,16);
+            document.getElementById('manual-start-at').value = start;
+            document.getElementById('manual-assignment-summary').innerHTML = `<strong>${escapeOps(lead.service || 'Care service')}</strong><br>${escapeOps(lead.address || 'Address not provided')}<br><span class="text-xs">Only the caregiver name, role, service, and start time will be included in WhatsApp. Contact details will not be shared.</span>`;
+            const modal = document.getElementById('manual-assignment-modal');
+            modal.classList.remove('hidden'); modal.classList.add('flex'); lucide.createIcons();
+        };
+
+        window.closeManualAssignmentModal = function() {
+            const modal = document.getElementById('manual-assignment-modal');
+            modal.classList.add('hidden'); modal.classList.remove('flex');
+        };
+
+        window.saveManualAssignment = async function() {
+            const leadId = document.getElementById('manual-lead-id').value;
+            const lead = window.allLeadsMap[leadId];
+            const caregiverId = document.getElementById('manual-caregiver-id').value;
+            const caregiver = window.allUsersDataMap[caregiverId];
+            const clientName = document.getElementById('manual-client-name').value.trim();
+            const startAt = new Date(document.getElementById('manual-start-at').value).getTime();
+            if (!lead || !caregiver || !clientName || !Number.isFinite(startAt)) return showToast('Complete the client, caregiver, and start time fields.', 'error');
+            if (caregiver.isBusy) return showToast('That caregiver is no longer available.', 'error');
+            const assignmentId = `manual_${Date.now()}_${caregiverId}`;
+            const now = Date.now();
+            const activeNow = startAt <= now;
+            const assignment = {
+                id: assignmentId, source: 'WEBSITE_LEAD', leadId, caregiverId,
+                caregiverName: caregiver.name || 'Caregiver', caregiverRole: caregiver.role || 'CAREGIVER',
+                clientName, clientPhone: lead.whatsapp || lead.phone || '', service: lead.service || 'Care service',
+                address: lead.address || '', startAt, status: activeNow ? 'ACTIVE' : 'SCHEDULED',
+                createdAt: now, createdBy: auth.currentUser?.uid || 'admin'
+            };
+            const button = document.getElementById('manual-save-button'); button.disabled = true; button.textContent = 'Saving...';
+            try {
+                const batch = writeBatch(db);
+                batch.set(doc(db, 'manual_assignments', assignmentId), assignment);
+                batch.update(doc(db, 'website_leads', leadId), { status: 'ASSIGNED', manualAssignmentId: assignmentId, assignedCaregiverId: caregiverId, assignedAt: now });
+                if (activeNow) batch.update(doc(db, 'users', caregiverId), { isBusy: true, manualAssignmentActive: true, manualAssignmentId: assignmentId, manualClientName: clientName, manualBusySince: startAt });
+                await batch.commit();
+                closeManualAssignmentModal();
+                const phone = String(lead.whatsapp || lead.phone || '').replace(/[^0-9]/g, '').replace(/^0/, '94');
+                const message = `Hello ${clientName}, 🌟\n\nYour Golden Hand booking has been assigned.\n\n*Caregiver:* ${caregiver.name || 'Assigned caregiver'}\n*Role:* ${caregiver.role === 'NURSE' ? 'Nurse' : 'Caregiver'}\n*Service:* ${lead.service || 'Care service'}\n*Start:* ${new Date(startAt).toLocaleString()}\n\nThe caregiver will report for duty at the agreed time. For privacy, personal contact details are not shared.\n\n*Golden Hand Caregivers Team*`;
+                showToast('Caregiver assigned. Opening WhatsApp...', 'success');
+                if (phone.length >= 10) window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+                else showToast('Assignment saved, but the lead phone number is invalid.', 'error');
+            } catch (error) {
+                console.error(error); showToast(`Could not create assignment: ${error.message}`, 'error');
+            } finally {
+                button.disabled = false; button.textContent = 'Assign & Open WhatsApp';
+            }
+        };
+
+        window.loadManualAssignments = function() {
+            const body = document.getElementById('manual-jobs-table-body'); if (!body) return;
+            if (window.manualAssignmentsListening) { renderManualAssignments(); return; }
+            window.manualAssignmentsListening = true;
+            onSnapshot(collection(db, 'manual_assignments'), snapshot => {
+                window.allManualAssignments = {};
+                snapshot.forEach(item => window.allManualAssignments[item.id] = { id: item.id, ...item.data() });
+                window.activeManualAssignmentsData = Object.values(window.allManualAssignments).filter(item => item.status === 'ACTIVE');
+                renderManualAssignments(); updateMapConnections();
+            }, error => {
+                console.error(error); body.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-500">Could not load manual assignments.</td></tr>`;
+            });
+        };
+
+        function renderManualAssignments() {
+            const body = document.getElementById('manual-jobs-table-body'); if (!body) return;
+            const items = Object.values(window.allManualAssignments || {}).sort((a,b) => (b.startAt || 0) - (a.startAt || 0));
+            body.innerHTML = items.length ? items.map(item => {
+                const active = item.status === 'ACTIVE'; const scheduled = item.status === 'SCHEDULED';
+                const badge = active ? 'bg-red-100 text-red-700' : scheduled ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700';
+                return `<tr class="hover:bg-emerald-50/40"><td class="p-5 font-bold text-slate-700">${new Date(item.startAt).toLocaleString()}</td><td class="p-5"><div class="font-black text-slate-900">${escapeOps(item.clientName || 'Client')}</div><div class="text-xs text-slate-500">${escapeOps(item.service || 'Care service')}</div></td><td class="p-5 font-bold text-slate-800">${escapeOps(item.caregiverName || 'Caregiver')}</td><td class="p-5 text-center"><span class="${badge} px-3 py-1 rounded-full text-[10px] font-black">${escapeOps(item.status || 'SCHEDULED')}</span></td><td class="p-5 text-center">${active || scheduled ? `<button onclick="endManualAssignment('${item.id}')" class="px-3 py-2 rounded-lg bg-red-600 text-white text-xs font-black hover:bg-red-700">End manual job</button>` : '<span class="text-xs text-slate-400">Ended</span>'}</td></tr>`;
+            }).join('') : '<tr><td colspan="5" class="p-10 text-center text-gray-400">No manual caregiver assignments yet. Use Approve in Website Leads to create one.</td></tr>';
+            const activeCount = items.filter(item => item.status === 'ACTIVE' || item.status === 'SCHEDULED').length;
+            const badge = document.getElementById('badge-manualjobs'); badge.textContent = activeCount; badge.classList.toggle('hidden', activeCount === 0); lucide.createIcons();
+        }
+
+        window.endManualAssignment = function(assignmentId) {
+            const assignment = window.allManualAssignments[assignmentId]; if (!assignment) return;
             showAppModal({
-                title: 'Approve Booking',
-                icon: 'check-circle',
-                iconColor: 'primary',
-                message: `Approve the booking for <strong>${lead.name}</strong>? A WhatsApp message with the estimated amount will be opened.`,
+                title: 'End manual job?', icon: 'square', iconColor: 'danger',
+                message: `End <strong>${escapeOps(assignment.caregiverName)}</strong>'s assignment for ${escapeOps(assignment.clientName)} and mark the caregiver free?`,
                 buttons: [
                     { text: 'Cancel', style: 'gray', onClick: closeAppModal },
-                    { text: '✓ Approve & WhatsApp', style: 'primary', onClick: async () => {
+                    { text: 'End Job', style: 'danger', onClick: async () => {
                         closeAppModal();
-                        await _doApproveLeadBooking(leadId);
+                        try {
+                            const batch = writeBatch(db);
+                            batch.update(doc(db, 'manual_assignments', assignmentId), { status: 'COMPLETED', endedAt: Date.now(), endedBy: auth.currentUser?.uid || 'admin' });
+                            const user = window.allUsersDataMap[assignment.caregiverId];
+                            if (user?.manualAssignmentId === assignmentId || user?.manualAssignmentActive) batch.update(doc(db, 'users', assignment.caregiverId), { isBusy: false, manualAssignmentActive: false, manualAssignmentId: null, manualClientName: null });
+                            await batch.commit(); showToast('Manual job ended. The caregiver is now free.', 'success');
+                        } catch(error) { showToast(`Could not end assignment: ${error.message}`, 'error'); }
                     }}
                 ]
             });
