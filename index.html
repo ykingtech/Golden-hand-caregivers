@@ -2281,13 +2281,15 @@
             const companyBankBranch = document.getElementById('setting-company-bank-branch').value.trim();
             const jobPaymentInstructions = document.getElementById('setting-payment-instructions').value.trim();
             if(comm < 0 || comm > 100) { showToast("Commission must be between 0 and 100", "error"); return; }
-            if(regFee < 0) { showToast("Registration fee cannot be negative", "error"); return; }
             if(cloudflareUploadUrl && !/^https:\/\//i.test(cloudflareUploadUrl)) { showToast("Cloudflare Worker URL must use HTTPS", "error"); return; }
             if(patientAgreementPdfUrl && !/^https:\/\//i.test(patientAgreementPdfUrl)) { showToast("Patient Agreement URL must use HTTPS", "error"); return; }
             try {
                 await setDoc(doc(db, "settings", "general"), { commissionRate: comm, registrationFee: 0, cloudflareUploadUrl, patientAgreementPdfUrl, companyBankName, companyBankAccountName, companyBankAccountNumber, companyBankBranch, jobPaymentInstructions, updatedAt: Date.now() }, { merge: true });
                 showToast("System Settings Saved Successfully!");
-            } catch(e) { showToast("Failed to save settings", "error"); }
+            } catch(e) {
+                console.error('Failed to save system settings:', e);
+                showToast(`Failed to save settings: ${e?.message || e}`, "error");
+            }
         }
 
         /* --- WEBSITE CONTENT --- */
