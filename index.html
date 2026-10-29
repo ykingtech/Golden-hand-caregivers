@@ -2845,8 +2845,25 @@ window.webPackages = {
             
             const setImage = (imgId, errId, url) => {
                 const img = document.getElementById(imgId); const err = document.getElementById(errId);
-                if (url && url.startsWith("data:image")) { img.src = url; img.classList.remove('hidden'); err.classList.add('hidden'); } 
-                else { img.classList.add('hidden'); err.classList.remove('hidden'); }
+                // Recent mobile builds store KYC files in Cloudflare R2 and
+                // return HTTPS URLs. The old check only accepted base64 data
+                // images, so correctly uploaded documents looked missing.
+                const canPreview = typeof url === 'string' &&
+                    (url.startsWith('data:image/') || /^https:\/\//i.test(url));
+                if (!canPreview) {
+                    img.removeAttribute('src');
+                    img.classList.add('hidden');
+                    err.classList.remove('hidden');
+                    return;
+                }
+                img.onerror = () => {
+                    img.classList.add('hidden');
+                    err.innerText = 'Could not load document';
+                    err.classList.remove('hidden');
+                };
+                img.src = url;
+                img.classList.remove('hidden');
+                err.classList.add('hidden');
             };
 
             if (user.role === 'CAREGIVER' || user.role === 'NURSE') {
@@ -3041,7 +3058,28 @@ window.webPackages = {
             setTimeout(() => { if(adminMap && lat !== 0 && lng !== 0) { adminMap.setView([lat, lng], 17, { animate: true }); if(markersMap[userId]) markersMap[userId].openPopup(); } }, 500);
         }
 
-        window.handleApprove = async function(userId) { 
+        window.handleApprove = async function(userId) {
+            // Never approve a blank or incomplete KYC record. Earlier client
+            // builds could create a PENDING record without files, and an
+            // approval would incorrectly unlock the account.
+            let user;
+            try {
+                const userSnap = await getDoc(doc(db, "users", userId));
+                if (!userSnap.exists()) throw new Error('User profile not found.');
+                user = userSnap.data();
+            } catch (error) {
+                showToast(error.message || 'Could not read this KYC application.', 'error');
+                return;
+            }
+            const requiredDocuments = [
+                user.nicFrontUrl || user.idFrontUrl,
+                user.nicBackUrl || user.idBackUrl,
+                user.selfieUrl,
+            ];
+            if (!user.nicNumber || !user.dob || requiredDocuments.some(value => !value || !String(value).trim())) {
+                showToast('Cannot approve: identity details and the three required KYC images must be uploaded first.', 'error');
+                return;
+            }
             appConfirm("Are you sure you want to <strong>APPROVE</strong> this user's KYC documents?", async () => {
                 try { await updateDoc(doc(db, "users", userId), { kycStatus: "APPROVED", isVerified: true, registrationFeeRequired: false, registrationFeePaid: true }); showToast("KYC approved. The account is active.", "success"); closeModal(); } 
                 catch (error) { showToast("Failed.", "error"); }
