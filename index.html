@@ -195,7 +195,7 @@
                         <div class="p-6 border-b border-gray-100 flex flex-col justify-between items-start bg-gray-50/50 gap-4">
                             <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center">
                                 <div>
-                                    <h3 class="text-lg font-extrabold text-gray-800 mb-3">User Database</h3>
+                                    <h3 id="user-database-title" class="text-lg font-extrabold text-gray-800 mb-3">User Database</h3>
                                     <div class="flex flex-wrap gap-2 mb-3">
                                         <button onclick="filterUsers('CAREGIVER')" id="btn-filter-caregiver" class="px-5 py-2 rounded-xl text-sm font-bold bg-primary text-white shadow-md transition-all">Caregivers</button>
                                         <button onclick="filterUsers('NURSE')" id="btn-filter-nurse" class="px-5 py-2 rounded-xl text-sm font-bold bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all">Nurses</button>
@@ -215,7 +215,7 @@
                                         <button onclick="filterGender('FEMALE')" id="btn-gender-female" class="px-4 py-1.5 rounded-md text-xs font-bold bg-transparent text-gray-600 hover:bg-white transition-all">Female</button>
                                     </div>
                                 </div>
-                                <button onclick="loadAllUsers()" class="text-sm bg-white hover:bg-gray-100 border border-gray-200 px-4 py-2.5 rounded-xl text-gray-700 font-bold flex items-center shadow-sm transition mt-4 sm:mt-0"><i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i> Sync Data</button>
+                                <button id="users-sync-button" onclick="loadAllUsers()" class="text-sm bg-white hover:bg-gray-100 border border-gray-200 px-4 py-2.5 rounded-xl text-gray-700 font-bold flex items-center shadow-sm transition mt-4 sm:mt-0"><i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i> Sync Data</button>
                             </div>
                         </div>
                         <div class="overflow-x-auto">
@@ -224,10 +224,10 @@
                                     <tr class="bg-white text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
                                         <th id="manual-staff-select-heading" class="hidden p-5 font-bold text-center">Select</th>
                                         <th class="p-5 font-bold">User Name</th>
-                                        <th class="p-5 font-bold">Email</th>
+                                        <th id="user-email-heading" class="p-5 font-bold">Email</th>
                                         <th class="p-5 font-bold">Role</th>
-                                        <th class="p-5 font-bold">KYC Status</th>
-                                        <th class="p-5 font-bold text-center">Action</th>
+                                        <th id="user-status-heading" class="p-5 font-bold">KYC Status</th>
+                                        <th id="user-action-heading" class="p-5 font-bold text-center">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="all-users-table-body" class="divide-y divide-gray-50 text-sm">
@@ -1080,6 +1080,47 @@
                             </div>
                         </div>
                     </div>
+                    <div id="dashboard-access-management" class="mt-6 bg-white rounded-2xl shadow-sm border border-emerald-100 overflow-hidden max-w-6xl mx-auto">
+                        <div class="p-6 border-b border-emerald-100 bg-emerald-50 flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <h3 class="text-lg font-extrabold text-emerald-950 flex items-center"><i data-lucide="user-cog" class="mr-2 w-5 h-5 text-emerald-600"></i>Supplier Admin Access</h3>
+                                <p class="text-sm text-emerald-800 mt-1">Create restricted dashboard users and choose the caregivers and sections they may access.</p>
+                            </div>
+                            <button onclick="resetDashboardUserForm()" class="px-4 py-2.5 rounded-xl bg-white border border-emerald-200 text-emerald-800 text-xs font-black hover:bg-emerald-100 transition"><i data-lucide="user-plus" class="inline w-4 h-4 mr-1.5"></i>New User</button>
+                        </div>
+                        <div class="p-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <input type="hidden" id="dashboard-user-uid">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div><label class="block text-xs font-black uppercase text-slate-500 mb-2">Name</label><input id="dashboard-user-name" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl" placeholder="Supplier administrator"></div>
+                                    <div><label class="block text-xs font-black uppercase text-slate-500 mb-2">Email</label><input type="email" id="dashboard-user-email" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl" placeholder="supplier@example.com"></div>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div><label class="block text-xs font-black uppercase text-slate-500 mb-2">Password</label><input type="password" id="dashboard-user-password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl" placeholder="Required for a new user"><p class="text-[11px] text-slate-400 mt-1">Leave blank while editing to keep the current password.</p></div>
+                                    <label class="flex items-center gap-3 mt-6 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 cursor-pointer"><input type="checkbox" id="dashboard-user-enabled" checked class="h-5 w-5 rounded text-emerald-600"><span><span class="block text-sm font-black text-slate-800">Account enabled</span><span class="block text-[11px] text-slate-500">Disabled users cannot sign in.</span></span></label>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-black uppercase text-slate-500 mb-2">Allowed sections</p>
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                        <label class="rounded-xl border border-slate-200 p-3 flex gap-2 items-center cursor-pointer"><input type="checkbox" id="dashboard-permission-overview" checked class="rounded text-emerald-600"><span class="text-sm font-bold">Dashboard</span></label>
+                                        <label class="rounded-xl border border-slate-200 p-3 flex gap-2 items-center cursor-pointer"><input type="checkbox" id="dashboard-permission-caregivers" checked class="rounded text-emerald-600"><span class="text-sm font-bold">Caregivers</span></label>
+                                        <label class="rounded-xl border border-slate-200 p-3 flex gap-2 items-center cursor-pointer"><input type="checkbox" id="dashboard-permission-live-map" checked class="rounded text-emerald-600"><span class="text-sm font-bold">Live map</span></label>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between items-center mb-2"><p class="text-xs font-black uppercase text-slate-500">Assigned caregivers and nurses</p><button onclick="setAllSupplierCaregivers(true)" class="text-[11px] font-bold text-emerald-700">Select all</button></div>
+                                    <div id="supplier-caregiver-checkboxes" class="max-h-64 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-3 grid grid-cols-1 sm:grid-cols-2 gap-2"><p class="text-xs text-slate-400">Loading approved staff…</p></div>
+                                </div>
+                                <button id="dashboard-user-save" onclick="saveDashboardUserAccount()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white py-3 rounded-xl font-black transition"><i data-lucide="shield-check" class="inline w-4 h-4 mr-2"></i>Save restricted user</button>
+                            </div>
+                            <div class="rounded-2xl border border-slate-200 overflow-hidden">
+                                <div class="px-5 py-4 bg-slate-50 border-b border-slate-200"><h4 class="font-black text-slate-800">Existing restricted users</h4></div>
+                                <div class="overflow-x-auto max-h-[620px]">
+                                    <table class="w-full text-left text-sm"><thead class="sticky top-0 bg-white text-[10px] uppercase tracking-wider text-slate-400"><tr><th class="p-4">User</th><th class="p-4">Access</th><th class="p-4">Status</th><th class="p-4 text-right">Action</th></tr></thead><tbody id="dashboard-access-users-body"><tr><td colspan="4" class="p-8 text-center text-slate-400">No restricted users loaded.</td></tr></tbody></table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="mt-6 bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 text-white rounded-2xl shadow-lg overflow-hidden max-w-2xl mx-auto border border-slate-700">
                         <div class="p-6 flex flex-wrap items-center justify-between gap-4">
                             <div>
@@ -1519,6 +1560,11 @@
         }
 
         const desktopReleaseNotes = {
+            '1.0.17': [
+                'Create restricted supplier dashboard accounts from System Settings.',
+                'Choose exactly which caregivers, nurses, and dashboard sections each supplier may access.',
+                'Supplier accounts can see assigned staff work status and live location without private contact or full administrator data.'
+            ],
             '1.0.16': [
                 'Company payment details can now be saved correctly from System Settings.',
                 'Payment-setting failures now show the actual error so configuration problems are easier to diagnose.'
@@ -1661,13 +1707,31 @@
         let isFirstLoadAlerts = true;
         let activePolylines = [];
         let activeBookingsData = [];
+        const SUPER_ADMIN_EMAIL = 'goldenhandcaregivers@gmail.com';
+        const SUPPLIER_TAB_PERMISSIONS = Object.freeze({ overview: 'overview', users: 'caregivers', map: 'liveMap' });
+        window.currentAdminAccess = null;
+        window.dashboardAccessUsers = [];
+        let supplierUnsubscribers = [];
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
                     const email = (user.email || '').toLowerCase();
-                    if (email !== 'goldenhandcaregivers@gmail.com' || !user.emailVerified) {
-                        throw new Error('Verified Golden Hand administrator account is required.');
+                    if (!user.emailVerified) throw new Error('A verified Golden Hand dashboard account is required.');
+                    if (email === SUPER_ADMIN_EMAIL) {
+                        window.currentAdminAccess = { role: 'SUPER_ADMIN', enabled: true, permissions: {}, caregiverIds: [] };
+                    } else {
+                        const accessSnapshot = await getDoc(doc(db, 'admin_users', user.uid));
+                        if (!accessSnapshot.exists()) throw new Error('This account has not been given admin dashboard access.');
+                        const access = accessSnapshot.data();
+                        if (access.enabled !== true || access.role !== 'SUPPLIER_ADMIN') throw new Error('This restricted dashboard account is disabled.');
+                        window.currentAdminAccess = {
+                            ...access,
+                            uid: user.uid,
+                            role: 'SUPPLIER_ADMIN',
+                            permissions: access.permissions || {},
+                            caregiverIds: Array.isArray(access.caregiverIds) ? access.caregiverIds : []
+                        };
                     }
                 } catch (error) {
                     await signOut(auth);
@@ -1681,26 +1745,144 @@
                 loginScreen.classList.add('hidden');
                 dashboardScreen.classList.remove('hidden');
                 document.getElementById('admin-email-display').innerText = user.email;
-                
-                loadDashboardStats();
-                loadPendingCaregivers();
-                loadAllUsers();
-                loadComplaints(); 
-                loadAllBookings(); 
-                loadSubscriptionPlans(); 
-                loadLeaveRequests();
-                loadSettings();
-                loadWebContent();
-                loadWebLeads(); 
-                loadManualAssignments();
-                startLiveMapTracking(); 
-                listenForAlerts(); 
+                applyDashboardAccess();
+
+                if (window.currentAdminAccess.role === 'SUPER_ADMIN') {
+                    loadDashboardStats();
+                    loadPendingCaregivers();
+                    loadAllUsers();
+                    loadComplaints();
+                    loadAllBookings();
+                    loadSubscriptionPlans();
+                    loadLeaveRequests();
+                    loadSettings();
+                    loadWebContent();
+                    loadWebLeads();
+                    loadManualAssignments();
+                    startLiveMapTracking();
+                    listenForAlerts();
+                    loadDashboardAccessUsers();
+                } else {
+                    startSupplierDashboard(window.currentAdminAccess);
+                }
                 setTimeout(() => window.showPendingDesktopReleaseNotes?.(), 350);
             } else {
+                clearSupplierSubscriptions();
+                window.currentAdminAccess = null;
                 loginScreen.classList.remove('hidden');
                 dashboardScreen.classList.add('hidden');
             }
         });
+
+        function clearSupplierSubscriptions() {
+            supplierUnsubscribers.forEach(unsubscribe => {
+                try { unsubscribe(); } catch (_) {}
+            });
+            supplierUnsubscribers = [];
+        }
+
+        function hasDashboardTabAccess(tabName) {
+            const access = window.currentAdminAccess;
+            if (!access || access.role === 'SUPER_ADMIN') return true;
+            const permission = SUPPLIER_TAB_PERMISSIONS[tabName];
+            return Boolean(permission && access.permissions?.[permission] === true);
+        }
+
+        function applyDashboardAccess() {
+            const access = window.currentAdminAccess;
+            const allTabs = ['overview', 'users', 'verification', 'bookings', 'finance', 'investments', 'webleads', 'manualjobs', 'webcontent', 'callcenter', 'seylanbank', 'special', 'leaves', 'geofence', 'reports', 'map', 'promotions', 'settings'];
+            allTabs.forEach(tab => {
+                const button = document.getElementById(`tab-${tab}`);
+                if (button?.parentElement) button.parentElement.classList.toggle('hidden', !hasDashboardTabAccess(tab));
+            });
+            const supplierMode = access?.role === 'SUPPLIER_ADMIN';
+            document.getElementById('user-database-title').textContent = supplierMode ? 'My Supplied Caregivers & Nurses' : 'User Database';
+            document.getElementById('btn-filter-client').classList.toggle('hidden', supplierMode);
+            document.getElementById('users-sync-button').classList.toggle('hidden', supplierMode);
+            document.getElementById('user-email-heading').textContent = supplierMode ? 'Current status' : 'Email';
+            document.getElementById('user-status-heading').textContent = supplierMode ? 'Location' : 'KYC Status';
+            document.getElementById('user-action-heading').textContent = supplierMode ? 'Map' : 'Action';
+
+            if (supplierMode) {
+                window.currentUserFilter = 'STAFF';
+                const firstTab = ['overview', 'users', 'map'].find(hasDashboardTabAccess);
+                if (firstTab) setTimeout(() => window.switchTab(firstTab), 0);
+            }
+        }
+
+        function startSupplierDashboard(access) {
+            clearSupplierSubscriptions();
+            window.allUsersDataMap = {};
+            window.liveLocationDataMap = {};
+            window.firestoreLiveLocationDataMap = {};
+            window.rtdbLocationDataMap = {};
+            window.allBookingsMap = {};
+            activeBookingsData = [];
+            Object.values(markersMap).forEach(marker => marker.remove());
+            markersMap = {};
+
+            const caregiverIds = [...new Set(access.caregiverIds || [])];
+            const renderSupplierState = () => {
+                const users = Object.values(window.allUsersDataMap);
+                const busy = users.filter(user => user.isBusy === true).length;
+                document.getElementById('stat-users').innerText = users.length;
+                document.getElementById('stat-active-jobs').innerText = busy;
+                document.getElementById('stat-pending').innerText = 0;
+                document.getElementById('stat-reports').innerText = 0;
+                window.renderUsersTable();
+                renderOperations([]);
+                updateMapConnections();
+            };
+
+            if (!caregiverIds.length) {
+                renderSupplierState();
+                return;
+            }
+
+            caregiverIds.forEach(caregiverId => {
+                const userUnsubscribe = onSnapshot(doc(db, 'users', caregiverId), snapshot => {
+                    if (!snapshot.exists()) {
+                        delete window.allUsersDataMap[caregiverId];
+                        renderSupplierState();
+                        return;
+                    }
+                    const previous = window.allUsersDataMap[caregiverId] || {};
+                    const user = { ...snapshot.data(), id: caregiverId };
+                    user._fallbackLocationLat = user.locationLat;
+                    user._fallbackLocationLng = user.locationLng;
+                    const live = window.firestoreLiveLocationDataMap[caregiverId];
+                    if (live) {
+                        user.locationLat = live.lat ?? live.latitude;
+                        user.locationLng = live.lng ?? live.longitude;
+                    } else if (previous.locationLat != null) {
+                        user.locationLat = previous.locationLat;
+                        user.locationLng = previous.locationLng;
+                    }
+                    window.allUsersDataMap[caregiverId] = user;
+                    renderLiveUserMarker(caregiverId, user);
+                    renderSupplierState();
+                }, error => console.warn(`Assigned caregiver ${caregiverId} is unavailable:`, error));
+                supplierUnsubscribers.push(userUnsubscribe);
+
+                if (access.permissions?.liveMap === true) {
+                    const locationUnsubscribe = onSnapshot(doc(db, 'live_locations', caregiverId), snapshot => {
+                        if (snapshot.exists()) window.firestoreLiveLocationDataMap[caregiverId] = snapshot.data();
+                        else delete window.firestoreLiveLocationDataMap[caregiverId];
+                        window.liveLocationDataMap = { ...window.firestoreLiveLocationDataMap };
+                        const user = window.allUsersDataMap[caregiverId];
+                        if (user) {
+                            const live = window.firestoreLiveLocationDataMap[caregiverId];
+                            user.locationLat = live ? (live.lat ?? live.latitude) : user._fallbackLocationLat;
+                            user.locationLng = live ? (live.lng ?? live.longitude) : user._fallbackLocationLng;
+                            user.locationUpdatedAt = live?.updatedAt ?? live?.timestamp ?? live?.lastUpdatedAt;
+                            renderLiveUserMarker(caregiverId, user);
+                            renderSupplierState();
+                        }
+                    }, error => console.warn(`Live location ${caregiverId} is unavailable:`, error));
+                    supplierUnsubscribers.push(locationUnsubscribe);
+                }
+            });
+        }
 
         let viewerImageRotation = 0;
         function applyViewerImageRotation() {
@@ -2296,6 +2478,139 @@
             }
         }
 
+        function selectedSupplierCaregiverIds() {
+            return Array.from(document.querySelectorAll('.supplier-caregiver-checkbox:checked')).map(input => input.value);
+        }
+
+        window.renderSupplierCaregiverPicker = function(selectedIds = null) {
+            const container = document.getElementById('supplier-caregiver-checkboxes');
+            if (!container) return;
+            const selected = new Set(selectedIds === null ? selectedSupplierCaregiverIds() : selectedIds);
+            const staff = Object.values(window.allUsersDataMap || {})
+                .filter(user => ['CAREGIVER', 'NURSE'].includes(user.role) && isApprovedStaff(user))
+                .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+            if (!staff.length) {
+                container.innerHTML = '<p class="col-span-full text-xs text-slate-400">No approved caregivers or nurses are available.</p>';
+                return;
+            }
+            container.innerHTML = staff.map(user => {
+                const role = user.role === 'NURSE' ? 'Nurse' : 'Caregiver';
+                return `<label class="flex items-start gap-2 rounded-lg border border-slate-200 bg-white p-3 cursor-pointer hover:border-emerald-300"><input type="checkbox" value="${escapeOps(user.id)}" ${selected.has(user.id) ? 'checked' : ''} class="supplier-caregiver-checkbox mt-0.5 rounded text-emerald-600"><span class="min-w-0"><span class="block truncate text-xs font-black text-slate-800">${escapeOps(user.name || 'Unnamed staff member')}</span><span class="block text-[10px] font-bold uppercase tracking-wide text-slate-400">${role}</span></span></label>`;
+            }).join('');
+        };
+
+        window.setAllSupplierCaregivers = function(checked) {
+            document.querySelectorAll('.supplier-caregiver-checkbox').forEach(input => { input.checked = checked; });
+        };
+
+        window.resetDashboardUserForm = function() {
+            document.getElementById('dashboard-user-uid').value = '';
+            document.getElementById('dashboard-user-name').value = '';
+            document.getElementById('dashboard-user-email').value = '';
+            document.getElementById('dashboard-user-password').value = '';
+            document.getElementById('dashboard-user-enabled').checked = true;
+            document.getElementById('dashboard-permission-overview').checked = true;
+            document.getElementById('dashboard-permission-caregivers').checked = true;
+            document.getElementById('dashboard-permission-live-map').checked = true;
+            window.renderSupplierCaregiverPicker([]);
+        };
+
+        window.editDashboardUser = function(uid) {
+            const record = (window.dashboardAccessUsers || []).find(item => item.uid === uid);
+            if (!record) return showToast('Restricted user was not found.', 'error');
+            document.getElementById('dashboard-user-uid').value = record.uid;
+            document.getElementById('dashboard-user-name').value = record.name || '';
+            document.getElementById('dashboard-user-email').value = record.email || '';
+            document.getElementById('dashboard-user-password').value = '';
+            document.getElementById('dashboard-user-enabled').checked = record.enabled !== false;
+            document.getElementById('dashboard-permission-overview').checked = record.permissions?.overview === true;
+            document.getElementById('dashboard-permission-caregivers').checked = record.permissions?.caregivers === true;
+            document.getElementById('dashboard-permission-live-map').checked = record.permissions?.liveMap === true;
+            window.renderSupplierCaregiverPicker(Array.isArray(record.caregiverIds) ? record.caregiverIds : []);
+            document.getElementById('dashboard-user-name').focus();
+        };
+
+        function renderDashboardAccessUsers() {
+            const body = document.getElementById('dashboard-access-users-body');
+            if (!body) return;
+            const records = window.dashboardAccessUsers || [];
+            if (!records.length) {
+                body.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400">No restricted users have been created.</td></tr>';
+                return;
+            }
+            const labels = { overview: 'Dashboard', caregivers: 'Caregivers', liveMap: 'Live map' };
+            body.innerHTML = records.map(record => {
+                const permissions = Object.entries(record.permissions || {}).filter(([, enabled]) => enabled).map(([key]) => labels[key] || key);
+                const status = record.authAccountMissing
+                    ? '<span class="text-[10px] font-black text-red-600">AUTH MISSING</span>'
+                    : record.enabled !== false
+                        ? '<span class="text-[10px] font-black text-emerald-700">ENABLED</span>'
+                        : '<span class="text-[10px] font-black text-slate-400">DISABLED</span>';
+                return `<tr class="border-b border-slate-100 align-top"><td class="p-4"><div class="font-black text-slate-800">${escapeOps(record.name || 'Restricted user')}</div><div class="mt-1 text-[11px] text-slate-500">${escapeOps(record.email || '')}</div></td><td class="p-4"><div class="text-xs font-bold text-slate-600">${escapeOps(permissions.join(', ') || 'No access')}</div><div class="mt-1 text-[10px] text-slate-400">${Number(record.caregiverIds?.length || 0)} assigned staff</div></td><td class="p-4">${status}</td><td class="p-4 text-right"><button onclick="editDashboardUser('${record.uid}')" class="rounded-lg border border-emerald-200 px-3 py-2 text-xs font-black text-emerald-700 hover:bg-emerald-50">Edit</button></td></tr>`;
+            }).join('');
+        }
+
+        window.loadDashboardAccessUsers = async function() {
+            const body = document.getElementById('dashboard-access-users-body');
+            if (window.currentAdminAccess?.role !== 'SUPER_ADMIN' || !body || !window.goldenHandAdmin?.listDashboardUsers) return;
+            try {
+                const status = await window.goldenHandAdmin.getCredentialStatus();
+                if (!status.configured) {
+                    body.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400">Configure the Firebase service account when creating the first restricted user.</td></tr>';
+                    return;
+                }
+                const idToken = await auth.currentUser.getIdToken(true);
+                const response = await window.goldenHandAdmin.listDashboardUsers({ idToken });
+                window.dashboardAccessUsers = Array.isArray(response?.users) ? response.users : [];
+                renderDashboardAccessUsers();
+            } catch (error) {
+                console.error('Restricted dashboard users could not be loaded:', error);
+                body.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-red-500">${escapeOps(error.message || 'Unable to load restricted users.')}</td></tr>`;
+            }
+        };
+
+        window.saveDashboardUserAccount = async function() {
+            if (window.currentAdminAccess?.role !== 'SUPER_ADMIN') return showToast('Only the main administrator can manage dashboard users.', 'error');
+            if (!window.goldenHandAdmin?.saveDashboardUser) return showToast('Install the latest desktop application to manage dashboard users.', 'error');
+            const button = document.getElementById('dashboard-user-save');
+            const original = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = 'Saving…';
+            try {
+                let status = await window.goldenHandAdmin.getCredentialStatus();
+                if (!status.configured) {
+                    showToast('Select the care-2a20d service-account JSON file.', 'success');
+                    status = await window.goldenHandAdmin.configureCredentials();
+                    if (!status.configured) throw new Error('Service-account setup was cancelled.');
+                }
+                const request = {
+                    uid: document.getElementById('dashboard-user-uid').value.trim(),
+                    name: document.getElementById('dashboard-user-name').value.trim(),
+                    email: document.getElementById('dashboard-user-email').value.trim(),
+                    password: document.getElementById('dashboard-user-password').value,
+                    enabled: document.getElementById('dashboard-user-enabled').checked,
+                    permissions: {
+                        overview: document.getElementById('dashboard-permission-overview').checked,
+                        caregivers: document.getElementById('dashboard-permission-caregivers').checked,
+                        liveMap: document.getElementById('dashboard-permission-live-map').checked
+                    },
+                    caregiverIds: selectedSupplierCaregiverIds()
+                };
+                const idToken = await auth.currentUser.getIdToken(true);
+                await window.goldenHandAdmin.saveDashboardUser({ idToken, user: request });
+                showToast(request.uid ? 'Restricted dashboard user updated.' : 'Restricted dashboard user created.', 'success');
+                window.resetDashboardUserForm();
+                await window.loadDashboardAccessUsers();
+            } catch (error) {
+                console.error('Restricted dashboard user save failed:', error);
+                showToast(error.message || 'Restricted dashboard user could not be saved.', 'error');
+            } finally {
+                button.disabled = false;
+                button.innerHTML = original;
+                if (window.lucide) lucide.createIcons();
+            }
+        };
+
         /* --- WEBSITE CONTENT --- */
         window.loadWebContent = async function() {
             try {
@@ -2649,6 +2964,37 @@ window.webPackages = {
 
         window.renderUsersTable = function() {
             const tbody = document.getElementById('all-users-table-body'); let rows = ''; let count = 0;
+            if (window.currentAdminAccess?.role === 'SUPPLIER_ADMIN') {
+                const formatLastSeen = value => {
+                    if (value == null || value === '') return 'Not shared';
+                    const date = typeof value?.toDate === 'function'
+                        ? value.toDate()
+                        : new Date(typeof value?.seconds === 'number' ? value.seconds * 1000 : Number(value) || value);
+                    return Number.isNaN(date.getTime()) ? 'Location shared' : date.toLocaleString('en-GB');
+                };
+                Object.values(window.allUsersDataMap).forEach(user => {
+                    if (!['CAREGIVER', 'NURSE'].includes(user.role)) return;
+                    count++;
+                    const isNurse = user.role === 'NURSE' || (Array.isArray(user.categories) && user.categories.some(category => String(category).toUpperCase() === 'NURSE'));
+                    const roleBadge = isNurse
+                        ? '<span class="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-md font-black">NURSE</span>'
+                        : '<span class="bg-emerald-100 text-emerald-700 text-xs px-2.5 py-1 rounded-md font-black">CAREGIVER</span>';
+                    const workStatus = user.isBusy
+                        ? '<span class="bg-red-50 text-red-700 text-[10px] px-2.5 py-1 rounded-md font-black border border-red-200">● WORKING</span>'
+                        : '<span class="bg-green-50 text-green-700 text-[10px] px-2.5 py-1 rounded-md font-black border border-green-200">● AVAILABLE</span>';
+                    const hasLocation = Number.isFinite(Number(user.locationLat)) && Number.isFinite(Number(user.locationLng)) && (Number(user.locationLat) !== 0 || Number(user.locationLng) !== 0);
+                    const locationStatus = hasLocation
+                        ? `<span class="text-xs font-bold text-emerald-700">Shared</span><div class="text-[10px] text-slate-400 mt-1">${escapeOps(formatLastSeen(user.locationUpdatedAt))}</div>`
+                        : '<span class="text-xs font-bold text-slate-400">Not shared</span>';
+                    const locate = hasLocation && hasDashboardTabAccess('map')
+                        ? `<button onclick="focusUserOnMap(${Number(user.locationLat)}, ${Number(user.locationLng)}, '${user.id}')" class="text-blue-700 hover:text-white hover:bg-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-blue-200 transition"><i data-lucide="map-pin" class="inline w-3.5 h-3.5 mr-1"></i>Locate</button>`
+                        : '<span class="text-xs text-slate-400">—</span>';
+                    rows += `<tr class="hover:bg-slate-50 border-b border-slate-100"><td class="p-5 font-black text-slate-900">${escapeOps(user.name || 'Unnamed caregiver')}</td><td class="p-5">${workStatus}</td><td class="p-5">${roleBadge}</td><td class="p-5">${locationStatus}</td><td class="p-5 text-center">${locate}</td></tr>`;
+                });
+                tbody.innerHTML = count ? rows : '<tr><td colspan="5" class="p-10 text-center text-slate-500">No caregivers or nurses have been assigned to this dashboard account.</td></tr>';
+                lucide.createIcons();
+                return;
+            }
             Object.values(window.allUsersDataMap).forEach((user) => {
                 let isMatch = false;
                 const isNurse = user.role === 'NURSE' || (user.role === 'CAREGIVER' && user.categories && (user.categories.includes('Nurse') || user.categories.includes('NURSE')));
@@ -2729,6 +3075,10 @@ window.webPackages = {
         };
 
         window.loadAllUsers = async function() {
+            if (window.currentAdminAccess?.role === 'SUPPLIER_ADMIN') {
+                window.renderUsersTable();
+                return;
+            }
             onSnapshot(collection(db, "users"), (snapshot) => {
                 window.allUsersDataMap = {};
                 if (snapshot.empty) return;
@@ -2740,6 +3090,7 @@ window.webPackages = {
                 const container = document.getElementById('caregiver-checkboxes'); let html = ''; let count = 0;
                 Object.values(window.allUsersDataMap).forEach(u => { if ((u.role === 'CAREGIVER' || u.role === 'NURSE') && isApprovedStaff(u)) { count++; html += `<label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-100 cursor-pointer hover:border-orange-300 transition"><input type="checkbox" value="${u.id}" class="cg-checkbox rounded text-orange-500 focus:ring-orange-500"><span class="text-xs font-bold text-gray-700">${u.name} <span class="text-[9px] text-gray-400 font-normal">(${u.rating || 0}⭐)</span></span></label>`; } });
                 container.innerHTML = count > 0 ? html : '<p class="text-xs text-gray-400">No active caregivers found.</p>';
+                window.renderSupplierCaregiverPicker();
             });
         }
 
@@ -3314,7 +3665,10 @@ window.webPackages = {
             const avatar = profileImage
                 ? `<img src="${profileImage}" alt="" style="width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid #e2e8f0;">`
                 : `<div style="width:46px;height:46px;border-radius:50%;background:#f1f5f9;color:#64748b;display:flex;align-items:center;justify-content:center;font-size:22px;border:2px solid #e2e8f0;">👤</div>`;
-            const popupContent = `<div style="min-width:205px;"><div style="display:flex;gap:10px;align-items:center;">${avatar}<div><div class="map-popup-title" style="font-weight:bold;font-size:13px;margin-bottom:4px;">${escapeOps(user.name || 'Unknown')}</div><span class="map-popup-role" style="background-color:${markerColor};color:white;padding:3px 8px;border-radius:4px;font-size:11px;display:inline-block;">${roleDisplay}</span><div style="margin-top:6px;font-size:11px;color:gray;">${escapeOps(user.phone || 'N/A')}</div>${userDistrict ? `<div style="font-size:11px;color:#555;margin-top:3px;">📍 ${escapeOps(userDistrict)}</div>` : ''}</div></div><button type="button" onclick="openMapProfile('${encodedUserId}')" style="width:100%;margin-top:10px;padding:7px 10px;border:0;border-radius:7px;background:#0D3B66;color:white;font-size:11px;font-weight:700;cursor:pointer;">Open Profile</button></div>`;
+            const restrictedSupplier = window.currentAdminAccess?.role === 'SUPPLIER_ADMIN';
+            const privateDetails = restrictedSupplier ? '' : `<div style="margin-top:6px;font-size:11px;color:gray;">${escapeOps(user.phone || 'N/A')}</div>`;
+            const profileAction = restrictedSupplier ? '' : `<button type="button" onclick="openMapProfile('${encodedUserId}')" style="width:100%;margin-top:10px;padding:7px 10px;border:0;border-radius:7px;background:#0D3B66;color:white;font-size:11px;font-weight:700;cursor:pointer;">Open Profile</button>`;
+            const popupContent = `<div style="min-width:205px;"><div style="display:flex;gap:10px;align-items:center;">${avatar}<div><div class="map-popup-title" style="font-weight:bold;font-size:13px;margin-bottom:4px;">${escapeOps(user.name || 'Unknown')}</div><span class="map-popup-role" style="background-color:${markerColor};color:white;padding:3px 8px;border-radius:4px;font-size:11px;display:inline-block;">${roleDisplay}</span>${privateDetails}${userDistrict ? `<div style="font-size:11px;color:#555;margin-top:3px;">📍 ${escapeOps(userDistrict)}</div>` : ''}</div></div>${profileAction}</div>`;
 
             if (markersMap[userId]) {
                 markersMap[userId].setLatLng([lat, lng]);
@@ -3489,6 +3843,10 @@ window.webPackages = {
         }
 
         window.switchTab = function(tabName) {
+            if (!hasDashboardTabAccess(tabName)) {
+                showToast('This dashboard section is not included in your access permissions.', 'error');
+                return;
+            }
             document.getElementById('header-title').innerText = titles[tabName].title; document.getElementById('header-subtitle').innerText = titles[tabName].sub;
             ['overview', 'users', 'verification', 'bookings', 'finance', 'investments', 'webleads', 'manualjobs', 'webcontent', 'callcenter', 'seylanbank', 'special', 'leaves', 'geofence', 'reports', 'map', 'promotions', 'settings'].forEach(t => {
                 document.getElementById(`section-${t}`).classList.add('hidden'); document.getElementById(`tab-${t}`).className = "w-full flex items-center p-3.5 rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white transition font-medium";

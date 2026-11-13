@@ -8,6 +8,7 @@ const { getDatabase } = require('firebase-admin/database');
 const { autoUpdater } = require('electron-updater');
 
 const { ADMIN_EMAIL, deleteUserCompletely } = require('./delete-service');
+const { listDashboardUsers, saveDashboardUser } = require('./dashboard-access-service');
 const { createUpdateManager } = require('./update-service');
 
 const PROJECT_ID = 'care-2a20d';
@@ -201,6 +202,20 @@ function registerIpc() {
       if (user.metadata.creationTime) creationTimes[user.uid] = user.metadata.creationTime;
     });
     return { creationTimes };
+  });
+
+  ipcMain.handle('admin:list-dashboard-users', async (event, request) => {
+    assertLocalRenderer(event);
+    const { auth, db } = await servicesFor();
+    await verifyDesktopAdmin(auth, request?.idToken);
+    return { users: await listDashboardUsers({ auth, db }) };
+  });
+
+  ipcMain.handle('admin:save-dashboard-user', async (event, request) => {
+    assertLocalRenderer(event);
+    const { auth, db } = await servicesFor();
+    const administrator = await verifyDesktopAdmin(auth, request?.idToken);
+    return saveDashboardUser({ auth, db, administrator, request: request?.user });
   });
 
   ipcMain.handle('admin:delete-user-completely', async (event, request) => {

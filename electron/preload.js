@@ -4,6 +4,8 @@ contextBridge.exposeInMainWorld('goldenHandAdmin', Object.freeze({
   getCredentialStatus: () => ipcRenderer.invoke('admin:get-credential-status'),
   configureCredentials: () => ipcRenderer.invoke('admin:configure-credentials'),
   getUserCreationTimes: (request) => ipcRenderer.invoke('admin:get-user-creation-times', request),
+  listDashboardUsers: (request) => ipcRenderer.invoke('admin:list-dashboard-users', request),
+  saveDashboardUser: (request) => ipcRenderer.invoke('admin:save-dashboard-user', request),
   deleteUserCompletely: (request) => ipcRenderer.invoke('admin:delete-user-completely', request),
   openSeylanBank: () => ipcRenderer.invoke('portal:open-seylan'),
   getUpdateStatus: () => ipcRenderer.invoke('updater:get-status'),

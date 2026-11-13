@@ -12,6 +12,22 @@ service cloud.firestore {
         && request.auth.token.email == 'goldenhandcaregivers@gmail.com';
     }
 
+    function isDashboardUser() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/admin_users/$(request.auth.uid));
+    }
+
+    function isActiveSupplierAdmin() {
+      return isDashboardUser()
+        && get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.enabled == true
+        && get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.role == 'SUPPLIER_ADMIN';
+    }
+
+    function supplierManagesCaregiver(uid) {
+      return isActiveSupplierAdmin()
+        && uid in get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.caregiverIds;
+    }
+
     function createsWithoutAdminPricing() {
       return !request.resource.data.keys().hasAny([
         'dailyRate', 'pricingUnit', 'pricingUpdatedAt', 'pricingUpdatedBy'
@@ -124,10 +140,21 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    match /admin_users/{uid} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /admin_audit_logs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
     match /users/{uid} {
-      allow read: if signedIn();
-      allow create: if isAdmin() || (signedIn() && request.auth.uid == uid && createsWithoutAdminPricing());
-      allow update: if isAdmin() || (signedIn() && request.auth.uid == uid && preservesAdminPricing());
+      allow read: if isAdmin()
+        || supplierManagesCaregiver(uid)
+        || (signedIn() && !isDashboardUser());
+      allow create: if isAdmin() || (signedIn() && !isDashboardUser() && request.auth.uid == uid && createsWithoutAdminPricing());
+      allow update: if isAdmin() || (signedIn() && !isDashboardUser() && request.auth.uid == uid && preservesAdminPricing());
       allow delete: if isAdmin();
 
       match /{nestedDocument=**} {
@@ -139,9 +166,11 @@ service cloud.firestore {
     // backend. Signed-in users may browse them; owners may maintain their own
     // profile while the migration to server-only writes is completed.
     match /public_profiles/{uid} {
-      allow read: if signedIn();
-      allow create: if isAdmin() || (signedIn() && request.auth.uid == uid && createsWithoutAdminPricing());
-      allow update: if isAdmin() || (signedIn() && request.auth.uid == uid && preservesAdminPricing());
+      allow read: if isAdmin()
+        || supplierManagesCaregiver(uid)
+        || (signedIn() && !isDashboardUser());
+      allow create: if isAdmin() || (signedIn() && !isDashboardUser() && request.auth.uid == uid && createsWithoutAdminPricing());
+      allow update: if isAdmin() || (signedIn() && !isDashboardUser() && request.auth.uid == uid && preservesAdminPricing());
       allow delete: if isAdmin();
     }
 
@@ -151,8 +180,10 @@ service cloud.firestore {
     }
 
     match /live_locations/{uid} {
-      allow read: if signedIn();
-      allow create, update, delete: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow read: if isAdmin()
+        || supplierManagesCaregiver(uid)
+        || (signedIn() && !isDashboardUser());
+      allow create, update, delete: if isAdmin() || (signedIn() && !isDashboardUser() && request.auth.uid == uid);
     }
 
     // Transitional compatibility rule: the current Android/Flutter clients
@@ -162,10 +193,13 @@ service cloud.firestore {
     // fallback is replaced with strict per-document ownership rules.
     match /{collection}/{document} {
       allow read, write: if signedIn()
+        && !isDashboardUser()
         && collection != 'users'
         && collection != 'public_profiles'
         && collection != 'public_jobs'
-        && collection != 'live_locations';
+        && collection != 'live_locations'
+        && collection != 'admin_users'
+        && collection != 'admin_audit_logs';
     }
   }
 }

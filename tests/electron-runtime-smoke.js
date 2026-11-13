@@ -1,9 +1,12 @@
 const { app, BrowserWindow } = require('electron');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 
 const wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 const resultPath = process.env.GOLDEN_HAND_SMOKE_RESULT;
+app.setPath('userData', path.join(os.tmpdir(), 'golden-hand-admin-smoke'));
+app.disableHardwareAcceleration();
 
 function finish(exitCode, payload) {
   if (resultPath) fs.writeFileSync(resultPath, JSON.stringify(payload, null, 2));
@@ -52,7 +55,10 @@ app.whenReady().then(async () => {
         releaseNotesPopup: typeof showPendingDesktopReleaseNotes,
         approvedStaffHelper: typeof isApprovedStaff,
         registrationFeeRemoved: !document.getElementById('setting-reg-fee') && !document.body.textContent.includes('PENDING FEE'),
-        companyBankSettings: Boolean(document.getElementById('setting-company-account-number'))
+        companyBankSettings: Boolean(document.getElementById('setting-company-account-number')),
+        supplierAccessPanel: Boolean(document.getElementById('dashboard-access-management')),
+        supplierUserSaver: typeof saveDashboardUserAccount,
+        supplierCaregiverPicker: typeof renderSupplierCaregiverPicker,
       };
     })()`);
 
@@ -76,6 +82,9 @@ app.whenReady().then(async () => {
       approvedStaffHelper: 'function',
       registrationFeeRemoved: true,
       companyBankSettings: true,
+      supplierAccessPanel: true,
+      supplierUserSaver: 'function',
+      supplierCaregiverPicker: 'function',
     };
     for (const [key, value] of Object.entries(expected)) {
       if (result[key] !== value) throw new Error(`${key}: expected ${value}, received ${result[key]}`);
